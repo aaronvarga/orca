@@ -1,5 +1,5 @@
 import { runProcess } from '@orca/process-host'
-import { existsSync } from 'node:fs'
+import { stat } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { z } from 'zod'
 import {
@@ -20,16 +20,34 @@ const SymbolImagesSchema = z.record(
 )
 let catalog: Promise<ProjectSymbolCatalog | null> | undefined
 
-function helperPath(): string | null {
+async function helperPath(): Promise<string | null> {
+  if (process.platform !== 'darwin') {
+    return null
+  }
   const devRoot = process.env.ORCA_DEV_REPO_ROOT
-  const devPath =
-    devRoot &&
-    join(devRoot, 'native', 'project-symbols-macos', '.build', 'release', 'orca-project-symbols')
-  const path =
-    devPath && existsSync(devPath)
-      ? devPath
-      : join(dirname(process.execPath), 'orca-project-symbols')
-  return process.platform === 'darwin' && existsSync(path) ? path : null
+  if (devRoot) {
+    const devPath = join(
+      devRoot,
+      'native',
+      'project-symbols-macos',
+      '.build',
+      'release',
+      'orca-project-symbols'
+    )
+    if (
+      await stat(devPath).then(
+        () => true,
+        () => false
+      )
+    ) {
+      return devPath
+    }
+  }
+  const path = join(dirname(process.execPath), 'orca-project-symbols')
+  return stat(path).then(
+    () => path,
+    () => null
+  )
 }
 
 async function runHelper(path: string, args: string[], maxOutputBytes: number): Promise<string> {
@@ -46,10 +64,10 @@ async function runHelper(path: string, args: string[], maxOutputBytes: number): 
   return result.stdout
 }
 
-export function getProjectSymbolCatalog(): Promise<ProjectSymbolCatalog | null> {
-  const path = helperPath()
+export async function getProjectSymbolCatalog(): Promise<ProjectSymbolCatalog | null> {
+  const path = await helperPath()
   if (!path) {
-    return Promise.resolve(null)
+    return null
   }
   return (catalog ??= runHelper(path, ['catalog'], 8 * 1024 * 1024)
     .then((stdout) => ProjectSymbolCatalogSchema.parse(JSON.parse(stdout)))
@@ -61,7 +79,7 @@ export function getProjectSymbolCatalog(): Promise<ProjectSymbolCatalog | null> 
 
 export async function renderProjectSymbols(input: unknown): Promise<Record<string, string>> {
   const names = SymbolNamesSchema.parse(input)
-  const path = helperPath()
+  const path = await helperPath()
   if (!path) {
     return {}
   }

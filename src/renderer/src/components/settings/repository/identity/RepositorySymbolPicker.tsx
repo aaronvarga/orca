@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { Grid2X2, Loader2, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -61,6 +60,8 @@ export function RepositorySymbolPicker({
   const [images, setImages] = useState<Record<string, string>>({})
   const scroll = useRef<HTMLDivElement>(null)
   const [columns, setColumns] = useState(8)
+  const [scrollTop, setScrollTop] = useState(0)
+  const [viewportHeight, setViewportHeight] = useState(400)
   useEffect(() => {
     let active = true
     void (window.api.shell.getProjectSymbolCatalog?.() ?? Promise.resolve(null))
@@ -89,9 +90,10 @@ export function RepositorySymbolPicker({
     if (!element) {
       return
     }
-    const observer = new ResizeObserver(([entry]) =>
+    const observer = new ResizeObserver(([entry]) => {
       setColumns(Math.max(1, Math.floor((entry.contentRect.width + 8) / 48)))
-    )
+      setViewportHeight(entry.contentRect.height)
+    })
     observer.observe(element)
     return () => observer.disconnect()
   }, [catalog])
@@ -103,13 +105,13 @@ export function RepositorySymbolPicker({
         words.every((word) => entry.search.includes(word) || entry.name.includes(word))
     )
   }, [catalog, category, query])
-  const rows = useVirtualizer({
-    count: Math.ceil(entries.length / columns),
-    getScrollElement: () => scroll.current,
-    estimateSize: () => 44,
-    overscan: 2
+  const rowCount = Math.ceil(entries.length / columns)
+  const firstRow = Math.max(0, Math.floor(scrollTop / 44) - 2)
+  const lastRow = Math.min(rowCount, firstRow + Math.ceil(viewportHeight / 44) + 4)
+  const virtualRows = Array.from({ length: Math.max(0, lastRow - firstRow) }, (_, offset) => {
+    const index = firstRow + offset
+    return { index, key: index, start: index * 44 }
   })
-  const virtualRows = rows.getVirtualItems()
   const visibleNames = virtualRows.flatMap((row) =>
     entries.slice(row.index * columns, (row.index + 1) * columns).map((entry) => entry.name)
   )
@@ -158,6 +160,7 @@ export function RepositorySymbolPicker({
   }
   const resetScroll = () => {
     scroll.current?.scrollTo({ top: 0 })
+    setScrollTop(0)
   }
   return (
     <Dialog
@@ -248,7 +251,11 @@ export function RepositorySymbolPicker({
                   {error}
                 </p>
               ) : null}
-              <div ref={scroll} className="scrollbar-sleek relative min-h-0 flex-1 overflow-y-auto">
+              <div
+                ref={scroll}
+                onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+                className="scrollbar-sleek relative min-h-0 flex-1 overflow-y-auto"
+              >
                 {catalog === undefined ? (
                   <Loader2
                     aria-label={t('projectSymbols.loading', 'Loading symbols…')}
@@ -278,7 +285,7 @@ export function RepositorySymbolPicker({
                     {t('projectSymbols.empty', 'No symbols found')}
                   </p>
                 ) : (
-                  <div style={{ height: rows.getTotalSize() }}>
+                  <div style={{ height: rowCount * 44 }}>
                     {virtualRows.map((row) => (
                       <div
                         key={row.key}
