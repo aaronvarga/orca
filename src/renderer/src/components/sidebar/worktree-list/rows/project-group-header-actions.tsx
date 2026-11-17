@@ -1,5 +1,6 @@
-import React from 'react'
-import { Ellipsis, Plus, RefreshCw } from 'lucide-react'
+import { FolderGroupAppearanceDialog } from '../../FolderGroupAppearanceDialog'
+import React, { useState } from 'react'
+import { Ellipsis, Plus, RefreshCw, Palette, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
@@ -29,8 +30,20 @@ export function ProjectGroupHeaderMenu({
   projectGroup,
   onRefreshProjectGroup,
   onRename,
-  onDelete
+  onDelete,
+  open,
+  onOpenChange,
+  reason,
+  children,
+  hideTrigger = false,
+  onCloseAutoFocus
 }: {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  reason?: string | null
+  hideTrigger?: boolean
+  onCloseAutoFocus?: (event: Event) => void
+  children?: React.ReactNode
   groupId: string
   /** Owner host of the group row, so rename/delete route to the host that holds it. */
   hostId?: ExecutionHostId
@@ -41,54 +54,80 @@ export function ProjectGroupHeaderMenu({
   onDelete: (groupId: string, groupName: string, hostId?: ExecutionHostId) => void
 }): React.JSX.Element {
   const t = useTranslate()
+  const [appearanceOpen, setAppearanceOpen] = useState(false)
   const onRefresh = getFolderProjectGroupRefreshHandler(projectGroup, onRefreshProjectGroup)
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          className={REPO_HEADER_ACTION_BUTTON_CLASS}
-          data-repo-header-action=""
-          aria-label={t(
-            'auto.components.sidebar.WorktreeList.79465e9034',
-            'Group actions for {{value0}}',
-            { value0: label }
-          )}
-          onClick={(event) => event.stopPropagation()}
-          onKeyDown={stopRepoHeaderKeyboardToggle}
-          onPointerDown={handleRepoHeaderActionPointerDown}
+    <>
+      <DropdownMenu modal={false} open={open} onOpenChange={onOpenChange}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            className={REPO_HEADER_ACTION_BUTTON_CLASS}
+            style={hideTrigger ? { visibility: 'hidden' } : undefined}
+            tabIndex={hideTrigger ? -1 : undefined}
+            data-repo-header-action=""
+            aria-label={t(
+              'auto.components.sidebar.WorktreeList.79465e9034',
+              'Group actions for {{value0}}',
+              { value0: label }
+            )}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={stopRepoHeaderKeyboardToggle}
+            onPointerDown={handleRepoHeaderActionPointerDown}
+          >
+            <Ellipsis className="size-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          onCloseAutoFocus={onCloseAutoFocus}
+          align="end"
+          side="bottom"
+          sideOffset={6}
+          // Why: Radix portals keep React bubbling through the project header; block menu events from arming row drag/collapse.
+          onPointerDown={stopRepoHeaderMenuEvent}
+          onMouseDown={stopRepoHeaderMenuEvent}
+          onPointerUp={stopRepoHeaderMenuEvent}
+          onMouseUp={stopRepoHeaderMenuEvent}
+          onClick={stopRepoHeaderMenuEvent}
+          onKeyDown={stopRepoHeaderMenuEvent}
         >
-          <Ellipsis className="size-3.5" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        side="bottom"
-        sideOffset={6}
-        // Why: Radix portals keep React bubbling through the project header; block menu events from arming row drag/collapse.
-        onPointerDown={stopRepoHeaderMenuEvent}
-        onMouseDown={stopRepoHeaderMenuEvent}
-        onPointerUp={stopRepoHeaderMenuEvent}
-        onMouseUp={stopRepoHeaderMenuEvent}
-        onClick={stopRepoHeaderMenuEvent}
-        onKeyDown={stopRepoHeaderMenuEvent}
-      >
-        {onRefresh ? (
-          <DropdownMenuItem onSelect={onRefresh}>
-            <RefreshCw className="size-3.5" />
-            {t('auto.components.sidebar.WorktreeList.refreshProjectGroup', 'Refresh projects')}
+          {reason ? (
+            <div role="alert" className="max-w-64 px-2 py-1.5 text-xs text-muted-foreground">
+              {reason}
+            </div>
+          ) : null}
+          {children}
+          {projectGroup ? (
+            <DropdownMenuItem onSelect={() => setAppearanceOpen(true)}>
+              <Palette className="size-4" />
+              {t('sidebar.folderGroupAppearance', 'Group icon and color')}
+            </DropdownMenuItem>
+          ) : null}
+          {onRefresh ? (
+            <DropdownMenuItem onSelect={onRefresh}>
+              <RefreshCw className="size-3.5" />
+              {t('auto.components.sidebar.WorktreeList.refreshProjectGroup', 'Refresh projects')}
+            </DropdownMenuItem>
+          ) : null}
+          <DropdownMenuItem onSelect={() => onRename(groupId, label, hostId)}>
+            <Pencil className="size-4" />
+            {t('auto.components.sidebar.WorktreeList.4d7b73658c', 'Rename group')}
           </DropdownMenuItem>
-        ) : null}
-        <DropdownMenuItem onSelect={() => onRename(groupId, label, hostId)}>
-          {t('auto.components.sidebar.WorktreeList.4d7b73658c', 'Rename group')}
-        </DropdownMenuItem>
-        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(groupId, label, hostId)}>
-          {t('auto.components.sidebar.WorktreeList.902115cdbe', 'Delete group')}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem variant="destructive" onSelect={() => onDelete(groupId, label, hostId)}>
+            <Trash2 className="size-4" />
+            {t('auto.components.sidebar.WorktreeList.902115cdbe', 'Delete group')}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {appearanceOpen && projectGroup ? (
+        <FolderGroupAppearanceDialog
+          group={projectGroup}
+          onClose={() => setAppearanceOpen(false)}
+        />
+      ) : null}
+    </>
   )
 }
 

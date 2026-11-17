@@ -25,6 +25,7 @@ import type { WorkspaceCreationTargetHint } from '@/lib/workspace/creation/proje
 
 export type ComposerTargetStoreModel = {
   initialRepoId: string | undefined
+  initialLaunchLocation?: 'current-checkout' | 'new-worktree'
   initialEphemeralVmRecipeId: string | undefined
   initialName: string
   initialNote: string

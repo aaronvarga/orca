@@ -10,6 +10,8 @@ const textareaVariants = cva('', {
       default: '',
       code: 'font-mono',
       cell: 'h-full min-h-0 resize-none rounded-none border-0 px-2 py-0 font-mono text-xs shadow-none md:text-xs focus-visible:ring-1 focus-visible:ring-inset',
+      'terminal-composer':
+        'resize-none rounded-none border-0 px-1 py-1.5 font-mono text-xs leading-5 shadow-none md:text-xs focus-visible:ring-0 dark:bg-transparent',
       composite:
         'resize-none rounded-none border-0 p-0 font-mono text-xs leading-5 shadow-none md:text-xs focus-visible:ring-0 dark:bg-transparent'
     }

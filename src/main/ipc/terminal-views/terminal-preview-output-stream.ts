@@ -1,6 +1,7 @@
 import type { WebContents } from 'electron'
 import { iterateTerminalInputChunks } from '../../../shared/terminal/input/terminal-input'
 import type {
+  TerminalPreviewConnection,
   TerminalPreviewDataPayload,
   TerminalPreviewReplayChunk
 } from '../../../shared/terminal/replay/terminal-preview'
@@ -66,7 +67,8 @@ export class TerminalPreviewOutputStream {
     readonly contents: WebContents,
     readonly ptyId: string,
     private readonly releaseRawView: () => void,
-    private readonly onDispose: (stream: TerminalPreviewOutputStream) => void
+    private readonly onDispose: (stream: TerminalPreviewOutputStream) => void,
+    readonly connection?: TerminalPreviewConnection
   ) {}
 
   get disposed(): boolean {
@@ -169,7 +171,10 @@ export class TerminalPreviewOutputStream {
       return false
     }
     try {
-      this.contents.send('terminalPreview:data', payload)
+      this.contents.send(
+        'terminalPreview:data',
+        this.connection ? { ...payload, connection: this.connection } : payload
+      )
       return true
     } catch {
       this.dispose()

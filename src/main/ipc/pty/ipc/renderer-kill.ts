@@ -148,9 +148,10 @@ async function stopRendererOwnedPtyProcess(
   }
 }
 
-async function stopFencedRendererPty(
+export async function stopFencedRendererPty(
   deps: PtyKillIpcDeps,
-  args: PtyFencedTerminationRequest | undefined
+  args: PtyFencedTerminationRequest | undefined,
+  beforeKill?: () => void
 ): Promise<PtyFencedTerminationOutcome> {
   if (
     !args ||
@@ -176,6 +177,7 @@ async function stopFencedRendererPty(
       return { outcome: 'refused', reason: 'attached' }
     }
     // Without a runtime to ask about viewers, keep the daemon's attached check.
+    beforeKill?.()
     const result = await provider.killFenced({
       ...args,
       requireUnattached: args.requireUnattached && !deps.runtime

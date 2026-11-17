@@ -125,6 +125,12 @@ export function useComposerSubmitOrchestration(
     telemetrySource: target.composerTargetStore.telemetrySource
   })
   const quickSubmitAction = useQuickSubmitAction({
+    launchLocation: target.workspaceIdentityState.launchLocation,
+    baseBranch: target.workspaceIdentityState.baseBranch,
+    branchNameOverride: target.workspaceIdentityState.branchNameOverride,
+    linkedGitLabMR: target.workspaceIdentityState.linkedGitLabMR,
+    selectedEphemeralVmRecipeId: target.runtimeTargetSelection.selectedEphemeralVmRecipeId,
+    selectedRepoExecutionHostId: target.runtimeTargetSelection.selectedRepoExecutionHostId,
     effectiveLinkedPR: target.derivedComposerState.effectiveLinkedPR,
     executeQuickCreation: quickCreationExecution.executeQuickCreation,
     fallbackCreatureName: target.derivedComposerState.fallbackCreatureName,

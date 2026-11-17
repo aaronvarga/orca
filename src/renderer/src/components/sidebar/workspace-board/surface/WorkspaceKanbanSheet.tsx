@@ -1,3 +1,4 @@
+import { renderedSidebarWidth } from '../../sidebar-geometry'
 import React from 'react'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { isWorkspaceBoardKeepOpenTarget } from './use-workspace-kanban-outside-dismiss'
@@ -32,10 +33,10 @@ export default function WorkspaceKanbanSheet({
   sidebarWidth,
   statusBarVisible
 }: WorkspaceKanbanSheetProps): React.JSX.Element {
-  const drawerLeft = sidebarOpen ? sidebarWidth : 0
+  const drawerLeft = renderedSidebarWidth(sidebarOpen, sidebarWidth)
   const drawerLeftCss = sidebarOpen
     ? `var(--workspace-sidebar-live-width, ${sidebarWidth}px)`
-    : '0px'
+    : `${drawerLeft}px`
   const drawerBottom = `${statusBarVisible ? STATUS_BAR_RESERVE_HEIGHT : 0}px`
   const keepOpenForOutsideEvent = (event: {
     preventDefault: () => void

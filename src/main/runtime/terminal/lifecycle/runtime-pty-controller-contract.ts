@@ -1,5 +1,9 @@
 import type { DaemonLaunchNoteChange } from '../../../daemon/protocol/daemon-launch-note-protocol'
 import type {
+  PtyFencedTerminationRequest,
+  PtyFencedTerminationOutcome
+} from '../../../../shared/terminal/pty/lifecycle/pty-fenced-termination'
+import type {
   TerminalLimitStatus,
   TerminalLimitUpdate
 } from '../../../../shared/terminal/runtime-policy/terminal-limit-policy'
@@ -154,6 +158,10 @@ export type RuntimePtyController = {
   /** Attach existing local daemon output without creating, resizing or focusing; refuse uncertain, SSH-scoped or non-daemon sessions. */
   attach?(ptyId: string): Promise<boolean>
   kill(ptyId: string): boolean
+  killFenced?(
+    request: PtyFencedTerminationRequest,
+    beforeKill?: () => void
+  ): Promise<PtyFencedTerminationOutcome>
   /** `incarnationId` is the rejected spawn's; a same-id respawn since then is left alone. */
   retireRejectedPty?(ptyId: string, stopConfirmed: boolean, incarnationId: string | undefined): void
   stopAndWait?(

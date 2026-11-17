@@ -1,3 +1,4 @@
+import { commandCenterPresentation } from '../../../../../shared/ui-chrome/command-center-presentation'
 import type { PersistedUIState } from '../../../../../shared/orca-profiles/persisted-ui-state-types'
 import type {
   TaskResumeState,
@@ -9,6 +10,7 @@ import { normalizeFeatureInteractions } from '../../../../../shared/feature-educ
 import { normalizeContextualTourIds } from '../../../../../shared/feature-education/contextual-tours/contextual-tours'
 import type { UISlice } from './ui-slice-contract'
 import {
+  sanitizePersistedRepoIds,
   sanitizeAcknowledgedAgentsByPaneKey,
   sanitizeActivityClearedAtByPaneKey,
   sanitizePaneKeyTimestampRecord
@@ -180,5 +182,14 @@ export function hydrateAgentReadState(
     ),
     activityClearedAtByPaneKey: sanitizeActivityClearedAtByPaneKey(ui.activityClearedAtByPaneKey),
     manuallyUnreadTurnsByPaneKey: sanitizePaneKeyTimestampRecord(ui.manuallyUnreadTurnsByPaneKey)
+  }
+}
+
+export function hydrateCommandCenterUI(
+  ui: PersistedUIState
+): Pick<UISlice, 'projectRailSeparators' | 'commandCenterPresentation'> {
+  return {
+    projectRailSeparators: sanitizePersistedRepoIds(ui.projectRailSeparators),
+    commandCenterPresentation: commandCenterPresentation(ui.commandCenterPresentation)
   }
 }

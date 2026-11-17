@@ -270,7 +270,11 @@ export abstract class OrcaRuntimeWithNotifyRemoteTerminalViewPresenceChanged ext
 
   /** Raw keystroke pass-through for the pop-out dashboard's terminal preview.
    *  Honors the mobile-presence lock like the main window's pty:write path. */
-  async writeTerminalPreviewInput(ptyId: string, data: string): Promise<boolean> {
+  async writeTerminalPreviewInput(
+    ptyId: string,
+    data: string,
+    isCurrent: () => boolean = () => true
+  ): Promise<boolean> {
     if (data.length === 0) {
       return false
     }
@@ -278,7 +282,12 @@ export abstract class OrcaRuntimeWithNotifyRemoteTerminalViewPresenceChanged ext
       await assertTerminalInputWithinLimitWithYield(data)
       await this.writeTerminalInputChunks(ptyId, data, {
         inputKind: 'driving',
-        inputSource: 'desktop'
+        inputSource: 'desktop',
+        reserveWrite: () => {
+          if (!isCurrent()) {
+            throw new Error('terminal_handle_stale')
+          }
+        }
       })
       return true
     } catch {

@@ -70,6 +70,8 @@ export function mergeHostWebUIState(
   // All PersistedUIState members are optional; satisfies Record catches newly omitted keys that Pick would accept.
   const pinned = {
     automationHostFilter: local.automationHostFilter,
+    commandCenterPresentation: local.commandCenterPresentation,
+    projectRailSeparators: local.projectRailSeparators,
     hideWorkspacesFromOtherDevices: local.hideWorkspacesFromOtherDevices === true,
     manualRepoOrder: local.manualRepoOrder,
     workspaceHostOrder: local.workspaceHostOrder,

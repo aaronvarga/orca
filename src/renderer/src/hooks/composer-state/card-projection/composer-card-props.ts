@@ -1,3 +1,4 @@
+import { resolveCurrentCheckout } from '@/lib/workspace/creation/current-checkout'
 import { composerSetupCardProps } from './composer-setup-card-props'
 import { resolveComposerAttachmentTarget } from '../attachments/composer-attachment-target'
 import { getAttachmentLabel } from '@/lib/workspace/creation/new-workspace'
@@ -13,6 +14,14 @@ import { useAppStore } from '@/store/index'
 import { composerPickerRepos } from '../workspace-target/composer-picker-repos'
 
 export function buildComposerCardProps(state: ComposerModel) {
+  const useCurrentCheckout =
+    state.launchLocation === 'current-checkout' &&
+    !state.effectiveLinkedPR &&
+    !state.linkedGitLabMR &&
+    !state.baseBranch &&
+    !state.branchNameOverride &&
+    !state.selectedEphemeralVmRecipeId &&
+    !state.isProjectGroupTarget
   const attachmentTarget = resolveComposerAttachmentTarget(state)
   const targetHostId = attachmentTarget.hostId
   const existingBranchWorkspace =
@@ -95,7 +104,6 @@ export function buildComposerCardProps(state: ComposerModel) {
     selectedEphemeralVmRecipeId,
     selectedProjectHostSetupId,
     selectedProjectId,
-    selectedRepo,
     selectedRepoConnectInProgress,
     selectedRepoConnectionId,
     selectedRepoGitHubSourceContext,
@@ -134,17 +142,28 @@ export function buildComposerCardProps(state: ComposerModel) {
     sourceIntentBlocksCreate,
     selectedRepoRequiresConnection,
     selectedTargetNeedsVisibleHost,
-    sparseError
+    sparseError: useCurrentCheckout ? null : sparseError
   })
   const createDisabled = isProjectGroupTarget ? folderCreateDisabled : repoCreateDisabled
+  const checkout =
+    state.selectedRepo && attachmentTarget.hostId
+      ? resolveCurrentCheckout(
+          selectWorktreesByRepo(useAppStore.getState())[state.repoId] ?? [],
+          state.selectedRepo,
+          attachmentTarget.hostId
+        )
+      : null
   const cardProps: ComposerCardSourceProps & ComposerCardActionProps = {
     eligibleRepos: isProjectGroupTarget
       ? folderSourceRepos
       : composerPickerRepos(eligibleRepos, repoId),
     selectedRepo: isProjectGroupTarget
       ? (folderSourceRepos.find((repo) => repo.id === repoId) ?? null)
-      : (selectedRepo ?? null),
+      : (state.selectedRepo ?? null),
     repoId,
+    launchLocation: useCurrentCheckout ? 'current-checkout' : 'new-worktree',
+    onLaunchLocationChange: !isProjectGroupTarget ? state.setLaunchLocation : undefined,
+    checkoutBranch: checkout?.branch,
     projectOptions,
     selectedProjectId,
     selectedRepoIsGit: isProjectGroupTarget ? true : selectedRepoIsGit,
@@ -204,8 +223,7 @@ export function buildComposerCardProps(state: ComposerModel) {
             }
           }
         : undefined,
-    // Create multiple applies to Git worktrees; folder creation still closes afterward.
-    showCreateMultiple: !isProjectGroupTarget,
+    showCreateMultiple: !isProjectGroupTarget && !useCurrentCheckout,
     createMultiple,
     onCreateMultipleChange: setCreateMultiple,
     agentPrompt,
@@ -213,7 +231,6 @@ export function buildComposerCardProps(state: ComposerModel) {
     linkedOnlyTemplatePreview: shouldApplyLinkedOnlyTemplate ? linkedOnlyTemplatePrompt : null,
     attachmentPaths,
     getAttachmentLabel,
-    // Quick create has no attachment display or launch-prompt destination.
     onNativeFileDrop: undefined,
     onAddAttachment: () => void handleAddAttachment(),
     onRemoveAttachment: (pathValue) =>
@@ -250,7 +267,7 @@ export function buildComposerCardProps(state: ComposerModel) {
     selectedRepoPath: attachmentTarget.path,
     selectedRepoIsRemote: isProjectGroupTarget
       ? folderTargetIsRemote
-      : Boolean(selectedRepo?.connectionId),
+      : Boolean(state.selectedRepo?.connectionId),
     selectedRepoConnectionId: isProjectGroupTarget
       ? folderTargetConnectionId
       : selectedRepoConnectionId,
@@ -272,13 +289,14 @@ export function buildComposerCardProps(state: ComposerModel) {
     createError,
     canUseSparseCheckout: isProjectGroupTarget
       ? false
-      : selectedRepoIsGit && !selectedRepo?.connectionId,
+      : selectedRepoIsGit && !state.selectedRepo?.connectionId,
     sparsePresets: isProjectGroupTarget ? [] : sparsePresets,
     sparseSelectedPresetId: isProjectGroupTarget ? null : sparseSelectedPresetId,
     onSparseSelectPreset: isProjectGroupTarget ? () => {} : handleSparseSelectPreset,
-    branchesEnabled: !isProjectGroupTarget,
-    setupControlsEnabled: !isProjectGroupTarget || state.groupSetup.support === 'supported',
-    sparseControlsEnabled: !isProjectGroupTarget
+    branchesEnabled: !isProjectGroupTarget && !useCurrentCheckout,
+    setupControlsEnabled:
+      !useCurrentCheckout && (!isProjectGroupTarget || state.groupSetup.support === 'supported'),
+    sparseControlsEnabled: !isProjectGroupTarget && !useCurrentCheckout
   }
 
   return { cardProps, createDisabled }

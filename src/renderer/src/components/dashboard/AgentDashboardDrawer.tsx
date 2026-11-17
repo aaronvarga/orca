@@ -1,3 +1,4 @@
+import { renderedSidebarWidth } from '@/components/sidebar/sidebar-geometry'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAppStore } from '@/store'
 import type { AgentSubjectReadIntent } from '@/attention/agent-subject-read-actions'
@@ -180,10 +181,10 @@ export function AgentDashboardDrawer({
     return () => document.removeEventListener('keydown', handleKeyDown, true)
   }, [close, open])
 
-  const drawerLeft = sidebarOpen ? sidebarWidth : 0
+  const drawerLeft = renderedSidebarWidth(sidebarOpen, sidebarWidth)
   const drawerLeftCss = sidebarOpen
     ? `var(--workspace-sidebar-live-width, ${sidebarWidth}px)`
-    : '0px'
+    : `${drawerLeft}px`
   // Reserve the same status-row space as App so the portal cannot cover its controls.
   const drawerBottom = `${statusBarVisible ? STATUS_BAR_RESERVE_HEIGHT : 0}px`
 

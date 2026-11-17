@@ -5,6 +5,7 @@ type PreviewBoxFitTerminal = Pick<Terminal, 'rows' | 'buffer'>
 
 /** Replay at real PTY dimensions to avoid ANSI rewrap corruption; scale oversized frames and anchor the end containing the cursor. */
 export function createPreviewBoxFit(args: {
+  scaleToFit?: boolean
   container: HTMLElement
   getTerminal: () => PreviewBoxFitTerminal | null
 }): { fit: () => void; schedule: () => void; dispose: () => void } {
@@ -17,7 +18,8 @@ export function createPreviewBoxFit(args: {
     if (!screen || !box || !terminal) {
       return
     }
-    const scale = Math.min(1, box.clientWidth / Math.max(1, screen.offsetWidth))
+    const scale =
+      args.scaleToFit === false ? 1 : Math.min(1, box.clientWidth / Math.max(1, screen.offsetWidth))
     args.container.style.transform = scale < 1 ? `scale(${scale})` : ''
     const cellHeight = screen.offsetHeight / Math.max(1, terminal.rows)
     const cursorBottom = (terminal.buffer.active.cursorY + 1) * cellHeight * scale

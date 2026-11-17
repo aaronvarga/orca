@@ -1,3 +1,4 @@
+import { launchCurrentCheckoutSession } from './current-checkout-session'
 import { useAppStore } from '@/store/index'
 import {
   findPendingLinkedWorkItemCreationId,
@@ -29,7 +30,11 @@ type ContinueBackgroundWorktreeCreationOptions = {
 // Contain fire-and-forget rejections or pending creation UI remains stuck without errors.
 function startWorktreeCreation(creationId: string, request: WorktreeCreationRequest): void {
   const originView = useAppStore.getState().activeView
-  executeWorktreeCreation(creationId, request, originView).catch((error: unknown) => {
+  const execution =
+    request.launchLocation?.kind === 'current-checkout'
+      ? launchCurrentCheckoutSession(creationId, request)
+      : executeWorktreeCreation(creationId, request, originView)
+  execution.catch((error: unknown) => {
     console.error('worktree create: unhandled failure', creationId, error)
     const store = useAppStore.getState()
     if (!store.pendingWorktreeCreations[creationId]) {

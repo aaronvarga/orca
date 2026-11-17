@@ -1,3 +1,4 @@
+import { assertLinkedWorkItemCapability } from '@/runtime/workspace-links/runtime-linked-work-item-capabilities'
 import type { QuickCreationExecutionInput } from '../composer-model'
 
 import { resolveQuickCreateLinkedWorkItemPrompt } from '@/lib/work-items/linked-work-item-context'
@@ -55,12 +56,17 @@ export function useQuickCreationExecution(input: QuickCreationExecutionInput) {
       workspaceRunContext: WorktreeCreationRequest['workspaceRunContext'],
       repoId: string,
       options?: QuickSubmitOptions,
-      handoff?: ComposerCreateHandoff
+      handoff?: ComposerCreateHandoff,
+      launchLocation?: WorktreeCreationRequest['launchLocation']
     ): Promise<void> => {
+      if (smartGitHubResolution.kind === 'pr-start-point') {
+        launchLocation = { kind: 'new-worktree' }
+      }
       const prepared = await prepareQuickSubmit(
         smartGitHubResolution,
         requestedAgent,
-        workspaceNameSeed
+        workspaceNameSeed,
+        launchLocation
       )
 
       if (!prepared) {
@@ -90,13 +96,20 @@ export function useQuickCreationExecution(input: QuickCreationExecutionInput) {
         trimmedNote
       } = prepared
 
+      await assertLinkedWorkItemCapability(selectedRepoTarget ?? { kind: 'local' }, {
+        linkedWorkItem: submitLinkedWorkItem,
+        linkedTaskSourceContext: taskSourceContext
+      })
+
       const promptLinkedWorkItem = agent === null ? null : submitLinkedWorkItem
 
       const { prompt: quickPrompt, draftPrompt: quickDraftPrompt } =
         resolveQuickCreateLinkedWorkItemPrompt(promptLinkedWorkItem, trimmedNote)
 
       const startupPolicySettlement = await settleComposerSubmit(
-        persistSetupAgentStartupPolicy(),
+        launchLocation?.kind === 'current-checkout'
+          ? Promise.resolve(true)
+          : persistSetupAgentStartupPolicy(),
         isSubmissionCancelled
       )
 
@@ -241,10 +254,13 @@ export function useQuickCreationExecution(input: QuickCreationExecutionInput) {
         setupOnly: options?.setupOnly === true
       })
 
+      request.launchLocation = launchLocation
+
       if (isSubmissionCancelled()) {
         return
       }
 
+      await assertLinkedWorkItemCapability(selectedRepoTarget ?? { kind: 'local' }, request)
       if (persistDraft) {
         clearNewWorkspaceDraft()
       }

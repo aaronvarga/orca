@@ -82,6 +82,7 @@ describe('New Child Worktree ownership', () => {
         initialRepoId: 'project',
         initialWorkspaceTarget: { projectId: 'repo:project', hostId: 'local' },
         initialParentWorktreeId: 'project::/parent',
+        initialLaunchLocation: 'new-worktree',
         telemetrySource: 'sidebar'
       }
     })
@@ -119,6 +120,7 @@ describe('New Child Worktree ownership', () => {
           projectHostSetupId: 'server-a-setup'
         },
         initialParentWorktreeId: 'project::/parent',
+        initialLaunchLocation: 'new-worktree',
         telemetrySource: 'sidebar'
       }
     })

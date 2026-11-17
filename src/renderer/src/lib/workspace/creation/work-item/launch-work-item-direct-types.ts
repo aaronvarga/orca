@@ -31,6 +31,7 @@ export type LaunchableWorkItem = {
 }
 
 export type LaunchWorkItemDirectArgs = {
+  launchLocation?: 'current-checkout' | 'new-worktree'
   signal?: AbortSignal
   onCreateAccepted?: () => void
   onFailureNotified?: () => void

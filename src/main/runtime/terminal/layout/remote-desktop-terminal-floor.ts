@@ -144,7 +144,7 @@ export class RemoteDesktopTerminalFloor {
       prior.rows === viewport.rows &&
       (!claims || this.owners.get(ptyId) === subscriptionKey)
     ) {
-      if (claims && this.owners.get(ptyId) === subscriptionKey) {
+      if (this.owners.get(ptyId) === subscriptionKey) {
         const size = this.dependencies.getTerminalSize(ptyId)
         if (size?.cols !== viewport.cols || size.rows !== viewport.rows) {
           return this.applyLayout(ptyId)
@@ -159,7 +159,7 @@ export class RemoteDesktopTerminalFloor {
       this.setOwner(ptyId, subscriptionKey)
       return this.applyLayout(ptyId)
     }
-    return true
+    return this.owners.get(ptyId) === subscriptionKey ? this.applyLayout(ptyId) : true
   }
 
   claimViewer(ptyId: string, subscriptionKey: string): Promise<boolean> {

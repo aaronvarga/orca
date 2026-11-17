@@ -1,3 +1,5 @@
+import { assertLinkedWorkItemCapability } from '@/runtime/workspace-links/runtime-linked-work-item-capabilities'
+import { runtimeTargetForOwnerEnvironment } from '@/runtime/rpc/targets/runtime-client-target'
 import { projectGroupHookOwner } from '../../../../../shared/workspace-setup/hooks/workspace-hook-owner'
 import { getRepoExecutionHostId } from '../../../../../shared/execution-host/execution-host'
 import { PROJECT_GROUP_FOLDER_SETUP_RUNTIME_CAPABILITY } from '../../../../../shared/remote-runtime/protocol/worktree-runtime-capabilities'
@@ -107,6 +109,13 @@ export function useFolderSubmitOrchestration(input: FolderSubmitOrchestrationInp
           requestedAgent && isTuiAgentEnabled(requestedAgent, disabledTuiAgents)
             ? requestedAgent
             : null
+        if (isSubmissionCancelled()) {
+          return
+        }
+        await assertLinkedWorkItemCapability(
+          runtimeTargetForOwnerEnvironment(folderTargetRuntimeEnvironmentId),
+          { linkedWorkItem: submitLinkedWorkItem, linkedTaskSourceContext: taskSourceContext }
+        )
         if (isSubmissionCancelled()) {
           return
         }

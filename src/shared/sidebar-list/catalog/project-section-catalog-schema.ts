@@ -1,3 +1,4 @@
+import { sanitizeRepoIcon } from '../../repository/appearance/repo-icon'
 import * as z from 'zod'
 import { normalizeExecutionHostId } from '../../execution-host/execution-host'
 import type { ProjectHostSetupMethod } from '../../project/project-types'
@@ -77,6 +78,11 @@ export const ProjectGroupSchema = z.object({
   createdFrom: z.enum(PROJECT_GROUP_CREATED_FROM_ARMS).catch('manual'),
   tabOrder: z.number(),
   rootProjectOrder: salvagedOptional('rootProjectOrder', z.number().finite()),
+  repoIcon: z
+    .unknown()
+    .transform((value) => sanitizeRepoIcon(value))
+    .optional(),
+  hiddenAt: salvagedOptional('hiddenAt', z.number().positive().finite()),
   isCollapsed: z.boolean(),
   color: z.string().nullable(),
   createdAt: z.number(),

@@ -1,3 +1,5 @@
+import { WorkspacePaneToolbar } from '@/components/tab-group/panel/WorkspacePaneToolbar'
+import { useAppStore } from '@/store'
 import type { PaneTitleOverlayRect } from './pane-title-overlay-rects'
 import { ImeInput } from '@/lib/text-input/ime/ime-text-field'
 import type { CSSProperties, RefObject } from 'react'
@@ -100,6 +102,12 @@ export default function TerminalPaneHeaderOverlay({
   onRenameBlur
 }: TerminalPaneHeaderOverlayProps): React.JSX.Element {
   const t = useTranslate()
+  const groupId = useAppStore(
+    (state) =>
+      state.unifiedTabsByWorktree[worktreeId]?.find(
+        (tab) => tab.contentType === 'terminal' && tab.entityId === tabId
+      )?.groupId
+  )
   const splitRightLabel = t(
     'auto.components.terminal.pane.TerminalContextMenu.20e565d865',
     'Split Terminal Right'
@@ -225,7 +233,7 @@ export default function TerminalPaneHeaderOverlay({
                             onContinueAgentSessionInNewSession?.(pane)
                           }}
                         >
-                          <MessageSquarePlus className="size-3" />
+                          <MessageSquarePlus className="size-3.5" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={4}>
@@ -252,7 +260,7 @@ export default function TerminalPaneHeaderOverlay({
                             onShowTerminal?.()
                           }}
                         >
-                          <SquareTerminal className="size-3" />
+                          <SquareTerminal className="size-3.5" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={4}>
@@ -266,7 +274,17 @@ export default function TerminalPaneHeaderOverlay({
                       paneKey={makePaneKey(tabId, pane.leafId)}
                     />
                   ) : null}
-                  {showAlwaysOnHeaders && showSplitButton ? (
+                  {showAlwaysOnHeaders && showSplitButton && groupId ? (
+                    <WorkspacePaneToolbar
+                      worktreeId={worktreeId}
+                      groupId={groupId}
+                      onClose={() => onClosePane(pane.id)}
+                      canClose={showCloseButton}
+                      onEqualize={
+                        paneCount > 1 ? () => managerRef.current?.equalizePaneSizes() : undefined
+                      }
+                    />
+                  ) : showAlwaysOnHeaders && showSplitButton ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -282,7 +300,7 @@ export default function TerminalPaneHeaderOverlay({
                             onSplitPane(pane, 'vertical')
                           }}
                         >
-                          <SquareSplitVertical className="size-3" />
+                          <SquareSplitVertical className="size-3.5" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={4}>
@@ -307,7 +325,7 @@ export default function TerminalPaneHeaderOverlay({
                             { value0: title }
                           )}
                         >
-                          <X className="size-3" />
+                          <X className="size-3.5" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={4}>
@@ -315,7 +333,7 @@ export default function TerminalPaneHeaderOverlay({
                       </TooltipContent>
                     </Tooltip>
                   ) : null}
-                  {showCloseButton ? (
+                  {showCloseButton && !(showAlwaysOnHeaders && showSplitButton && groupId) ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -328,7 +346,7 @@ export default function TerminalPaneHeaderOverlay({
                           }}
                           aria-label={closeLabel}
                         >
-                          <X className="size-3" />
+                          <X className="size-3.5" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={4}>

@@ -1,6 +1,5 @@
 import type { Terminal } from '@xterm/xterm'
 import { clampTerminalViewport } from '../../../../../../shared/terminal/viewport/terminal-viewport'
-import { terminalPreviewApiFor } from '../transport/terminal-preview-api'
 
 const FIT_REQUEST_DEBOUNCE_MS = 200
 /** Claim the dialog-sized PTY grid once per target size; unchanged requests must not fight a host or phone reclaiming geometry. */
@@ -8,10 +7,12 @@ export function createPreviewGridClaim(args: {
   ptyId: string
   container: HTMLElement
   getTerminal: () => Terminal | null
-}): { schedule: () => void; dispose: () => void } {
+  fit: (cols: number, rows: number, intent: 'passive' | 'claim') => Promise<unknown>
+}): { schedule: (intent?: 'passive' | 'claim') => void; dispose: () => void } {
   let lastRequestedFit: string | null = null
   let timer: ReturnType<typeof setTimeout> | null = null
   let disposed = false
+  let pendingIntent: 'passive' | 'claim' = 'passive'
 
   const request = (): void => {
     const terminal = args.getTerminal()
@@ -41,17 +42,20 @@ export function createPreviewGridClaim(args: {
       Math.floor(box.clientHeight / cellHeight)
     )
     const fitKey = `${cols}x${rows}`
-    if (fitKey === lastRequestedFit) {
+    if (fitKey === lastRequestedFit && pendingIntent === 'passive') {
       return
     }
     lastRequestedFit = fitKey
     // Successful claims trigger resync with the new grid; rejected claims keep the scaled fallback correct.
-    void terminalPreviewApiFor(args.ptyId)
-      .fit(args.ptyId, cols, rows)
-      .catch(() => undefined)
+    const intent = pendingIntent
+    pendingIntent = 'passive'
+    void args.fit(cols, rows, intent).catch(() => undefined)
   }
 
-  const schedule = (): void => {
+  const schedule = (intent: 'passive' | 'claim' = 'passive'): void => {
+    if (intent === 'claim') {
+      pendingIntent = 'claim'
+    }
     if (disposed) {
       return
     }

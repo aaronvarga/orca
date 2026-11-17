@@ -67,7 +67,11 @@ export function createWorktreeJumpPaletteWorktreeHandler({
       closeModal()
       recordFeatureInteraction('cmd-j-create-workspace')
       queueMicrotask(() =>
-        openModal('new-workspace-composer', { ...data, telemetrySource: 'command_palette' })
+        openModal('new-workspace-composer', {
+          ...data,
+          initialLaunchLocation: 'new-worktree',
+          telemetrySource: 'command_palette'
+        })
       )
     }
 
@@ -112,7 +116,11 @@ export function createWorktreeJumpPaletteWorktreeHandler({
             )
             closeModal()
             recordFeatureInteraction('cmd-j-create-workspace')
-            openModal('new-workspace-composer', { ...data, telemetrySource: 'command_palette' })
+            openModal('new-workspace-composer', {
+              ...data,
+              initialLaunchLocation: 'new-worktree',
+              telemetrySource: 'command_palette'
+            })
             return true
           })
         })
@@ -247,6 +255,7 @@ export function createWorktreeJumpPaletteWorktreeHandler({
             : null
           queueMicrotask(() =>
             openModal('new-workspace-composer', {
+              initialLaunchLocation: 'new-worktree',
               initialRepoId: repo.id,
               ...(linkedWorkItem
                 ? {
@@ -264,6 +273,7 @@ export function createWorktreeJumpPaletteWorktreeHandler({
           if (createLookupGuard.isCurrent(token)) {
             queueMicrotask(() =>
               openModal('new-workspace-composer', {
+                initialLaunchLocation: 'new-worktree',
                 initialRepoId: repo.id,
                 prefilledName: trimmed,
                 telemetrySource: 'command_palette'

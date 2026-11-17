@@ -42,6 +42,36 @@ describe('Flat folder-scan project groups adaptation', () => {
     rmSync(testState.dir, { recursive: true, force: true })
   })
 
+  it('keeps folder group visibility and appearance through restart and allows showing it again', async () => {
+    const store = createStore()
+    const group = store.createProjectGroup({
+      name: 'Clients',
+      parentPath: testState.dir,
+      createdFrom: 'manual'
+    })
+    store.updateProjectGroup(group.id, {
+      hiddenAt: 1234,
+      repoIcon: { type: 'lucide', name: 'Briefcase' },
+      color: '#126bf0'
+    })
+    store.flush()
+    await closeTestStores()
+    const reloaded = createStore()
+    expect(reloaded.getProjectGroups().find((row) => row.id === group.id)?.hiddenAt).toBe(1234)
+    expect(reloaded.getProjectGroups().find((row) => row.id === group.id)).toMatchObject({
+      repoIcon: { type: 'lucide', name: 'Briefcase' },
+      color: '#126bf0'
+    })
+    reloaded.updateProjectGroup(group.id, { hiddenAt: null })
+    reloaded.flush()
+    await closeTestStores()
+    expect(
+      createStore()
+        .getProjectGroups()
+        .find((row) => row.id === group.id)?.hiddenAt
+    ).toBeUndefined()
+  })
+
   it('retains old group defaults and locally configured hooks through restart', async () => {
     const store = createStore()
     const old = store.createProjectGroup({

@@ -148,6 +148,7 @@ function QuickTabBody({
     initialTaskSourceContext: modalData.taskSourceContext ?? null,
     initialWorkspaceTarget: modalData.initialWorkspaceTarget ?? null,
     initialRepoId: modalData.initialRepoId,
+    initialLaunchLocation: modalData.initialLaunchLocation,
     initialEphemeralVmRecipeId: modalData.initialEphemeralVmRecipeId,
     initialProjectGroupId: modalData.initialProjectGroupId,
     initialWorkspaceStatus: modalData.initialWorkspaceStatus,

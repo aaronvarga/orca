@@ -83,6 +83,8 @@ export const UI_STATE_DISPOSITIONS = {
 
 export const UI_STATE_GLOBAL_FIELDS = [
   'activeView',
+  'commandCenterPresentation',
+  'projectRailSeparators',
   'sidebarWidth',
   'sidebarOpen',
   'rightSidebarOpen',

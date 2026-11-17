@@ -52,6 +52,7 @@ const StructuredAgentSessionOverlaySlot = memo(function StructuredAgentSessionOv
   }
   return (
     <RetainedPaneHost
+      worktreeId={tab.worktreeId}
       groupId={groupId}
       isVisible={isActive}
       // Why not over a backdrop: dimming the translucent chat also dims its text.

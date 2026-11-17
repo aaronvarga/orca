@@ -39,6 +39,9 @@ export type WorktreeCreationProgressMode = 'stepped' | 'indeterminate'
 /** Session-only creation intent, including script checks and compatibility planning retained for Retry. */
 export type WorktreeCreationRequest = {
   repoId: string
+  launchLocation?:
+    | { kind: 'current-checkout'; worktreeId: string; path: string; hostId: ExecutionHostId }
+    | { kind: 'new-worktree' }
   /** Execution owner retained after script preparation, including retries. */
   executionHostId?: ExecutionHostId
   // Preserve linked-task source ownership separately from execution context so Retry never infers account from run host.
@@ -250,7 +253,7 @@ export function findPendingLinkedWorkItemCreationId(
   pendingCreations: Readonly<Record<string, PendingWorktreeCreation>>,
   request: Pick<
     WorktreeCreationRequest,
-    'repoId' | 'linkedIssue' | 'linkedPR' | 'workspaceRunContext'
+    'repoId' | 'linkedIssue' | 'linkedPR' | 'workspaceRunContext' | 'launchLocation'
   >
 ): string | null {
   if (request.linkedIssue == null && request.linkedPR == null) {
@@ -260,6 +263,12 @@ export function findPendingLinkedWorkItemCreationId(
   const match = Object.values(pendingCreations).find((entry) => {
     const pending = entry.request
     return (
+      (pending.launchLocation?.kind ?? 'new-worktree') ===
+        (request.launchLocation?.kind ?? 'new-worktree') &&
+      (request.launchLocation?.kind !== 'current-checkout' ||
+        (pending.launchLocation?.kind === 'current-checkout' &&
+          pending.launchLocation.hostId === request.launchLocation.hostId &&
+          pending.launchLocation.path === request.launchLocation.path)) &&
       pending.repoId === request.repoId &&
       pending.linkedIssue === request.linkedIssue &&
       pending.linkedPR === request.linkedPR &&
@@ -286,6 +295,9 @@ export function getCreationProgressLabel(
   >,
   t: Translate = translate
 ): string {
+  if (entry.request.launchLocation?.kind === 'current-checkout') {
+    return t('workspace.startingSession', 'Starting session…')
+  }
   const checkout = getVisibleCheckoutProgress(entry)
   if (checkout) {
     return t(

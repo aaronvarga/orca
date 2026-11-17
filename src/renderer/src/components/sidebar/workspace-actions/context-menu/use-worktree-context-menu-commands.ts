@@ -173,6 +173,7 @@ export function useWorktreeContextMenuCommands(args: {
       initialRepoId: repo.id,
       initialWorkspaceTarget: getRepoWorkspaceCreationTargetHint(repo, state.projectHostSetups),
       initialParentWorktreeId: args.worktree.id,
+      initialLaunchLocation: 'new-worktree',
       telemetrySource: 'sidebar'
     })
   }, [args])

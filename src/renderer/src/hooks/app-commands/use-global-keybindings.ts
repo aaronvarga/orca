@@ -10,7 +10,10 @@ import {
   findPluginCommandForKeybinding,
   globalShortcutTargetYields
 } from '@/lib/plugins/commands/plugin-command-keybindings'
-import { shouldMinimizeFloatingWorkspacePanelOnCloseShortcut } from '@/components/floating-terminal/workspace/floating-workspace-terminal-actions'
+import {
+  isEventTargetInsideFloatingWorkspacePanel,
+  shouldMinimizeFloatingWorkspacePanelOnCloseShortcut
+} from '@/components/floating-terminal/workspace/floating-workspace-terminal-actions'
 import { showTerminalShortcutCaptureNotification } from '@/lib/notifications/terminal-shortcut-capture-notification'
 import {
   folderRelativePathToIncludeGlob,
@@ -173,6 +176,8 @@ export function useGlobalKeybindings(args: {
       // An empty floating workspace has no tab to close, so Cmd/Ctrl+W hides the overlay before other surfaces act.
       if (
         !isAgentTerminalPreviewTarget(input.target) &&
+        (activeView !== 'command-center' ||
+          isEventTargetInsideFloatingWorkspacePanel(input.target)) &&
         keybindingMatchesAction('tab.close', input, shortcutPlatform, keybindings, {
           context: 'app'
         }) &&

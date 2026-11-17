@@ -1,3 +1,4 @@
+import { assertLinkedWorkItemCapability } from '@/runtime/workspace-links/runtime-linked-work-item-capabilities'
 import { createFolderWorkspaceCreateAction } from './folder-workspace-creation'
 import { createFolderWorkspaceDeleteAction } from './folder-workspace-removal'
 import { assertWorkspaceAttachmentWriteCapability } from '../../runtime/workspace-links/runtime-workspace-attachment-capabilities'
@@ -109,6 +110,7 @@ export function createFolderWorkspaceMutationActions(
           'Update the remote runtime to link Jira'
         )
       }
+      await assertLinkedWorkItemCapability(target, updates)
       const updateTicket = folderWorkspaceUpdates.begin(
         updateIdentity,
         Object.keys(updates) as FolderWorkspaceUpdateField[]

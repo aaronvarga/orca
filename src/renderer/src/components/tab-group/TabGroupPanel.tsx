@@ -1,3 +1,4 @@
+import { usePanePresentationStyle } from './panel/use-workspace-pane-presentation'
 import { Suspense, useCallback, useMemo, useRef } from 'react'
 import { lazyWithRetry as lazy } from '@/app-shell/startup/lazy-with-retry'
 import { useDroppable } from '@dnd-kit/core'
@@ -31,7 +32,6 @@ import { BotPausedBanner } from '../bots/BotPausedBanner'
 import { useWindowBackdropActive } from '@/app-shell/appearance/window-backdrop'
 import { EditorRevealFlash } from './editor-reveal/EditorRevealFlash'
 import { SplitPaneLanding } from './landing/SplitPaneLanding'
-import { isSplitLandingGroup } from '@/store/slices/tabs/split-landing-groups'
 
 const EditorPanel = lazy(() => import('../editor/EditorPanel'))
 const EMPTY_GROUPS: readonly TabGroup[] = []
@@ -79,6 +79,7 @@ export default function TabGroupPanel({
   hoveredTabInsertion?: HoveredTabInsertion | null
 }): React.JSX.Element {
   const t = useTranslate()
+  const { setElement, floating, style } = usePanePresentationStyle(worktreeId, groupId, isVisible)
   const rightSidebarOpen = useAppStore((state) => state.rightSidebarOpen)
   const sidebarOpen = useAppStore((state) => state.sidebarOpen)
   const reserveRightTitlebarSpace = reserveClosedExplorerToggleSpace && !rightSidebarOpen
@@ -87,6 +88,7 @@ export default function TabGroupPanel({
   const bot = useBotForWorkspace(reserveClosedExplorerToggleSpace ? worktreeId : null)
   const quickCommandsSlotRef = useRef<HTMLDivElement>(null)
   const {
+    showsSplitLanding,
     activeTab,
     agentSessionItems,
     browserItems,
@@ -95,9 +97,6 @@ export default function TabGroupPanel({
     tabBarOrder,
     terminalTabs
   } = model
-  const showsSplitLanding = useAppStore((state) =>
-    isSplitLandingGroup(state, worktreeId, model.group ?? undefined)
-  )
   // Why: one strip owns the worktree's client-hosted rows, or every split repeats them.
   const ownsClientHostedRows = useAppStore(
     (state) =>
@@ -257,6 +256,8 @@ export default function TabGroupPanel({
   )
   return (
     <div
+      ref={setElement}
+      data-pane-floating={floating || undefined}
       // Dim unfocused splits only when siblings exist; keep vertical seams neutral and change only the bottom focus border.
       className={`group/tab-group relative flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden${
         hasSplitGroups
@@ -269,13 +270,14 @@ export default function TabGroupPanel({
               isFocused && !touchesBottomEdge && !suppressBottomBorder ? 'border-b-accent' : ''
             }`
           : ''
-      }`}
+      }${floating ? ' rounded-md border border-border bg-background shadow-floating max-w-[calc(100vw-1rem)] max-h-[calc(100dvh-4rem)]' : ''}`}
       // Why not over a window backdrop (material or theme image): group opacity would let it bleed through opaque chrome.
-      style={
-        hasSplitGroups && !isFocused && !backdropActive
+      style={{
+        ...(hasSplitGroups && !isFocused && !backdropActive
           ? { opacity: UNFOCUSED_SPLIT_GROUP_OPACITY }
-          : undefined
-      }
+          : {}),
+        ...style
+      }}
       onPointerDown={commands.focusGroup}
       // Why: keyboard/AT focus can enter a split group without a pointer event, so sync group focus to DOM focus for global shortcuts.
       onFocusCapture={commands.focusGroup}

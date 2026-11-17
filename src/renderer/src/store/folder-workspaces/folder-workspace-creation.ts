@@ -1,9 +1,14 @@
+import { assertLinkedWorkItemCapability } from '@/runtime/workspace-links/runtime-linked-work-item-capabilities'
+import { translate } from '@/i18n/i18n'
 import type { StateCreator } from 'zustand'
 import type { AppState } from '../types'
 import type { RepoSlice } from '../repos/repo-state'
 import type { FolderWorkspaceCreateResult } from '../../../../shared/folder-workspaces/folder-workspace-create'
 import { assertWorkspaceAttachmentWriteCapability } from '../../runtime/workspace-links/runtime-workspace-attachment-capabilities'
-import { WORKTREE_LINKED_WORK_ITEM_CONTEXT_RUNTIME_CAPABILITY } from '../../../../shared/remote-runtime/protocol/worktree-runtime-capabilities'
+import {
+  FOLDER_WORKSPACE_SESSION_CHOOSER_RUNTIME_CAPABILITY,
+  WORKTREE_LINKED_WORK_ITEM_CONTEXT_RUNTIME_CAPABILITY
+} from '../../../../shared/remote-runtime/protocol/worktree-runtime-capabilities'
 import { assertRuntimeEnvironmentCapability } from '../../runtime/rpc/compatibility/runtime-capability-proof'
 import { callRuntimeRpc } from '../../runtime/rpc/calls/runtime-rpc-call'
 import { runtimeTargetForOwnerEnvironment } from '../../runtime/rpc/targets/runtime-client-target'
@@ -22,7 +27,18 @@ export function createFolderWorkspaceCreateAction(
     try {
       // Why: a new folder has no row yet, so creation goes to the host the caller picked.
       const target = runtimeTargetForOwnerEnvironment(options.runtimeEnvironmentId)
+      if (args.initialSurface === 'chooser' && target.kind === 'environment') {
+        await assertRuntimeEnvironmentCapability(
+          target.environmentId,
+          FOLDER_WORKSPACE_SESSION_CHOOSER_RUNTIME_CAPABILITY,
+          translate(
+            'sidebar.folderGroupHostNeedsUpdate',
+            'Update the remote runtime to open folders without starting a session.'
+          )
+        )
+      }
       await assertWorkspaceAttachmentWriteCapability(target, args)
+      await assertLinkedWorkItemCapability(target, args)
       if (
         target.kind === 'environment' &&
         (args.linkedTask?.provider === 'jira' || args.linkedTaskSourceContext?.provider === 'jira')

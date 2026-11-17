@@ -51,7 +51,8 @@ export function useQuickSubmitPreparation(input: QuickSubmitPreparationInput) {
     async (
       smartGitHubResolution: PendingSmartGitHubSubmitResolution,
       requestedAgent: TuiAgent | null,
-      workspaceNameSeed: string
+      workspaceNameSeed: string,
+      launchLocation?: WorktreeCreationRequest['launchLocation']
     ) => {
       const source = prepareQuickSubmitSource(
         smartGitHubResolution,
@@ -72,6 +73,21 @@ export function useQuickSubmitPreparation(input: QuickSubmitPreparationInput) {
         smartSubmitBaseBranch,
         submitBranchNameOverride
       } = source
+
+      if (launchLocation?.kind === 'current-checkout') {
+        return Object.assign(source, {
+          effectiveSetupDecision: 'skip' as const,
+          hookPreparation: undefined,
+          linkedLinearIssue: undefined,
+          linkedLinearIssueWorkspaceId: undefined,
+          linkedLinearIssueOrganizationUrlKey: undefined,
+          effectiveBranchNameOverride: undefined,
+          submitBaseBranch: undefined,
+          createDisplayName: undefined,
+          pendingFirstAgentMessageRename: false,
+          trimmedNote: note.trim()
+        })
+      }
 
       let submitSetupConfig = setupConfig
 

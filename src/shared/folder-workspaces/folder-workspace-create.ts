@@ -6,6 +6,7 @@ import type { AgentLaunchPreferences } from '../agent-session/lifecycle/operatio
 
 export type FolderWorkspaceCreateInput = {
   projectGroupId: string
+  initialSurface?: 'chooser'
   name?: string
   folderPath?: string | null
   connectionId?: string | null

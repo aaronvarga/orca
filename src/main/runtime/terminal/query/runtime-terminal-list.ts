@@ -158,7 +158,11 @@ export class RuntimeTerminalList {
     const matching = requestedHandles
       ? terminals.filter((terminal) => requestedHandles.has(terminal.handle))
       : terminals
-    const listed = matching.slice(0, limit)
+    const listed = matching
+      .slice(0, limit)
+      .map((terminal) =>
+        opts.requireFreshPtyLiveness ? { ...terminal, verdict: 'live' as const } : terminal
+      )
     const snapshots = this.deps.getSnapshots()
     const visualLayouts =
       opts.includeVisualLayouts === false

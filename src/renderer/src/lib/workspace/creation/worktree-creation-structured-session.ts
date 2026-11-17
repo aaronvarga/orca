@@ -203,7 +203,15 @@ export async function launchStructuredWorktreeSession(
       plan,
       hooks: { signal: abandoned.signal },
       declinedTerminal: { agentArgs: args.request.launchInputs?.agentArgs },
-      target: { worktreeId: args.worktreeId },
+      target: {
+        worktreeId: args.worktreeId,
+        executionHostId:
+          request.workspaceRunContext?.hostId ??
+          request.executionHostId ??
+          (request.launchLocation?.kind === 'current-checkout'
+            ? request.launchLocation.hostId
+            : undefined)
+      },
       activate: args.shouldActivateOnCompletion,
       ...(args.shouldActivateOnCompletion
         ? {}

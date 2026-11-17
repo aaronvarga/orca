@@ -1,3 +1,7 @@
+import {
+  useWorkspacePanePresentation,
+  workspacePanePresentationKey
+} from '../panel/workspace-pane-presentation'
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { SYNC_FIT_PANES_EVENT } from '@/constants/terminal'
 import { tabGroupBodyAnchorName } from './tab-group-body-anchor'
@@ -20,6 +24,7 @@ function shouldUseCssAnchorPositioning(): boolean {
 }
 
 type RetainedPaneHostProps = {
+  worktreeId: string
   groupId: string | undefined
   isVisible: boolean
   measureWhileHidden?: boolean
@@ -33,6 +38,7 @@ type RetainedPaneHostProps = {
 }
 
 export function RetainedPaneHost({
+  worktreeId,
   groupId,
   isVisible,
   measureWhileHidden = false,
@@ -42,6 +48,11 @@ export function RetainedPaneHost({
   children,
   ...identity
 }: RetainedPaneHostProps): React.JSX.Element {
+  const presentation = useWorkspacePanePresentation((state) =>
+    groupId ? state.panes[workspacePanePresentationKey(worktreeId, groupId)] : undefined
+  )
+  const floating = Boolean(presentation)
+  const position = floating ? 'fixed' : 'absolute'
   const anchorName = groupId !== undefined ? tabGroupBodyAnchorName(groupId) : undefined
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [measuredFallbackRect, setMeasuredFallbackRect] = useState<TabGroupBodyRect | null>(null)
@@ -51,7 +62,7 @@ export function RetainedPaneHost({
   // Measure before mounting child xterms: child layout effects run first and would fit a placeholder rectangle.
   const [awaitsFirstFallbackRect, setAwaitsFirstFallbackRect] = useState(measuresFallbackRect)
   useLayoutEffect(() => {
-    const container = overlayRef.current?.parentElement
+    const container = floating ? document.documentElement : overlayRef.current?.parentElement
     if (!measuresFallbackRect || groupId === undefined || !container) {
       setAwaitsFirstFallbackRect(false)
       return
@@ -60,7 +71,7 @@ export function RetainedPaneHost({
       setMeasuredFallbackRect(rect)
       setAwaitsFirstFallbackRect(false)
     })
-  }, [groupId, measuresFallbackRect])
+  }, [groupId, measuresFallbackRect, floating, presentation])
 
   useLayoutEffect(() => {
     if (!fitTerminal || !isVisible || !anchorName) {
@@ -95,12 +106,12 @@ export function RetainedPaneHost({
     }
   }, [anchorName, fitTerminal, isVisible, measuredFallbackRect])
 
-  const visibleOpacity = dimmed ? UNFOCUSED_SPLIT_GROUP_OPACITY : 1
+  const visibleOpacity = dimmed && !floating ? UNFOCUSED_SPLIT_GROUP_OPACITY : 1
   const style: React.CSSProperties = useMemo(
     () =>
       anchorName && shouldUseCssAnchorPositioning()
         ? {
-            position: 'absolute',
+            position,
             positionAnchor: anchorName,
             // An unresolved anchor must stay clipped instead of painting a content-sized pane.
             top: `anchor(${anchorName} top, 0px)`,
@@ -114,7 +125,7 @@ export function RetainedPaneHost({
         : anchorName
           ? {
               // Without CSS anchors, measure the group body so terminals fit real geometry without covering its tab strip.
-              position: 'absolute',
+              position,
               top: measuredFallbackRect?.top ?? 32,
               left: measuredFallbackRect?.left ?? 0,
               width: measuredFallbackRect?.width ?? '100%',
@@ -124,7 +135,7 @@ export function RetainedPaneHost({
               pointerEvents: isVisible ? 'auto' : 'none'
             }
           : {
-              position: 'absolute',
+              position,
               top: 0,
               left: 0,
               width: 0,
@@ -132,7 +143,7 @@ export function RetainedPaneHost({
               display: 'none',
               pointerEvents: 'none'
             },
-    [anchorName, isVisible, measuredFallbackRect, measureWhileHidden, visibleOpacity]
+    [anchorName, isVisible, measuredFallbackRect, measureWhileHidden, visibleOpacity, position]
   )
   const focusGroup = useCallback(() => {
     if (groupId !== undefined && onFocusOwningGroup) {
@@ -143,8 +154,8 @@ export function RetainedPaneHost({
   return (
     <div
       ref={overlayRef}
-      style={style}
-      // Pane-local layers cannot compete with app notifications or escape their split rectangle.
+      style={{ ...style, zIndex: floating ? 46 : undefined }}
+      // Keep the retained session above its floating frame and below app dialogs.
       className="isolate z-10 min-h-0 min-w-0 overflow-hidden"
       data-retained-pane-host=""
       {...identity}

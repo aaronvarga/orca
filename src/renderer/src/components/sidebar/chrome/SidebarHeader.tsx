@@ -1,3 +1,4 @@
+import { ProjectVisibilityMenu } from './ProjectVisibilityMenu'
 import React, { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store/index'
@@ -164,6 +165,7 @@ const SidebarHeader = React.memo(function SidebarHeader({
               </div>
             </PopoverContent>
           </Popover>
+          <ProjectVisibilityMenu />
           <SidebarHeaderActions
             onWorkspaceBoardMenuOpenChange={onWorkspaceBoardMenuOpenChange}
             agentsViewActive={agentsViewActive}

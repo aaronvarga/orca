@@ -1,3 +1,4 @@
+import { CommandCenterPresentationSchema } from '../../ui-chrome/command-center-presentation'
 import { GitHistoryRefName } from '../source-control/git-params'
 import * as z from 'zod'
 import { isFeatureTipSeenId } from '../../feature-education/feature-tips'
@@ -107,6 +108,7 @@ export const FeatureInteractionIdParam = z.custom<FeatureInteractionId>(isFeatur
 export const TopLevelViewSchema = z
   .enum([
     'terminal',
+    'command-center',
     'settings',
     'tasks',
     'activity',
@@ -126,6 +128,8 @@ export const UiUpdateFields = z
     lastActiveWorktreeId: NullableString.optional(),
     // Why: sync hydration ignores this persisted startup view, so paired windows stay put.
     activeView: TopLevelViewSchema.optional(),
+    projectRailSeparators: z.array(z.string().max(1024)).max(10000).optional(),
+    commandCenterPresentation: CommandCenterPresentationSchema.optional(),
     sidebarWidth: z.number().finite().optional(),
     sidebarOpen: z.boolean().optional(),
     rightSidebarOpen: z.boolean().optional(),

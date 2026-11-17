@@ -41,6 +41,7 @@ import { isOwnerNotSetUpPlaceholder } from './usage/owner-usage-rate-limits'
 import { getAccountOwnerKey } from './accounts/owner-account-rows'
 import { StatusBarVisibilityMenu } from './composition/StatusBarVisibilityMenu'
 import { isPairedWebClientWindow } from '@/app-shell/chrome/desktop-window-chrome'
+import { WorkspacePathStatusSegment } from './WorkspacePathStatusSegment'
 import { GitBlameStatusSegment } from './GitBlameStatusSegment'
 
 const PetStatusSegment = lazyWithRetry(() =>
@@ -132,7 +133,7 @@ export function StatusBarSurface({
       ref={barRef}
       data-orca-status-bar=""
       // Why: one line at any width — density steps down first. overflow-clip (not hidden) so focus can't scroll the bar; the clip margin spares focus rings and badge dots.
-      className="flex items-center h-6 min-h-[24px] px-3 gap-4 overflow-clip [overflow-clip-margin:3px] whitespace-nowrap border-t border-border bg-[var(--bg-titlebar,var(--card))] text-xs select-none shrink-0 relative"
+      className="flex items-center h-8 min-h-8 px-3 gap-4 overflow-clip [overflow-clip-margin:3px] whitespace-nowrap border-t border-border bg-[var(--bg-titlebar,var(--card))] text-xs select-none shrink-0 relative"
       onContextMenuCapture={(event) => {
         if (!shouldOpenStatusBarContextMenu(event.target)) {
           return
@@ -151,6 +152,7 @@ export function StatusBarSurface({
         data-overflowing={overflowing}
       >
         <div ref={usageRef} className="flex shrink-0 items-center gap-3">
+          <WorkspacePathStatusSegment compact={segmentsIconOnly} />
           {isEmptyUsageState ? (
             showEmptyUsageCta ? (
               <StatusBarUsageEmptyCta remoteOwner={remoteOwner} />

@@ -1,5 +1,6 @@
 import { ipcMain, type WebContents } from 'electron'
 import type {
+  TerminalPreviewConnection,
   TerminalPreviewConnectResult,
   TerminalPreviewSnapshot
 } from '../../../shared/terminal/replay/terminal-preview'
@@ -12,13 +13,14 @@ import {
   TerminalPreviewOutputStream
 } from './terminal-preview-output-stream'
 
-const PREVIEW_ID_MAX_LENGTH = 4096
+import {
+  findPreviewSubscription,
+  isValidPtyId,
+  subscriptionKey,
+  validConnection,
+  type PreviewArgs
+} from './terminal-preview-connection'
 
-function isValidPtyId(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0 && value.length <= PREVIEW_ID_MAX_LENGTH
-}
-
-// Both popout and main-renderer overlay host previews; trusted UI already has ordinary PTY access.
 function isTerminalPreviewRenderer(sender: WebContents): boolean {
   return isDashboardPopoutRenderer(sender) || isTrustedUIRenderer(sender)
 }
@@ -31,29 +33,49 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
   ipcMain.removeHandler('terminalPreview:fit')
 
   const subscriptionsByContents = new Map<number, Map<string, TerminalPreviewOutputStream>>()
-  // Unsubscribe or renderer document retirement releases the host pane's grid claim.
-  const fitClaimsByContents = new Map<number, Map<string, symbol>>()
+  const fitClaimsByContents = new Map<
+    number,
+    Map<string, { token: symbol; connectionToken?: string }>
+  >()
   const rendererLifetimes = new Map<number, ReturnType<typeof abortWhenRendererGone>>()
 
-  const previewViewerKey = (contentsId: number): string => `dashboard-popout:${contentsId}`
+  const previewViewerKey = (contentsId: number, key: string): string =>
+    `terminal-preview:${contentsId}:${key}`
 
-  const releaseFitClaim = (contentsId: number, ptyId: string): void => {
+  const currentSubscription = (contentsId: number, args: PreviewArgs, requireIncarnation = true) =>
+    findPreviewSubscription(
+      subscriptionsByContents.get(contentsId),
+      args,
+      (ptyId) => runtime.getTerminalPreviewIncarnation(ptyId),
+      requireIncarnation
+    )
+
+  const releaseFitClaim = (
+    contentsId: number,
+    key: string,
+    expectedConnection?: { token?: string }
+  ): void => {
     const claimed = fitClaimsByContents.get(contentsId)
-    if (!claimed?.delete(ptyId)) {
+    if (expectedConnection && claimed?.get(key)?.connectionToken !== expectedConnection.token) {
+      return
+    }
+    if (!claimed?.delete(key)) {
       return
     }
     if (claimed.size === 0) {
       fitClaimsByContents.delete(contentsId)
     }
     void runtime
-      .unregisterRemoteDesktopViewer(ptyId, previewViewerKey(contentsId))
+      .unregisterRemoteDesktopViewer(JSON.parse(key)[0], previewViewerKey(contentsId, key))
       .catch(() => undefined)
   }
 
   const removeSubscription = (subscription: TerminalPreviewOutputStream): void => {
     const perPty = subscriptionsByContents.get(subscription.contents.id)
-    if (perPty?.get(subscription.ptyId) === subscription) {
-      perPty.delete(subscription.ptyId)
+    if (
+      perPty?.get(subscriptionKey(subscription.ptyId, subscription.connection)) === subscription
+    ) {
+      perPty.delete(subscriptionKey(subscription.ptyId, subscription.connection))
     }
   }
 
@@ -89,26 +111,46 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
     'terminalPreview:connect',
     async (
       event,
-      args: { ptyId?: unknown; opts?: { scrollbackRows?: unknown } }
+      args: {
+        ptyId?: unknown
+        opts?: { scrollbackRows?: unknown; connection?: TerminalPreviewConnection }
+      }
     ): Promise<TerminalPreviewConnectResult> => {
-      if (!isTerminalPreviewRenderer(event.sender) || !isValidPtyId(args?.ptyId)) {
+      if (
+        !isTerminalPreviewRenderer(event.sender) ||
+        !isValidPtyId(args?.ptyId) ||
+        !validConnection(args.opts?.connection)
+      ) {
         return { snapshot: null, replay: [] }
       }
       const ptyId = args.ptyId
+      const suppliedConnection = args.opts?.connection
+      const incarnationId = runtime.getTerminalPreviewIncarnation(ptyId)
+      if (suppliedConnection?.incarnationId && suppliedConnection.incarnationId !== incarnationId) {
+        return { snapshot: null, replay: [] }
+      }
+      const connection = suppliedConnection
+        ? { ...suppliedConnection, ...(incarnationId ? { incarnationId } : {}) }
+        : undefined
+      const key = subscriptionKey(ptyId, connection)
       const perPty = subscriptionsFor(event.sender)
-      perPty.get(ptyId)?.dispose()
+      perPty.get(key)?.dispose()
 
       const subscription = new TerminalPreviewOutputStream(
         event.sender,
         ptyId,
         runtime.registerRawTerminalViewSubscriber(ptyId),
-        removeSubscription
+        removeSubscription,
+        connection
       )
-      const unsubscribeData = runtime.subscribeToTerminalData(ptyId, (data, meta) =>
+      const unsubscribeData = runtime.subscribeToTerminalData(ptyId, (data, meta) => {
+        if (incarnationId && runtime.getTerminalPreviewIncarnation(ptyId) !== incarnationId) {
+          subscription.requestResync()
+          return
+        }
         subscription.append(data, meta)
-      )
+      })
       let previewSize = runtime.getTerminalSize(ptyId)
-      // Grid changes invalidate parsing at the old width; reconnect from a new authoritative snapshot.
       const unsubscribeResize = runtime.subscribeToTerminalResize(ptyId, (event) => {
         if (previewSize?.cols === event.cols && previewSize.rows === event.rows) {
           return
@@ -120,7 +162,14 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
         unsubscribeData()
         unsubscribeResize()
       })
-      perPty.set(ptyId, subscription)
+      perPty.set(key, subscription)
+      const previousClaim = fitClaimsByContents.get(event.sender.id)?.get(key)
+      if (previousClaim) {
+        fitClaimsByContents.get(event.sender.id)!.set(key, {
+          token: Symbol('terminal-preview-reconnect'),
+          connectionToken: connection?.connectionToken
+        })
+      }
 
       const requestedRows = args.opts?.scrollbackRows
       const scrollbackRows =
@@ -134,7 +183,6 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
         if (subscription.consumeInitialOverflow() && !subscription.disposed) {
           snapshot = await runtime.serializeTerminalBuffer(ptyId, { scrollbackRows })
           if (subscription.consumeInitialOverflow()) {
-            // Never replay across an output gap; reconnect while retaining the previous frame.
             resyncRequired = true
           }
         }
@@ -142,11 +190,14 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
         subscription.dispose()
         return { snapshot: null, replay: [] }
       }
-      if (subscription.disposed) {
+      if (
+        subscription.disposed ||
+        (incarnationId && runtime.getTerminalPreviewIncarnation(ptyId) !== incarnationId)
+      ) {
+        subscription.dispose()
         return { snapshot: null, replay: [] }
       }
       if (!snapshot) {
-        // Failed lookup has no future live boundary; release presence without waiting for unsubscribe.
         subscription.dispose()
         return { snapshot: null, replay: [] }
       }
@@ -154,7 +205,6 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
 
       const replay = subscription.completeSnapshot(snapshot.seq)
       if (resyncRequired) {
-        // Retired streams must not acknowledge bytes belonging to their replacement.
         subscription.pauseForReconnect()
       }
       return { snapshot, replay, ...(resyncRequired ? { resyncRequired: true } : {}) }
@@ -163,41 +213,43 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
 
   ipcMain.handle(
     'terminalPreview:input',
-    (event, args: { ptyId?: unknown; data?: unknown }): Promise<boolean> => {
+    (event, args: PreviewArgs & { data?: unknown }): Promise<boolean> => {
       if (
         !isTerminalPreviewRenderer(event.sender) ||
         !isValidPtyId(args?.ptyId) ||
-        typeof args.data !== 'string'
+        typeof args.data !== 'string' ||
+        !currentSubscription(event.sender.id, args)
       ) {
         return Promise.resolve(false)
       }
-      return runtime.writeTerminalPreviewInput(args.ptyId, args.data)
+      const subscription = currentSubscription(event.sender.id, args)
+      return runtime.writeTerminalPreviewInput(
+        args.ptyId,
+        args.data,
+        () => currentSubscription(event.sender.id, args) === subscription
+      )
     }
   )
 
-  ipcMain.handle(
-    'terminalPreview:ack',
-    (event, args: { ptyId?: unknown; bytes?: unknown }): void => {
-      if (
-        !isTerminalPreviewRenderer(event.sender) ||
-        !isValidPtyId(args?.ptyId) ||
-        typeof args.bytes !== 'number' ||
-        !Number.isFinite(args.bytes) ||
-        args.bytes <= 0 ||
-        args.bytes > TERMINAL_PREVIEW_OUTPUT_BATCH_MAX_BYTES
-      ) {
-        return
-      }
-      subscriptionsByContents.get(event.sender.id)?.get(args.ptyId)?.acknowledge(args.bytes)
+  ipcMain.handle('terminalPreview:ack', (event, args: PreviewArgs & { bytes?: unknown }): void => {
+    if (
+      !isTerminalPreviewRenderer(event.sender) ||
+      !isValidPtyId(args?.ptyId) ||
+      typeof args.bytes !== 'number' ||
+      !Number.isFinite(args.bytes) ||
+      args.bytes <= 0 ||
+      args.bytes > TERMINAL_PREVIEW_OUTPUT_BATCH_MAX_BYTES
+    ) {
+      return
     }
-  )
+    currentSubscription(event.sender.id, args)?.acknowledge(args.bytes)
+  })
 
-  // Return effective viewer-claimed size so the renderer can scale when phone priority prevents fitting.
   ipcMain.handle(
     'terminalPreview:fit',
     async (
       event,
-      args: { ptyId?: unknown; cols?: unknown; rows?: unknown }
+      args: PreviewArgs & { cols?: unknown; rows?: unknown; intent?: 'passive' | 'claim' }
     ): Promise<{ cols: number; rows: number } | null> => {
       if (
         !isTerminalPreviewRenderer(event.sender) ||
@@ -210,7 +262,11 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
         return null
       }
       const ptyId = args.ptyId
-      // Install destruction cleanup even if this claim outlives its current output stream.
+      const subscription = currentSubscription(event.sender.id, args)
+      if (!subscription) {
+        return null
+      }
+      const key = subscriptionKey(ptyId, args.connection)
       subscriptionsFor(event.sender)
       let claimed = fitClaimsByContents.get(event.sender.id)
       if (!claimed) {
@@ -218,26 +274,27 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
         fitClaimsByContents.set(event.sender.id, claimed)
       }
       const claimToken = Symbol('terminal-preview-fit')
-      claimed.set(ptyId, claimToken)
-      const viewerKey = previewViewerKey(event.sender.id)
+      claimed.set(key, { token: claimToken, connectionToken: args.connection?.connectionToken })
+      const viewerKey = previewViewerKey(event.sender.id, key)
       try {
         const applied = await runtime.updateRemoteDesktopViewer(
           ptyId,
           viewerKey,
           viewerKey,
           args.cols,
-          args.rows
+          args.rows,
+          args.intent !== 'passive'
         )
-        if (fitClaimsByContents.get(event.sender.id)?.get(ptyId) !== claimToken) {
+        if (fitClaimsByContents.get(event.sender.id)?.get(key)?.token !== claimToken) {
           return null
         }
         if (!applied) {
-          releaseFitClaim(event.sender.id, ptyId)
+          releaseFitClaim(event.sender.id, key)
           return null
         }
       } catch {
-        if (fitClaimsByContents.get(event.sender.id)?.get(ptyId) === claimToken) {
-          releaseFitClaim(event.sender.id, ptyId)
+        if (fitClaimsByContents.get(event.sender.id)?.get(key)?.token === claimToken) {
+          releaseFitClaim(event.sender.id, key)
         }
         return null
       }
@@ -245,11 +302,16 @@ export function registerTerminalPreviewHandlers(runtime: OrcaRuntimeService): vo
     }
   )
 
-  ipcMain.handle('terminalPreview:unsubscribe', (event, args: { ptyId?: unknown }): void => {
+  ipcMain.handle('terminalPreview:unsubscribe', (event, args: PreviewArgs): void => {
     if (!isTerminalPreviewRenderer(event.sender) || !isValidPtyId(args?.ptyId)) {
       return
     }
-    subscriptionsByContents.get(event.sender.id)?.get(args.ptyId)?.dispose()
-    releaseFitClaim(event.sender.id, args.ptyId)
+    if (!validConnection(args.connection)) {
+      return
+    }
+    currentSubscription(event.sender.id, args, false)?.dispose()
+    releaseFitClaim(event.sender.id, subscriptionKey(args.ptyId, args.connection), {
+      token: args.connection?.connectionToken
+    })
   })
 }

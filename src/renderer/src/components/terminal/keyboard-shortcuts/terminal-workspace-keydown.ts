@@ -1,4 +1,5 @@
 import { reopenClosedWorkspaceTab } from '../tab-lifecycle/reopen-closed-workspace-tab'
+import { ignoreTabKeys, floatingOwnsKeys } from '../../terminal-tab-key-ownership'
 import { toast } from 'sonner'
 import { dispatchWorkspaceTabCommand } from '@/lib/workspace/tabs/workspace-tab-commands'
 import { keybindingMatchesAction } from '../../../../../shared/keybindings/matching'
@@ -7,8 +8,7 @@ import { matchesRecentTabSwitcherChord } from '../../../../../shared/keybindings
 import { useAppStore } from '../../../store/index'
 import {
   handleEmptyFloatingWorkspacePanelCloseShortcut,
-  isEventTargetInsideFloatingWorkspacePanel,
-  isFloatingWorkspacePanelFocused
+  isEventTargetInsideFloatingWorkspacePanel
 } from '@/components/floating-terminal/workspace/floating-workspace-terminal-actions'
 import {
   createFloatingWorkspaceBrowserTab,
@@ -50,13 +50,11 @@ export function handleTerminalWorkspaceKeyDown(
     mobileEmulatorEnabled,
     terminalShortcutPolicy
   } = controller
-  // Let the focused Settings recorder capture shortcuts without executing them.
-  if (event.target instanceof Element && event.target.closest('[data-shortcut-recorder-active]')) {
+  const context = getKeybindingContext(event.target)
+  const floatingWorkspaceFocused = floatingOwnsKeys(event.target)
+  if (ignoreTabKeys(event.target)) {
     return
   }
-  const context = getKeybindingContext(event.target)
-  const floatingWorkspaceFocused =
-    isEventTargetInsideFloatingWorkspacePanel(event.target) || isFloatingWorkspacePanelFocused()
   const matchShortcut = (actionId: KeybindingActionId): boolean =>
     keybindingMatchesAction(actionId, event, shortcutPlatform, keybindings, {
       context,
@@ -91,7 +89,6 @@ export function handleTerminalWorkspaceKeyDown(
         return
       }
       if (floatingWorkspaceFocused) {
-        // Why: this capture listener usually runs before the floating panel's own, so it routes there too.
         launchFloatingWorkspaceAgentShortcut(agentShortcut)
         return
       }

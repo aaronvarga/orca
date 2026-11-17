@@ -11,6 +11,7 @@ import { AgentArgs, LaunchPreferences } from '../terminal/agent-session-params'
 import { LaunchSourceParam } from '../agent-launch/launch-source-param'
 
 export const FolderWorkspaceHookCreateShape = {
+  initialSurface: z.literal('chooser').optional(),
   runHooks: z.boolean().optional(),
   setupDecision: z.enum(['run', 'skip', 'inherit']).optional(),
   approvedSetupHash: z.string().max(128).optional(),
@@ -30,9 +31,25 @@ export const FolderWorkspaceHookCreateShape = {
 }
 
 export function assertFolderWorkspaceStartup(
-  value: { startupAgent?: string; startupPrompt?: string },
+  value: {
+    initialSurface?: 'chooser'
+    agentLaunchMode?: string
+    startupAgent?: string
+    startupPrompt?: string
+    startupCommand?: string
+    startupDraft?: string
+  },
   ctx: z.RefinementCtx
 ): void {
+  if (
+    value.initialSurface === 'chooser' &&
+    (value.agentLaunchMode || value.startupAgent || value.startupCommand || value.startupDraft)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'A session chooser cannot include a startup session.'
+    })
+  }
   if (value.startupPrompt !== undefined && value.startupAgent === undefined) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'startupPrompt requires startupAgent' })
   }

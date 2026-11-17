@@ -5,6 +5,8 @@ import type { SmartNameMode } from '../../../../../shared/new-workspace/smart-wo
 import type { CreateWorktreeArgs } from '../../../../../shared/worktree/create-types'
 
 export type ComposerIdentityModel = {
+  launchLocation: 'current-checkout' | 'new-worktree'
+  setLaunchLocation: React.Dispatch<React.SetStateAction<'current-checkout' | 'new-worktree'>>
   linkedIssue: string
   setLinkedIssue: React.Dispatch<React.SetStateAction<string>>
   linkedPR: number | null

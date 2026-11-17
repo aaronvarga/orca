@@ -2,6 +2,7 @@ import type { ComposerModel } from '../composer-model'
 
 type WorkspaceIdentityStateInput = Pick<
   ComposerModel,
+  | 'initialLaunchLocation'
   | 'initialBaseBranch'
   | 'initialParentWorktreeId'
   | 'initialLinearBranchName'
@@ -45,6 +46,7 @@ export function resolveDraftBaseBranchNamesWorkspace(args: {
 
 export function useWorkspaceIdentityState(input: WorkspaceIdentityStateInput) {
   const {
+    initialLaunchLocation,
     initialBaseBranch,
     initialParentWorktreeId,
     initialLinearBranchName,
@@ -58,6 +60,10 @@ export function useWorkspaceIdentityState(input: WorkspaceIdentityStateInput) {
     selectedRepoRuntimeEnvironmentId,
     settings
   } = input
+
+  const [launchLocation, setLaunchLocation] = useState<'current-checkout' | 'new-worktree'>(
+    initialLaunchLocation ?? (initialBaseBranch ? 'new-worktree' : 'current-checkout')
+  )
 
   const [linkedIssue, setLinkedIssue] = useState<string>(() => {
     if (linkedWorkItemSeedIdentity?.type === 'issue') {
@@ -214,6 +220,8 @@ export function useWorkspaceIdentityState(input: WorkspaceIdentityStateInput) {
   )
 
   return {
+    launchLocation,
+    setLaunchLocation,
     linkedIssue,
     setLinkedIssue,
     linkedPR,

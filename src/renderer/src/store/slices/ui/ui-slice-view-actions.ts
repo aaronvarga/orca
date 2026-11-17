@@ -1,3 +1,4 @@
+import { commandCenterPresentation } from '../../../../../shared/ui-chrome/command-center-presentation'
 import type { UISlice, UISliceGet, UISliceSet } from './ui-slice-contract'
 import { rewindHistoryIndexPastView } from './workspace-navigation-history'
 import { isAutomationsHistoryEntry } from './automations-page-location'
@@ -5,6 +6,26 @@ import { appendAutomationsPageEntry } from './automations-page-history'
 
 export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
   return {
+    projectRailSeparators: [],
+    setProjectRailSeparators: (keys) => set({ projectRailSeparators: keys }),
+    commandCenterPresentation: commandCenterPresentation(undefined),
+    setCommandCenterPresentation: (value) => set({ commandCenterPresentation: value }),
+    previousViewBeforeCommandCenter: 'terminal',
+    openCommandCenter: () => {
+      get().recordViewVisit('command-center')
+      set((state) => ({
+        activeView: 'command-center',
+        previousViewBeforeCommandCenter:
+          state.activeView === 'command-center'
+            ? state.previousViewBeforeCommandCenter
+            : state.activeView
+      }))
+    },
+    closeCommandCenter: () =>
+      set((state) => ({
+        activeView: state.previousViewBeforeCommandCenter,
+        worktreeNavHistoryIndex: rewindHistoryIndexPastView(state, 'command-center')
+      })),
     openActivityPage: () => {
       set((state) => ({
         activeView: 'activity',

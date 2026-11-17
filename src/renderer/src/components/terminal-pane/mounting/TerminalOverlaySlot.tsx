@@ -105,6 +105,7 @@ export const TerminalOverlaySlot = memo(function TerminalOverlaySlot({
 
   return (
     <RetainedPaneHost
+      worktreeId={worktreeId}
       groupId={groupId}
       isVisible={isVisible}
       measureWhileHidden={shouldMeasureHiddenStartup || prewarm !== null}

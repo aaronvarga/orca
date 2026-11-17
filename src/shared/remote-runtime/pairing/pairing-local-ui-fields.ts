@@ -5,6 +5,8 @@ import type { PersistedUIState } from '../../orca-profiles/persisted-ui-state-ty
 export const PAIRING_LOCAL_UI_FIELDS = [
   // Host keys are client-relative (desktop means another machine); older hosts reject this key.
   'automationHostFilter',
+  'commandCenterPresentation',
+  'projectRailSeparators',
   // Except for the host's own phone, which shows the host's view (isHostOwnPhone, client-ui.ts).
   'hideWorkspacesFromOtherDevices',
   'manualRepoOrder',

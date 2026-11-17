@@ -1,3 +1,4 @@
+import type { CommandCenterPresentation } from '../../../../../shared/ui-chrome/command-center-presentation'
 import type {
   AgentSubjectRead,
   AgentSubjectReadIntent
@@ -132,18 +133,16 @@ export type NewWorkspaceDraft = {
   compareBaseRef?: string
 }
 
-export type UiViewHistory =
-  | 'terminal'
-  | 'settings'
-  | 'tasks'
-  | 'activity'
-  | 'automations'
-  | 'space'
-  | 'skills'
-  | 'artifacts'
-  | 'mobile'
+export type UiViewHistory = TopLevelView
 
 export type UISliceCore = {
+  projectRailSeparators: string[]
+  setProjectRailSeparators: (keys: string[]) => void
+  commandCenterPresentation: CommandCenterPresentation
+  setCommandCenterPresentation: (value: CommandCenterPresentation) => void
+  previousViewBeforeCommandCenter: TopLevelView
+  openCommandCenter: () => void
+  closeCommandCenter: () => void
   sidebarOpen: boolean
   sidebarWidth: number
   toggleSidebar: () => void

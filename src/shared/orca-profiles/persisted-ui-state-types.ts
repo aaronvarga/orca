@@ -1,3 +1,4 @@
+import type { CommandCenterPresentation } from '../ui-chrome/command-center-presentation'
 import type { GitHistoryRefs } from '../git/history/git-history-types'
 import type { BotChatFold } from '../bots/bot-chat-tree'
 import type { JiraQuickFilterState } from '../jira/jira-quick-filters'
@@ -47,6 +48,8 @@ export type PersistedUIState = {
   lastActiveWorktreeId: string | null
   /** Active top-level view at save time, restored on relaunch; sanitized to 'terminal' if unknown or now-gated. */
   activeView: TopLevelView
+  projectRailSeparators?: string[]
+  commandCenterPresentation?: CommandCenterPresentation
   sidebarWidth: number
   sidebarOpen?: boolean
   rightSidebarOpen: boolean

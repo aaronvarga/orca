@@ -24,6 +24,7 @@ export type ComposerModalData = {
   directSetup?: DirectWorkItemSetupRequest
   prefilledName?: string
   initialRepoId?: string
+  initialLaunchLocation?: 'current-checkout' | 'new-worktree'
   initialEphemeralVmRecipeId?: string
   initialProjectGroupId?: string
   linkedWorkItem?: LinkedWorkItemSummary | null

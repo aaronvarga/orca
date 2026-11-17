@@ -1,3 +1,4 @@
+import { CheckoutLocationField } from './new-workspace/composer/CheckoutLocationField'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -333,6 +334,7 @@ export default function NewWorkspaceComposerCard(
           connectButtonLabel={connectButtonLabel}
           selectedProjectName={selectedProjectName}
         />
+        <CheckoutLocationField {...props} />
         <NewWorkspaceComposerNameSection {...props} onNamePlainEnter={handleNamePlainEnter} />
         <NewWorkspaceComposerAgentSection
           {...props}

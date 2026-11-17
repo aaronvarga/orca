@@ -1,3 +1,4 @@
+import type { RuntimeTerminalClose } from '../../../../shared/terminal/runtime/runtime-terminal-contracts'
 import { IMMEDIATE_KILL_REPLY_BUDGET_MS } from '../../../daemon/sessions/immediate-kill-reply-budget'
 import { OrcaRuntimeWithFocusTerminal } from '../../terminal/focus/focus-terminal'
 
@@ -105,6 +106,47 @@ export abstract class OrcaRuntimeWithExplicitCloseTabPtyStops extends OrcaRuntim
       }
     }
     return parentTabIds.length
+  }
+
+  protected async closeFencedTerminalSession(
+    handle: string,
+    expectedIncarnationId: string,
+    force = false
+  ): Promise<RuntimeTerminalClose> {
+    const pty = this.getLivePtyForHandle(handle)
+    if (!pty || pty.pty.incarnationId !== expectedIncarnationId) {
+      throw new Error('terminal_incarnation_changed')
+    }
+    const assertCurrent = (): void => {
+      const current = this.getLivePtyForHandle(handle)
+      if (!current || current.pty.incarnationId !== expectedIncarnationId) {
+        throw new Error('terminal_incarnation_changed')
+      }
+      const tabId = this.paneOfPty(current.pty).tabId ?? current.record.tabId
+      if (
+        !force &&
+        isTerminalTabPinnedInSession(this.getWorkspaceSessionForWorktree(current.pty.worktreeId), {
+          worktreeId: current.pty.worktreeId,
+          tabId
+        })
+      ) {
+        throw new Error('terminal_tab_pinned')
+      }
+    }
+    assertCurrent()
+    const stopped = await this.ptyController?.killFenced?.(
+      {
+        id: pty.pty.ptyId,
+        expectedIncarnationId,
+        requireNoAgentOwner: false,
+        requireUnattached: false
+      },
+      assertCurrent
+    )
+    if (!stopped || stopped.outcome === 'refused') {
+      throw new Error(`terminal_close_${stopped?.reason ?? 'unsupported'}`)
+    }
+    return { handle, tabId: this.paneOfPty(pty.pty).tabId ?? pty.record.tabId, ptyKilled: true }
   }
 
   protected async stopExplicitlyClosedTabPtys(

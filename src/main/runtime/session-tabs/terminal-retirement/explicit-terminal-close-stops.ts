@@ -55,7 +55,10 @@ export abstract class OrcaRuntimeWithStopExplicitlyClosedTabPtys extends OrcaRun
     })
   }
 
-  async closeTerminal(handle: string): Promise<RuntimeTerminalClose> {
+  async closeTerminal(handle: string, expectedIncarnationId?: string, force = false) {
+    if (expectedIncarnationId) {
+      return this.closeFencedTerminalSession(handle, expectedIncarnationId, force)
+    }
     if (ORCA_LAYOUT_OWNER_IS_MAIN) {
       const mainClose = await closeMainOwnedPaneByHandle(
         {

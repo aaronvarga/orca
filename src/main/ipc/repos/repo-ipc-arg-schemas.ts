@@ -1,3 +1,4 @@
+import { sanitizeRepoIcon } from '../../../shared/repository/appearance/repo-icon'
 import { WorkspaceHookSettingsSchema } from '../../../shared/workspace-setup/hooks/workspace-hook-settings-schema'
 import { z } from 'zod'
 import { isTuiAgent } from '../../../shared/agent-launch/catalog/tui-agent-config'
@@ -26,6 +27,11 @@ export const ProjectGroupUpdateArgs = z.object({
   updates: z.object({
     hookSettings: WorkspaceHookSettingsSchema.optional(),
     name: z.string().optional(),
+    repoIcon: z
+      .unknown()
+      .transform((value) => sanitizeRepoIcon(value))
+      .optional(),
+    hiddenAt: z.number().positive().finite().nullable().optional(),
     isCollapsed: z.boolean().optional(),
     tabOrder: z.number().finite().optional(),
     rootProjectOrder: z.number().finite().nullable().optional(),

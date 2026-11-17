@@ -1,3 +1,4 @@
+import { TerminalPaneComposerPortals } from '../composer/TerminalPaneComposerPortals'
 import { TerminalRestoringPlaceholder } from '../mounting/TerminalRestoringPlaceholder'
 import { TerminalCrewPortals } from '../../orchestration-crew/TerminalCrewPortals'
 import { terminalPaneMenuAgentIdProps } from '../context-menu/terminal-pane-menu-agent-session-actions'
@@ -157,7 +158,12 @@ export function TerminalPaneSurface({
             ? terminalContainerStyle
             : { ...terminalContainerStyle, visibility: 'hidden' }
         }
-        onContextMenuCapture={contextMenu.onContextMenuCapture}
+        onContextMenuCapture={(event) => {
+          if (event.target instanceof Element && event.target.closest('[data-terminal-composer]')) {
+            return
+          }
+          contextMenu.onContextMenuCapture(event)
+        }}
         onMouseDownCapture={(event) => {
           contextMenu.onMouseDownCapture(event)
           handlePrimarySelectionMiddleMouseDown(event)
@@ -192,6 +198,7 @@ export function TerminalPaneSurface({
       />
       {terminalMountPhase === 'host' && <TerminalRestoringPlaceholder />}
       <TerminalPaneFileDropOwners controller={controller} />
+      <TerminalPaneComposerPortals controller={controller} />
       <TerminalCrewPortals controller={controller} />
       <TerminalPaneCodexRestartPortals controller={controller} />
       <AgentLaunchPaneNoticePortal

@@ -1,3 +1,8 @@
+import { assertLinkedWorkItemCapability } from '@/runtime/workspace-links/runtime-linked-work-item-capabilities'
+import { translate } from '@/i18n/i18n'
+import { resolveCurrentCheckout } from '@/lib/workspace/creation/current-checkout'
+import { selectWorktreesByRepo } from '@/store/workspaces/catalog/workspace-record-fields'
+import { getRepoExecutionHostId } from '../../../../../shared/execution-host/execution-host'
 import { useCallback } from 'react'
 import type { TuiAgent } from '../../../../../shared/agent-launch/catalog/tui-agent'
 import type { WorktreeCreationRequest } from '@/lib/workspace/creation/pending-worktree-creation'
@@ -17,6 +22,12 @@ import type { ComposerModel } from '../composer-model'
 
 type QuickSubmitActionInput = Pick<
   ComposerModel,
+  | 'launchLocation'
+  | 'baseBranch'
+  | 'branchNameOverride'
+  | 'linkedGitLabMR'
+  | 'selectedEphemeralVmRecipeId'
+  | 'selectedRepoExecutionHostId'
   | 'effectiveLinkedPR'
   | 'executeQuickCreation'
   | 'fallbackCreatureName'
@@ -48,6 +59,12 @@ type QuickSubmitActionInput = Pick<
 
 export function useQuickSubmitAction(input: QuickSubmitActionInput) {
   const {
+    launchLocation,
+    baseBranch,
+    branchNameOverride,
+    linkedGitLabMR,
+    selectedEphemeralVmRecipeId,
+    selectedRepoExecutionHostId,
     effectiveLinkedPR,
     executeQuickCreation,
     fallbackCreatureName,
@@ -84,6 +101,39 @@ export function useQuickSubmitAction(input: QuickSubmitActionInput) {
         return
       }
 
+      const currentCheckout =
+        launchLocation === 'current-checkout' &&
+        !effectiveLinkedPR &&
+        !linkedGitLabMR &&
+        !baseBranch &&
+        !branchNameOverride &&
+        !selectedEphemeralVmRecipeId
+      const hostId =
+        selectedRepoExecutionHostId ??
+        (selectedRepo ? getRepoExecutionHostId(selectedRepo) : 'local')
+      const checkout =
+        currentCheckout && selectedRepo
+          ? resolveCurrentCheckout(
+              selectWorktreesByRepo(useAppStore.getState())[repoId] ?? [],
+              selectedRepo,
+              hostId
+            )
+          : null
+      const capturedLocation: WorktreeCreationRequest['launchLocation'] = currentCheckout
+        ? checkout
+          ? { kind: 'current-checkout', worktreeId: checkout.id, path: checkout.path, hostId }
+          : undefined
+        : { kind: 'new-worktree' }
+      if (currentCheckout && !checkout) {
+        toast.error(
+          translate(
+            'workspace.currentCheckoutUnavailable',
+            'Current checkout is unavailable. Reconnect the project and refresh its workspaces.'
+          )
+        )
+        return
+      }
+
       const workspaceNameSeed = getWorkspaceSeedName({
         explicitName: name,
         prompt: '',
@@ -102,7 +152,7 @@ export function useQuickSubmitAction(input: QuickSubmitActionInput) {
         sourceIntentBlocksCreate ||
         selectedRepoRequiresConnection ||
         selectedTargetNeedsVisibleHost ||
-        sparseError !== null
+        (!currentCheckout && sparseError !== null)
       ) {
         return
       }
@@ -125,6 +175,7 @@ export function useQuickSubmitAction(input: QuickSubmitActionInput) {
         liveStore.pendingWorktreeCreations,
         {
           repoId,
+          launchLocation: capturedLocation,
           ...(parsedLinkedIssueNumber != null ? { linkedIssue: parsedLinkedIssueNumber } : {}),
           ...(effectiveLinkedPR != null ? { linkedPR: effectiveLinkedPR } : {}),
           workspaceRunContext
@@ -140,18 +191,31 @@ export function useQuickSubmitAction(input: QuickSubmitActionInput) {
         return
       }
 
-      if (requiresExplicitSetupChoice && !setupDecision) {
+      if (!currentCheckout && requiresExplicitSetupChoice && !setupDecision) {
         // The Run/Skip choice lives in Advanced; reveal it rather than refuse silently.
         revealSetupChoice()
         return
       }
 
+      try {
+        await assertLinkedWorkItemCapability(hostId, {
+          linkedWorkItem,
+          linkedTaskSourceContext: taskSourceContext
+        })
+      } catch (error) {
+        setCreateError(formatWorkspaceCreateError(error))
+        return
+      }
+      if (isSubmissionCancelled()) {
+        return
+      }
       setCreateError(null)
 
       setCreating(true)
       const handoff = scheduleComposerCreateHandoff({
         stagingRequest: {
           repoId,
+          launchLocation: capturedLocation,
           workspaceRunContext,
           name: workspaceNameSeed,
           ...(parsedLinkedIssueNumber != null ? { linkedIssue: parsedLinkedIssueNumber } : {}),
@@ -170,6 +234,7 @@ export function useQuickSubmitAction(input: QuickSubmitActionInput) {
         reopenComposer: () =>
           useAppStore.getState().openModal('new-workspace-composer', {
             prefilledName: name,
+            initialLaunchLocation: capturedLocation?.kind,
             initialRepoId: repoId,
             linkedWorkItem,
             taskSourceContext,
@@ -191,7 +256,8 @@ export function useQuickSubmitAction(input: QuickSubmitActionInput) {
           workspaceRunContext,
           repoId,
           options,
-          handoff
+          handoff,
+          capturedLocation
         )
       } catch (error) {
         if (isSubmissionCancelled()) {
@@ -209,6 +275,12 @@ export function useQuickSubmitAction(input: QuickSubmitActionInput) {
       }
     },
     [
+      launchLocation,
+      baseBranch,
+      branchNameOverride,
+      linkedGitLabMR,
+      selectedEphemeralVmRecipeId,
+      selectedRepoExecutionHostId,
       effectiveLinkedPR,
       executeQuickCreation,
       fallbackCreatureName,

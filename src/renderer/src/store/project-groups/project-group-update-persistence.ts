@@ -19,7 +19,10 @@ function groupOrderMatchesUpdate(
   return (
     (updates.rootProjectOrder === undefined ||
       (group.rootProjectOrder ?? null) === updates.rootProjectOrder) &&
-    (updates.tabOrder === undefined || group.tabOrder === updates.tabOrder)
+    (updates.tabOrder === undefined || group.tabOrder === updates.tabOrder) &&
+    (updates.hiddenAt === undefined || (group.hiddenAt ?? null) === updates.hiddenAt) &&
+    (updates.repoIcon === undefined ||
+      JSON.stringify(group.repoIcon ?? null) === JSON.stringify(updates.repoIcon))
   )
 }
 

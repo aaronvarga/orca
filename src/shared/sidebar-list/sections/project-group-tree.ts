@@ -98,6 +98,9 @@ export function walkProjectGroupTree<V extends GroupedProjectEntry>(
   }
 
   const walkProjectGroup = (projectGroup: ProjectGroup, depth: number): void => {
+    if (projectGroup.hiddenAt) {
+      return
+    }
     const repoEntries = sortRepoEntriesWithinGroup(groupByProjectGroupId.get(projectGroup.id) ?? [])
     if (visit.group(projectGroup, depth, getProjectGroupSubtreeCount(projectGroup.id))) {
       visit.projects(withRepoSectionDisplayLabels(repoEntries), depth + 1)

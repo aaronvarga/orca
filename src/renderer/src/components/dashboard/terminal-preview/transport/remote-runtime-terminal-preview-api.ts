@@ -1,15 +1,18 @@
+import {
+  snapshotResult,
+  outputAfterSnapshot,
+  releaseGate,
+  releaseCredits,
+  type PreviewSession
+} from './remote-preview-session'
 import { createNonSecureContextUuid as createBrowserUuid } from '../../../../../../shared/identifiers/non-secure-context-uuid'
 import { takeCurrentTerminalDeliveryCredit } from '@/lib/pane-manager/terminal-output/terminal-delivery-credit'
 import { getRemoteRuntimeTerminalMultiplexer } from '@/runtime/hosted-terminals/streams/registry/remote-runtime-terminal-multiplexer-registry'
-import type {
-  RemoteRuntimeMultiplexedTerminal,
-  RemoteRuntimeMultiplexedTerminalCallbacks
-} from '@/runtime/hosted-terminals/streams/remote-terminal-stream-contracts'
 import { parseRemoteRuntimePtyId } from '../../../../../../shared/remote-runtime/remote-runtime-pty-id'
 import type {
+  TerminalPreviewConnection,
   TerminalPreviewConnectResult,
-  TerminalPreviewDataPayload,
-  TerminalPreviewReplayChunk
+  TerminalPreviewDataPayload
 } from '../../../../../../shared/terminal/replay/terminal-preview'
 
 type TerminalPreviewApi = typeof window.api.terminalPreview
@@ -17,127 +20,62 @@ type TerminalPreviewApi = typeof window.api.terminalPreview
 const CONNECT_TIMEOUT_MS = 15_000
 const SNAPSHOT_RETRY_ATTEMPTS = 3
 const SNAPSHOT_RETRY_DELAY_MS = 150
-const FALLBACK_COLS = 80
-const FALLBACK_ROWS = 24
 const UNAVAILABLE: TerminalPreviewConnectResult = { snapshot: null, replay: [] }
-
-type SnapshotMeta = Parameters<RemoteRuntimeMultiplexedTerminalCallbacks['onSnapshot']>[1]
-type OutputMeta = Parameters<RemoteRuntimeMultiplexedTerminalCallbacks['onData']>[1]
-type HeldChunk = { data: string; meta: OutputMeta; release: () => void }
-
-type PreviewSession = {
-  stream: RemoteRuntimeMultiplexedTerminal | null
-  /** The pending first connect; a refresh issued before it lands shares it. */
-  opening: Promise<TerminalPreviewConnectResult> | null
-  /** The host ended the stream; the pane is gone or unreachable, never "exited" by guess. */
-  ended: boolean
-  closed: boolean
-  /** Live chunks held while a snapshot is in flight, so the boundary can drop covered bytes. */
-  gate: HeldChunk[] | null
-  /** Output high-water of the applied snapshot; a tagged request still forwards covered chunks. */
-  snapshotSeq: number | undefined
-  /** Transport credit per emitted chunk, returned in order as the preview parses them. */
-  credits: (() => void)[]
-  grid: { cols: number; rows: number } | null
-}
 
 const sessions = new Map<string, PreviewSession>()
 const listeners = new Set<(payload: TerminalPreviewDataPayload) => void>()
 
-function emit(payload: TerminalPreviewDataPayload): void {
+function sessionKey(ptyId: string, connection?: TerminalPreviewConnection): string {
+  return JSON.stringify([ptyId, connection?.viewerId ?? 'legacy'])
+}
+
+function currentSession(
+  ptyId: string,
+  connection?: TerminalPreviewConnection
+): PreviewSession | undefined {
+  const session = sessions.get(sessionKey(ptyId, connection))
+  return session &&
+    !session.closed &&
+    session.connection?.connectionToken === connection?.connectionToken
+    ? session
+    : undefined
+}
+
+function emit(payload: TerminalPreviewDataPayload, session: PreviewSession): void {
+  if (session.closed) {
+    return
+  }
+  if (session.connection) {
+    payload = { ...payload, connection: session.connection }
+  }
   for (const listener of listeners) {
     listener(payload)
   }
 }
 
-function snapshotResult(
-  session: PreviewSession,
-  data: string,
-  meta: SnapshotMeta,
-  replay: TerminalPreviewReplayChunk[]
-): TerminalPreviewConnectResult {
-  session.grid =
-    typeof meta?.cols === 'number' && typeof meta.rows === 'number'
-      ? { cols: meta.cols, rows: meta.rows }
-      : null
-  return {
-    snapshot: {
-      data,
-      // Why: hosts that omit dims serialized at the PTY grid; the box fit and claim correct it.
-      cols: meta?.cols ?? FALLBACK_COLS,
-      rows: meta?.rows ?? FALLBACK_ROWS,
-      seq: meta?.seq,
-      pendingEscapeTailAnsi: meta?.pendingEscapeTailAnsi,
-      kittyKeyboardFlags: meta?.kittyKeyboardFlags
-    },
-    replay
-  }
-}
-
-/** The part of a chunk the snapshot at `snapshotSeq` does not already contain. */
-function outputAfterSnapshot(
-  data: string,
-  meta: OutputMeta,
-  snapshotSeq: number | undefined
-): string | null {
-  const seq = meta?.seq
-  const rawLength = meta?.rawLength ?? (meta?.transformed ? undefined : data.length)
-  if (snapshotSeq === undefined || seq === undefined || rawLength === undefined) {
-    return data
-  }
-  if (seq <= snapshotSeq) {
-    return null
-  }
-  const start = seq - rawLength
-  if (start >= snapshotSeq) {
-    return data
-  }
-  // A transformed span cannot be split by offset; the host drops it on the same boundary.
-  return meta?.transformed ? null : data.slice(snapshotSeq - start)
-}
-
-// Why: chunks flushed before a requested snapshot carry no proof of order without a seq.
-function releaseGate(session: PreviewSession, snapshotSeq: number | undefined) {
-  const held = session.gate ?? []
-  session.gate = null
-  session.snapshotSeq = snapshotSeq
-  const replay: TerminalPreviewReplayChunk[] = []
-  for (const chunk of held) {
-    const data =
-      chunk.meta?.seq === undefined
-        ? null
-        : outputAfterSnapshot(chunk.data, chunk.meta, snapshotSeq)
-    if (data) {
-      replay.push({ data, mode: 'live' })
-    }
-    chunk.release()
-  }
-  return replay
-}
-
-function releaseCredits(session: PreviewSession): void {
-  for (const release of session.credits.splice(0)) {
-    release()
-  }
-  for (const chunk of session.gate?.splice(0) ?? []) {
-    chunk.release()
-  }
-}
-
 function closeSession(ptyId: string, session: PreviewSession): void {
   session.closed = true
+  session.finishOpening?.(UNAVAILABLE)
   releaseCredits(session)
   session.stream?.close()
   session.stream = null
-  if (sessions.get(ptyId) === session) {
-    sessions.delete(ptyId)
+  if (sessions.get(sessionKey(ptyId, session.connection)) === session) {
+    sessions.delete(sessionKey(ptyId, session.connection))
   }
 }
 
-function openSession(ptyId: string, environmentId: string, handle: string) {
+function openSession(
+  ptyId: string,
+  environmentId: string,
+  handle: string,
+  connection?: TerminalPreviewConnection
+) {
   const session: PreviewSession = {
+    connection,
+    identityConfirmed: !connection?.incarnationId,
     stream: null,
     opening: null,
+    finishOpening: null,
     ended: false,
     closed: false,
     gate: [],
@@ -145,7 +83,7 @@ function openSession(ptyId: string, environmentId: string, handle: string) {
     credits: [],
     grid: null
   }
-  sessions.set(ptyId, session)
+  sessions.set(sessionKey(ptyId, connection), session)
   let initialized = false
   const opening = new Promise<TerminalPreviewConnectResult>((resolve) => {
     let settled = false
@@ -158,26 +96,45 @@ function openSession(ptyId: string, environmentId: string, handle: string) {
         settled = true
         clearTimeout(timer)
         session.opening = null
+        session.finishOpening = null
         resolve(result)
       }
     }
+    session.finishOpening = finish
     const markEnded = (): void => {
       session.ended = true
       finish(UNAVAILABLE)
       if (initialized && !session.closed) {
-        emit({ type: 'resync', ptyId })
+        emit({ type: 'resync', ptyId }, session)
       }
     }
     void getRemoteRuntimeTerminalMultiplexer(environmentId)
       .subscribeTerminal({
         terminal: handle,
         // Why a preview-only id: its viewport claim must release with this stream, not a pane's.
-        client: { id: `dashboard-preview:${createBrowserUuid()}`, type: 'desktop' },
+        client: {
+          id: `dashboard-preview:${connection?.viewerId ?? createBrowserUuid()}`,
+          type: 'desktop'
+        },
         callbacks: {
+          onSubscribeAcknowledged: (result) => {
+            if (session.closed) {
+              return
+            }
+            session.identityConfirmed =
+              !connection?.incarnationId || result?.incarnationId === connection.incarnationId
+            if (!session.identityConfirmed) {
+              closeSession(ptyId, session)
+              finish(UNAVAILABLE)
+            }
+          },
           onSnapshot: (data, meta) => {
+            if (session.closed) {
+              return
+            }
             if (initialized) {
               // A host-pushed recovery image follows dropped output; repaint through a fresh request.
-              emit({ type: 'resync', ptyId })
+              emit({ type: 'resync', ptyId }, session)
               return
             }
             initialized = true
@@ -200,26 +157,26 @@ function openSession(ptyId: string, environmentId: string, handle: string) {
             if (uncovered) {
               // Why: hold the host's credit until the preview parses the chunk, like a pane does.
               session.credits.push(takeCurrentTerminalDeliveryCredit() ?? noCredit)
-              emit({ type: 'data', ptyId, data: uncovered, bytes: uncovered.length })
+              emit({ type: 'data', ptyId, data: uncovered, bytes: uncovered.length }, session)
             }
           },
           onFitOverrideChanged: (event) => {
             if (event.cols !== session.grid?.cols || event.rows !== session.grid?.rows) {
-              emit({ type: 'resync', ptyId })
+              emit({ type: 'resync', ptyId }, session)
             }
           },
           onEnd: markEnded,
           onError: markEnded,
           onTransportClose: () => {
             // Why: loss of contact is not pane death — drop the session so a resync reopens it.
-            if (sessions.get(ptyId) === session) {
-              sessions.delete(ptyId)
+            if (sessions.get(sessionKey(ptyId, session.connection)) === session) {
+              sessions.delete(sessionKey(ptyId, session.connection))
             }
             session.stream = null
             releaseCredits(session)
             finish(UNAVAILABLE)
             if (initialized && !session.closed) {
-              emit({ type: 'resync', ptyId })
+              emit({ type: 'resync', ptyId }, session)
             }
           }
         }
@@ -257,9 +214,9 @@ async function refreshSession(
     if (session.closed) {
       return UNAVAILABLE
     }
-    if (sessions.get(ptyId) !== session) {
+    if (sessions.get(sessionKey(ptyId, session.connection)) !== session) {
       // The transport dropped mid-request; reopen rather than report the pane gone.
-      return remoteRuntimeTerminalPreviewApi.connect(ptyId, { scrollbackRows })
+      return UNAVAILABLE
     }
     const snapshot = outcome?.snapshot
     if (snapshot) {
@@ -285,32 +242,43 @@ export const remoteRuntimeTerminalPreviewApi: TerminalPreviewApi = {
     if (!parts?.environmentId) {
       return Promise.resolve(UNAVAILABLE)
     }
-    const existing = sessions.get(ptyId)
-    if (existing?.ended) {
+    const connection = opts?.connection
+    const existing = sessions.get(sessionKey(ptyId, connection))
+    if (existing && existing.connection?.connectionToken !== connection?.connectionToken) {
+      closeSession(ptyId, existing)
+    } else if (existing?.ended) {
       closeSession(ptyId, existing)
       return Promise.resolve(UNAVAILABLE)
-    }
-    if (existing?.opening) {
+    } else if (existing?.opening) {
       return existing.opening
-    }
-    if (existing) {
+    } else if (existing) {
       return refreshSession(ptyId, existing, opts?.scrollbackRows)
     }
-    return openSession(ptyId, parts.environmentId, parts.handle)
+    return openSession(ptyId, parts.environmentId, parts.handle, connection)
   },
-  input: (ptyId, data) => Promise.resolve(sessions.get(ptyId)?.stream?.sendInput(data) ?? false),
-  fit: (ptyId, cols, rows) => {
-    // Why: the host answers the claim with a fit-override event, which triggers the resync repaint.
-    const claimed = sessions.get(ptyId)?.stream?.claimViewport(cols, rows) ?? false
-    return Promise.resolve(claimed ? { cols, rows } : null)
+  input: (ptyId, data, connection) => {
+    const session = currentSession(ptyId, connection)
+    return Promise.resolve(
+      session?.identityConfirmed ? (session.stream?.sendInput(data) ?? false) : false
+    )
   },
-  // Why in order: the preview acknowledges chunks as xterm parses them, which is emit order.
-  ack: (ptyId) => {
-    sessions.get(ptyId)?.credits.shift()?.()
+  fit: (ptyId, cols, rows, connection, intent) => {
+    const session = currentSession(ptyId, connection)
+    if (!session?.identityConfirmed) {
+      return Promise.resolve(null)
+    }
+    const claimed =
+      intent === 'passive'
+        ? (session.stream?.resize(cols, rows) ?? false)
+        : (session.stream?.claimViewport(cols, rows) ?? false)
+    return Promise.resolve(claimed ? session.grid : null)
+  },
+  ack: (ptyId, _bytes, connection) => {
+    currentSession(ptyId, connection)?.credits.shift()?.()
     return Promise.resolve()
   },
-  unsubscribe: (ptyId) => {
-    const session = sessions.get(ptyId)
+  unsubscribe: (ptyId, connection) => {
+    const session = currentSession(ptyId, connection)
     if (session) {
       closeSession(ptyId, session)
     }
@@ -323,8 +291,8 @@ export const remoteRuntimeTerminalPreviewApi: TerminalPreviewApi = {
 }
 
 export function resetRemoteRuntimeTerminalPreviewSessionsForTests(): void {
-  for (const [ptyId, session] of sessions) {
-    closeSession(ptyId, session)
+  for (const [key, session] of sessions) {
+    closeSession(JSON.parse(key)[0], session)
   }
   listeners.clear()
 }

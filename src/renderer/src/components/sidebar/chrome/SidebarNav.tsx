@@ -1,5 +1,5 @@
 import React from 'react'
-import { BookOpen, CalendarClock, EyeOff, Files, Search, Smartphone } from 'lucide-react'
+import { BookOpen, CalendarClock, EyeOff, Files, Search, Smartphone, Grid2X2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store/index'
 import { cn } from '@/lib/class-names'
@@ -125,6 +125,15 @@ const SidebarNav = React.memo(function SidebarNav() {
           ))}
         </span>
       </button>
+      <Button
+        variant="ghost"
+        size="menu-launch"
+        className="justify-start"
+        onClick={() => useAppStore.getState().openCommandCenter()}
+      >
+        <Grid2X2 className="size-4" />
+        {t('commandCenter.title', 'Command Center')}
+      </Button>
       <SetupGuideSidebarEntry />
       <SidebarTaskNavButton />
       {showArtifactsButton ? (

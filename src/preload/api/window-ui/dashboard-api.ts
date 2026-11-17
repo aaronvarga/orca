@@ -3,6 +3,8 @@ import type {
   DashboardSnapshot
 } from '../../../shared/agent-status/presentation/dashboard-snapshot'
 import type {
+  TerminalPreviewConnection,
+  TerminalPreviewConnectOptions,
   TerminalPreviewConnectResult,
   TerminalPreviewDataPayload
 } from '../../../shared/terminal/replay/terminal-preview'
@@ -25,12 +27,18 @@ export type DashboardApi = {
 export type TerminalPreviewApi = {
   connect: (
     ptyId: string,
-    opts?: { scrollbackRows?: number }
+    opts?: TerminalPreviewConnectOptions
   ) => Promise<TerminalPreviewConnectResult>
-  input: (ptyId: string, data: string) => Promise<boolean>
+  input: (ptyId: string, data: string, connection?: TerminalPreviewConnection) => Promise<boolean>
   /** Claims the PTY grid; returns the size actually in effect. */
-  fit: (ptyId: string, cols: number, rows: number) => Promise<{ cols: number; rows: number } | null>
-  ack: (ptyId: string, bytes: number) => Promise<void>
-  unsubscribe: (ptyId: string) => Promise<void>
+  fit: (
+    ptyId: string,
+    cols: number,
+    rows: number,
+    connection?: TerminalPreviewConnection,
+    intent?: 'passive' | 'claim'
+  ) => Promise<{ cols: number; rows: number } | null>
+  ack: (ptyId: string, bytes: number, connection?: TerminalPreviewConnection) => Promise<void>
+  unsubscribe: (ptyId: string, connection?: TerminalPreviewConnection) => Promise<void>
   onData: (callback: (payload: TerminalPreviewDataPayload) => void) => () => void
 }

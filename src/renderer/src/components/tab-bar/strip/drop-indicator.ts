@@ -22,15 +22,11 @@ export function getTabRootStateClasses(isActive: boolean): string {
 }
 
 export function getTabStripBorderClasses(
-  hasTabsToRight: boolean,
+  _hasTabsToRight: boolean,
   options?: { includeTopBorder?: boolean }
 ): string {
   const includeTopBorder = options?.includeTopBorder ?? true
-  return [
-    includeTopBorder ? 'border-t' : '',
-    'border-r border-border',
-    hasTabsToRight ? '' : 'border-r-transparent'
-  ]
+  return [includeTopBorder ? 'border-t' : '', 'rounded-t-md overflow-hidden border-border']
     .filter(Boolean)
     .join(' ')
 }

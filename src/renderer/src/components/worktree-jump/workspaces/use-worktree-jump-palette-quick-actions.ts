@@ -101,12 +101,18 @@ export function useWorktreeJumpPaletteQuickActions({
     }
     void state.prefetchWorktreeCreateBase(repoIdForComposer)
   }, [])
-  const openCreateWorkspaceAction = useCallback(() => {
-    prefetchCreateWorkspaceBaseForComposer()
-    queueMicrotask(() =>
-      openModal('new-workspace-composer', { telemetrySource: 'command_palette' })
-    )
-  }, [openModal, prefetchCreateWorkspaceBaseForComposer])
+  const openCreateWorkspaceAction = useCallback(
+    (initialLaunchLocation: 'new-worktree') => {
+      prefetchCreateWorkspaceBaseForComposer()
+      queueMicrotask(() =>
+        openModal('new-workspace-composer', {
+          initialLaunchLocation,
+          telemetrySource: 'command_palette'
+        })
+      )
+    },
+    [openModal, prefetchCreateWorkspaceBaseForComposer]
+  )
   const deleteActiveWorkspaceAction = useCallback(() => {
     const {
       activeView: currentView,

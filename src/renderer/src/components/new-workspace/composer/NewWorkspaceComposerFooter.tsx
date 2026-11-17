@@ -9,6 +9,7 @@ import type { NewWorkspaceComposerCardProps } from './new-workspace-composer-car
 
 type NewWorkspaceComposerFooterProps = Pick<
   NewWorkspaceComposerCardProps,
+  | 'launchLocation'
   | 'createError'
   | 'showCreateMultiple'
   | 'createMultiple'
@@ -22,6 +23,7 @@ type NewWorkspaceComposerFooterProps = Pick<
 }
 
 export function NewWorkspaceComposerFooter({
+  launchLocation,
   createError,
   showCreateMultiple = false,
   createMultiple = false,
@@ -78,10 +80,16 @@ export function NewWorkspaceComposerFooter({
           size="sm"
           className="text-xs"
           // Why: the title already says what is created; the button keeps the full name for AT.
-          aria-label={primaryActionLabel}
+          aria-label={
+            launchLocation === 'current-checkout'
+              ? t('workspace.startSession', 'Start session')
+              : primaryActionLabel
+          }
         >
           {creating ? <LoaderCircle className="size-4 animate-spin" /> : null}
-          {t('auto.components.NewWorkspaceComposerFooter.create', 'Create')}
+          {launchLocation === 'current-checkout'
+            ? t('workspace.startSession', 'Start session')
+            : t('auto.components.NewWorkspaceComposerFooter.create', 'Create')}
           <ButtonKeyHint modifierLabel={submitShortcutModifierLabel} />
         </Button>
       </div>

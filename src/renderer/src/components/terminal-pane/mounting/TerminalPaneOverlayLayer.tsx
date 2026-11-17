@@ -143,6 +143,7 @@ const TerminalPaneOverlayLayer = memo(function TerminalPaneOverlayLayer({
           // Only startup holds remain visible here; other visible deferred tabs are admitted in this render.
           return isVisible ? (
             <RetainedPaneHost
+              worktreeId={worktreeId}
               key={terminalTab.id}
               groupId={assignment?.groupId}
               isVisible

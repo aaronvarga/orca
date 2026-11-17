@@ -1,3 +1,4 @@
+import { sanitizeRepoIcon } from '../../repository/appearance/repo-icon'
 import { getDefaultRepoHookSettings } from '../../workspace-setup/repo-hook-settings-defaults'
 import { normalizeExecutionHostId } from '../../execution-host/execution-host'
 import type { ProjectGroup, ProjectGroupCreatedFrom } from './project-group-types'
@@ -84,7 +85,11 @@ export function normalizeProjectGroups(value: unknown): ProjectGroup[] {
       ...(typeof raw.rootProjectOrder === 'number' && Number.isFinite(raw.rootProjectOrder)
         ? { rootProjectOrder: raw.rootProjectOrder }
         : {}),
+      ...(typeof raw.hiddenAt === 'number' && Number.isFinite(raw.hiddenAt) && raw.hiddenAt > 0
+        ? { hiddenAt: raw.hiddenAt }
+        : {}),
       isCollapsed: raw.isCollapsed === true,
+      ...(raw.repoIcon !== undefined ? { repoIcon: sanitizeRepoIcon(raw.repoIcon) } : {}),
       color: typeof raw.color === 'string' ? raw.color : null,
       createdAt:
         typeof raw.createdAt === 'number' && Number.isFinite(raw.createdAt) ? raw.createdAt : now,

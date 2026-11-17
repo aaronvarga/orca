@@ -12,13 +12,17 @@ import { installTerminalNativeCopyGutterTrim } from '@/components/terminal-pane/
 import { isWindowsUserAgent } from '@/app-shell/platform/user-agent-platform'
 import type { PreviewTerminalLinkHandlers } from './rendering/preview-terminal-links'
 import { installPreviewTerminalCompatibility } from './rendering/preview-terminal-compatibility'
-import { createPreviewClipboardPaster } from './input/preview-terminal-paste'
+import {
+  createPreviewClipboardPaster,
+  type PreviewTerminalClipboardTarget
+} from './input/preview-terminal-paste'
 import { installPreviewImeBridge } from './input/preview-terminal-ime-bridge'
 import { installPreviewTerminalKeyHandler } from './input/preview-terminal-key-handler'
 import { installPreviewTerminalAppMenuClipboard } from './input/preview-terminal-app-menu-clipboard'
 import { installPreviewTerminalRightClickPaste } from './input/preview-terminal-right-click-paste'
 
 export type StandaloneTerminalArgs = {
+  clipboardTarget?: PreviewTerminalClipboardTarget
   container: HTMLElement
   options: ITerminalOptions & ITerminalInitOnlyOptions
   /** Owned by the caller so it can outlive a terminal the caller recreates. */
@@ -84,6 +88,7 @@ export function openStandaloneTerminal(args: StandaloneTerminalArgs): Standalone
   })
   const pasteClipboardText = createPreviewClipboardPaster({
     ptyId: args.sessionKey,
+    clipboardTarget: args.clipboardTarget,
     writeInput: args.sendInput,
     container,
     getTerminal: () => (disposed ? null : terminal),

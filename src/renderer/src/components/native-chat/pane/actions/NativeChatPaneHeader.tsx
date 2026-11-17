@@ -1,10 +1,8 @@
-import { Fragment } from 'react'
-import { MessageSquarePlus, SquareSplitVertical } from 'lucide-react'
-import { ShortcutKeyCombo } from '@/components/ui/ShortcutKeyCombo'
+import { WorkspacePaneToolbar } from '@/components/tab-group/panel/WorkspacePaneToolbar'
+import { MessageSquarePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslate } from '@/i18n/use-translate'
-import { useShortcutKeyComboDetails } from '@/lib/keyboard/useShortcutLabel'
 import { agentForksConversations } from '../../../../../../shared/agent-launch/startup/agent-resume-argv'
 import type { NativeChatTabSession } from '../../../tab-bar/session-actions/tab-session-history-switch'
 import { useDocumentDarkTheme } from '@/hooks/theme/use-document-dark-theme'
@@ -44,8 +42,6 @@ export function NativeChatPaneHeader({
   const onBotPage = useBotForWorkspace(worktreeId) !== null
   const documentDark = useDocumentDarkTheme()
   const light = colorScheme ? colorScheme === 'light' : !documentDark
-  const split = t('components.native-chat.splitRight', 'Split Right')
-  const splitShortcutCombos = useShortcutKeyComboDetails('terminal.splitRight')
   const handOffLabel = t(
     'components.agentSessionContinuation.handOffToAnotherAgent',
     'Hand Off to Another Agent'
@@ -73,7 +69,7 @@ export function NativeChatPaneHeader({
                   handOff.open()
                 }}
               >
-                <MessageSquarePlus className="size-3" />
+                <MessageSquarePlus className="size-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={4}>
@@ -88,43 +84,12 @@ export function NativeChatPaneHeader({
             nativeChat={nativeChat}
           />
         ) : null}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="pane-title"
-              size="icon-xs"
-              aria-label={split}
-              data-contextual-tour-target={focused ? 'chat-pane-split-target' : undefined}
-              onClick={(event) => {
-                event.stopPropagation()
-                actions.onSplitRight()
-              }}
-            >
-              <SquareSplitVertical className="size-3" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" sideOffset={4}>
-            <span className="inline-flex items-center gap-1.5">
-              <span>
-                {split}
-                {splitShortcutCombos.length > 0 ? ': ' : null}
-              </span>
-              {splitShortcutCombos.map((shortcut, index) => (
-                <Fragment key={JSON.stringify([shortcut.keys, shortcut.doubleTap])}>
-                  {index > 0 ? <span>{', '}</span> : null}
-                  <ShortcutKeyCombo
-                    keys={shortcut.keys}
-                    doubleTap={shortcut.doubleTap}
-                    className="gap-0.5"
-                    keyCapClassName="min-w-0 border-background/30 bg-background/10 px-1 py-0 text-3xs text-background shadow-none"
-                    separatorClassName="mx-0 text-3xs text-background/70"
-                  />
-                </Fragment>
-              ))}
-            </span>
-          </TooltipContent>
-        </Tooltip>
+        <WorkspacePaneToolbar
+          worktreeId={worktreeId}
+          groupId={groupId}
+          onClose={actions.onClosePane}
+          canClose={actions.canClosePane}
+        />
         <NativeChatSettingsButton />
       </div>
     </div>

@@ -17,6 +17,7 @@ import { selectAllKnownWorkspaceStatuses } from '@/store/workspaces/status/host-
 
 export type ComposerStateInput = {
   initialRepoId?: string
+  initialLaunchLocation?: 'current-checkout' | 'new-worktree'
   initialEphemeralVmRecipeId?: string
   initialProjectGroupId?: string
   initialName?: string
@@ -43,6 +44,7 @@ const NEVER_CANCEL_COMPOSER_SUBMIT = (): boolean => false
 export function useComposerTargetStore(options: ComposerStateInput, decisions: ComposerDecisions) {
   const {
     initialRepoId,
+    initialLaunchLocation,
     initialEphemeralVmRecipeId,
     initialName = '',
     initialPrompt = '',
@@ -163,6 +165,7 @@ export function useComposerTargetStore(options: ComposerStateInput, decisions: C
 
   return {
     initialRepoId,
+    initialLaunchLocation,
     initialEphemeralVmRecipeId,
     initialName,
     initialPrompt,

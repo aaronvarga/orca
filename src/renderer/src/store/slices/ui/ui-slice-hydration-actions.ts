@@ -1,3 +1,4 @@
+import { hydrateCommandCenterUI } from './ui-slice-hydration-values'
 import { normalizeStatusBarUsageFormat } from '../../../../../shared/status-bar/status-bar-usage-format'
 import type { UISlice, UISliceGet, UISliceSet } from './ui-slice-contract'
 import type { AppState } from '../../types'
@@ -106,6 +107,7 @@ export function createUiHydrationActions(set: UISliceSet, _get: UISliceGet): Par
         const sortBy = ui.sortBy
         const statusBarItemsWithGrok = hydrateStatusBarItems(ui)
         const hydrated = {
+          ...hydrateCommandCenterUI(ui),
           // Why: persisted widths may be stale/corrupt/hand-edited; clamp during hydration so invalid values can't break layout.
           sidebarWidth: sanitizePersistedSidebarWidth(
             ui.sidebarWidth,

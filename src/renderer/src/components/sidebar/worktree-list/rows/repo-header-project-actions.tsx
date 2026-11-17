@@ -1,3 +1,6 @@
+import { activateRailProject } from '../../project-rail-activation'
+import { openProjectCommandCenter } from '@/components/command-center/command-center-navigation'
+import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import React from 'react'
 import { useRepoSshGate } from '@/lib/workspace/catalog/use-repo-ssh-gate'
@@ -7,6 +10,8 @@ import {
   Eye,
   EyeOff,
   FolderInput,
+  FolderOpen,
+  Grid2X2,
   FolderTree,
   Plus,
   // `Shapes` is lucide-react's own export name; exempted in config/oxlint-anti-slop.json.
@@ -90,7 +95,13 @@ export const RepoHeaderProjectActionsMenu = React.memo(function RepoHeaderProjec
   hostRepos,
   label,
   projectGroups,
-  actions
+  actions,
+  open,
+  onOpenChange,
+  reason,
+  hideTrigger = false,
+  onCloseAutoFocus,
+  children
 }: {
   repo: Repo
   /** A header spanning hosts: every copy it shows, which Hide hides together. */
@@ -98,12 +109,18 @@ export const RepoHeaderProjectActionsMenu = React.memo(function RepoHeaderProjec
   label: string
   projectGroups: readonly ProjectGroup[]
   actions: RepoHeaderProjectActions
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  reason?: string | null
+  hideTrigger?: boolean
+  onCloseAutoFocus?: (event: Event) => void
+  children?: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
   // Memoized: subscribe so a language change still repaints its labels.
   useTranslation()
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu modal={false} open={open} onOpenChange={onOpenChange}>
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
@@ -112,6 +129,8 @@ export const RepoHeaderProjectActionsMenu = React.memo(function RepoHeaderProjec
               variant="ghost"
               size="icon-xs"
               className={REPO_HEADER_ACTION_BUTTON_CLASS}
+              style={hideTrigger ? { visibility: 'hidden' } : undefined}
+              tabIndex={hideTrigger ? -1 : undefined}
               data-repo-header-action=""
               aria-label={t(
                 'auto.components.sidebar.WorktreeList.609633a9e6',
@@ -131,6 +150,7 @@ export const RepoHeaderProjectActionsMenu = React.memo(function RepoHeaderProjec
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent
+        onCloseAutoFocus={onCloseAutoFocus}
         align="end"
         side="bottom"
         sideOffset={6}
@@ -142,6 +162,32 @@ export const RepoHeaderProjectActionsMenu = React.memo(function RepoHeaderProjec
         onClick={stopRepoHeaderMenuEvent}
         onKeyDown={stopRepoHeaderMenuEvent}
       >
+        {reason ? (
+          <p role="status" className="max-w-64 px-2 py-1.5 text-xs text-muted-foreground">
+            {reason}
+          </p>
+        ) : null}
+        {children}
+        <DropdownMenuItem
+          onSelect={() => {
+            const error = activateRailProject(repo, true)
+            if (error) {
+              toast.error(error)
+            }
+          }}
+        >
+          <FolderOpen className="size-4" />
+          {t('commandCenter.openCheckout', 'Open current checkout')}
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => actions.onCreateForRepo(repo, { pinHost: true })}>
+          <Plus className="size-4" />
+          {t('commandCenter.newSession', 'New session')}
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => openProjectCommandCenter(repo)}>
+          <Grid2X2 className="size-4" />
+          {t('commandCenter.openProject', 'Open Project Command Center')}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => actions.onOpenRepoSettings(repo.id)}>
           <SlidersHorizontal className="size-3.5" />
           {t('auto.components.sidebar.WorktreeList.2cdffbc728', 'Project Settings')}
@@ -150,7 +196,7 @@ export const RepoHeaderProjectActionsMenu = React.memo(function RepoHeaderProjec
           onSelect={() => actions.onOpenRepoSettings(repo.id, getRepositoryIconSectionId(repo.id))}
         >
           <Shapes className="size-3.5" />
-          {t('auto.components.sidebar.WorktreeList.e82d3589a1', 'Change Project Icon')}
+          {t('sidebar.projectIconAndColor', 'Project icon and color')}
         </DropdownMenuItem>
         {isGitRepoKind(repo) ? (
           <DropdownMenuItem onSelect={() => actions.onOpenWorktreeVisibility(repo)}>

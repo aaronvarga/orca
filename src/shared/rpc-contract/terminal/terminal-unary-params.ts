@@ -50,6 +50,7 @@ export const TerminalHandle = z.object({
 })
 
 export const TerminalClose = TerminalHandle.extend({
+  force: z.literal(true).optional(),
   originalPresentation: TerminalSurfaceCloseCapture.optional()
 })
 

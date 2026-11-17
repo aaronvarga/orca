@@ -1,3 +1,4 @@
+import { LandingNewChatButton } from './LandingNewChatButton'
 import { useCallback, useRef, useState } from 'react'
 import { FilePlus, Globe, Smartphone, TerminalSquare } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -290,15 +291,16 @@ export function SplitPaneLanding({
               ) : null}
             </CommandList>
           </Command>
-          {onClosePane ? (
-            <div className="mt-3 flex justify-center">
+          <div className="mt-3 flex items-center justify-center gap-2">
+            <LandingNewChatButton worktreeId={worktreeId} groupId={groupId} />
+            {onClosePane ? (
               <Button type="button" variant="ghost" size="xs" onClick={onClosePane}>
                 <span className="text-muted-foreground">
                   {t('components.tabGroup.splitPaneLanding.closePane', 'Close pane')}
                 </span>
               </Button>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

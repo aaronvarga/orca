@@ -59,6 +59,9 @@ export type ComposerCardSourceProps = Pick<
 >
 
 export type ComposerCardActionProps = {
+  launchLocation?: ComposerModel['launchLocation']
+  onLaunchLocationChange?: ComposerModel['setLaunchLocation']
+  checkoutBranch?: string
   agentRows?: ComposerAgentRows | null
   selectedRepo?: ComposerModel['selectedRepo'] | null
   onRepoChange: ComposerModel['handleRepoChange']

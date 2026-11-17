@@ -50,6 +50,11 @@ export abstract class OrcaRuntimeWithMarkPtyLivenessUnverifiable extends OrcaRun
   }
 
   /** Null means no defensible claim, never proof of death. Kill authorization fails closed; recovery instead refuses positive live/unverifiable verdicts. */
+  getTerminalPreviewIncarnation(ptyId: string): string | null {
+    const pty = this.ptysById.get(ptyId)
+    return pty && !this.isPtyKnownExited(ptyId) ? (pty.incarnationId ?? null) : null
+  }
+
   getPtyLivenessVerdict(ptyId: string): PtyLivenessVerdict | null {
     return this.ptyLivenessVerdictByPtyId.get(ptyId)?.verdict ?? null
   }

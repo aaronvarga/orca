@@ -1,3 +1,4 @@
+import { isSplitLandingGroup } from '@/store/slices/tabs/split-landing-groups'
 import { useShallow } from 'zustand/react/shallow'
 import type { BrowserWorkspace } from '../../../../../shared/browser/workspaces/browser-workspace-types'
 import type { Tab, TabGroup } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
@@ -77,6 +78,9 @@ export function useTabGroupWorkspaceModel({
   const creationCommands = useTabGroupCreationCommands({ groupId, worktreeId, worktreeState })
 
   return {
+    showsSplitLanding: useAppStore((state) =>
+      isSplitLandingGroup(state, worktreeId, group ?? undefined)
+    ),
     group,
     activeTab,
     browserItems,

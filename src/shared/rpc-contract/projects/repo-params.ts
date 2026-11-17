@@ -1,3 +1,4 @@
+import { sanitizeRepoIcon } from '../../repository/appearance/repo-icon'
 import { WorkspaceHookSettingsSchema } from '../../workspace-setup/hooks/workspace-hook-settings-schema'
 import { z } from 'zod'
 
@@ -95,6 +96,11 @@ export const ProjectGroupUpdate = z.object({
   updates: z.object({
     hookSettings: WorkspaceHookSettingsSchema.optional(),
     name: OptionalString,
+    repoIcon: z
+      .unknown()
+      .transform((value) => sanitizeRepoIcon(value))
+      .optional(),
+    hiddenAt: z.number().positive().finite().nullable().optional(),
     isCollapsed: z.boolean().optional(),
     tabOrder: OptionalFiniteNumber,
     rootProjectOrder: z.number().finite().nullable().optional(),

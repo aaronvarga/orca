@@ -1,5 +1,6 @@
+import { CreateFolderGroupDialog } from '../../CreateFolderGroupDialog'
 import React, { useCallback, useRef, useState } from 'react'
-import { FolderOpen, Globe, Plus, type LucideIcon } from 'lucide-react'
+import { FolderOpen, FolderTree, Globe, Plus, type LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   DropdownMenu,
@@ -78,6 +79,7 @@ function AddProjectMenuOpenContent({
   onNavigateBack,
   onCloseAutoFocus,
   onCloseMenu,
+  onCreateFolderGroup,
   autoFocusFirstItem,
   side,
   align,
@@ -91,6 +93,7 @@ function AddProjectMenuOpenContent({
   onNavigateBack?: () => void
   onCloseAutoFocus?: (event: Event) => void
   onCloseMenu: () => void
+  onCreateFolderGroup: (hostId: ExecutionHostId) => void
   autoFocusFirstItem: boolean
   side: 'top' | 'right' | 'bottom' | 'left'
   align: 'start' | 'center' | 'end'
@@ -187,6 +190,18 @@ function AddProjectMenuOpenContent({
           {showShortcut ? <DropdownMenuShortcut>↵</DropdownMenuShortcut> : null}
         </DropdownMenuItem>
       ))}
+      <DropdownMenuItem
+        disabled={actionsDisabled}
+        onSelect={() => {
+          if (hostSelection.selectedHostId) {
+            onCloseMenu()
+            onCreateFolderGroup(hostSelection.selectedHostId)
+          }
+        }}
+      >
+        <FolderTree />
+        {t('sidebar.newFolderGroupMenu', 'New folder group…')}
+      </DropdownMenuItem>
     </DropdownMenuContent>
   )
 }
@@ -210,6 +225,7 @@ export function AddProjectMenu({
   tooltipSide = 'bottom',
   preserveWorkspaceBoardOpen = false
 }: AddProjectMenuProps): React.JSX.Element {
+  const [folderGroupHost, setFolderGroupHost] = useState<ExecutionHostId | null>(null)
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
   const open = controlledOpen ?? uncontrolledOpen
   const [addRemoteHostMode, setAddRemoteHostMode] = useState<AddRemoteHostMode | null>(null)
@@ -256,6 +272,7 @@ export function AddProjectMenu({
             onNavigateBack={onNavigateBack}
             onCloseAutoFocus={onCloseAutoFocus}
             onCloseMenu={() => handleOpenChange(false)}
+            onCreateFolderGroup={setFolderGroupHost}
             autoFocusFirstItem={autoFocusFirstItem}
             side={side}
             align={align}
@@ -264,6 +281,12 @@ export function AddProjectMenu({
           />
         ) : null}
       </DropdownMenu>
+      {folderGroupHost ? (
+        <CreateFolderGroupDialog
+          hostId={folderGroupHost}
+          onClose={() => setFolderGroupHost(null)}
+        />
+      ) : null}
       {!onOpenRemoteHostDialog ? (
         <AddRemoteHostDialog mode={addRemoteHostMode} onOpenChange={handleRemoteHostModeChange} />
       ) : null}

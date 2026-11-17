@@ -43,7 +43,7 @@ export type CmdJQuickActionContext = {
   openBrowserUrl: (groupId: string, url: string) => Promise<void>
   openNewMarkdownFile: (groupId: string) => Promise<void>
   openNewTerminalTab: (groupId: string) => Promise<void>
-  openCreateWorkspace: () => void
+  openCreateWorkspace: (initialLaunchLocation: 'new-worktree') => void
   deleteActiveWorkspace: () => void
   openAddQuickCommand: () => void
   canSplitActiveChat?: boolean
@@ -157,7 +157,7 @@ export function buildCmdJQuickActionContext(args: {
   openBrowserUrl: (groupId: string, url: string) => Promise<void>
   openNewMarkdownFile: (groupId: string) => Promise<void>
   openNewTerminalTab: (groupId: string) => Promise<void>
-  openCreateWorkspace: () => void
+  openCreateWorkspace: (initialLaunchLocation: 'new-worktree') => void
   deleteActiveWorkspace: () => void
   openAddQuickCommand: () => void
 }): CmdJQuickActionContext {

@@ -106,6 +106,15 @@ function fixture(input: Partial<FolderWorkspaceCreateInput> = {}) {
 }
 
 describe('group folder setup lifecycle', () => {
+  it('opens an existing folder on a chooser without setup or a default terminal', async () => {
+    const { args } = fixture({ initialSurface: 'chooser' })
+    const result = await prepareGroupFolderCreation(args)
+    expect(result.startupTerminal).toBeUndefined()
+    expect(result.setup).toBeUndefined()
+    expect(result.setupReceipt).toBeUndefined()
+    expect(result.warning).toBeUndefined()
+  })
+
   it.skipIf(process.platform === 'win32')(
     'uses the group root and folder identity and isolates sibling runner lifetimes',
     async () => {

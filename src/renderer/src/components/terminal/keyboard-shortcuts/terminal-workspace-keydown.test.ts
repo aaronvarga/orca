@@ -34,6 +34,7 @@ vi.mock('../../dismiss/confirmation/confirmation-dialog-context', () => ({
 const mocks = vi.hoisted(() => ({
   state: {} as Record<string, unknown>,
   closeTerminalTab: vi.fn(),
+  dispatchWorkspaceTabCommand: vi.fn(() => true),
   closeStructuredAgentSession: vi.fn(async () => 'closed'),
   callRuntimeRpc: vi.fn(async () => ({ ok: true })),
   cancelStructuredAgentLaunch: vi.fn(),
@@ -61,6 +62,9 @@ vi.mock('@/lib/workspace/activation/worktree-activation', async (importOriginal)
 }))
 
 vi.mock('../../../store/index', () => ({ useAppStore: { getState: () => mocks.state } }))
+vi.mock('@/lib/workspace/tabs/workspace-tab-commands', () => ({
+  dispatchWorkspaceTabCommand: mocks.dispatchWorkspaceTabCommand
+}))
 vi.mock('../../../lib/workspace/tabs/ipc-tab-switch', () => ({
   handleSwitchRecentTab: vi.fn(),
   handleSwitchTab: vi.fn(),
@@ -165,5 +169,29 @@ describe('handleTerminalWorkspaceKeyDown editor.save', () => {
         ? { contentType: 'editor', entityId: 'floating-file' }
         : null
     expect(pressCmdS()).toEqual([{ fileId: 'floating-file' }])
+  })
+})
+
+describe('Command Center workspace shortcut isolation', () => {
+  it.each(['w', 't'])('leaves background tabs intact for Command+%s', (key) => {
+    const tabs = new Set(['background-tab'])
+    mocks.state = { activeView: 'command-center' }
+    mocks.floatingFocused = false
+    mocks.targetInsideFloatingPanel = false
+    mocks.dispatchWorkspaceTabCommand.mockImplementation(() => {
+      tabs.delete('background-tab')
+      return true
+    })
+    const backgroundController: TerminalActivationController = {
+      ...controller,
+      handleNewTab: () => {
+        tabs.add('unexpected-tab')
+      }
+    }
+    const target = document.createElement('button')
+    const event = new KeyboardEvent('keydown', { key, metaKey: true, cancelable: true })
+    Object.defineProperty(event, 'target', { value: target })
+    handleTerminalWorkspaceKeyDown(event, backgroundController, 'darwin')
+    expect([...tabs]).toEqual(['background-tab'])
   })
 })

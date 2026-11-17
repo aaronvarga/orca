@@ -1,3 +1,14 @@
+export type TerminalPreviewConnection = {
+  viewerId: string
+  connectionToken: string
+  incarnationId?: string
+}
+
+export type TerminalPreviewConnectOptions = {
+  scrollbackRows?: number
+  connection?: TerminalPreviewConnection
+}
+
 export type TerminalPreviewSnapshot = {
   data: string
   cols: number
@@ -23,6 +34,7 @@ export type TerminalPreviewConnectResult = {
   resyncRequired?: boolean
 }
 
-export type TerminalPreviewDataPayload =
+export type TerminalPreviewDataPayload = { connection?: TerminalPreviewConnection } & (
   | { type: 'data'; ptyId: string; data: string; bytes: number }
   | { type: 'resync'; ptyId: string }
+)

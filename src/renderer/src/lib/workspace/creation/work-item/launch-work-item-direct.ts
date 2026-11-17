@@ -1,3 +1,4 @@
+import { launchIssueInCurrentCheckout } from './launch-issue-current-checkout'
 import { pickApprovedSetupHashes } from '../../../../../../shared/worktree/creation/approved-setup-hashes'
 import { agentLaunchRecoveryMessage } from '@/lib/agent-session/launch/failure/agent-launch-failure'
 import { confirmDirectWorkItemSetup, prepareDirectWorkItemSetup } from './direct-work-item-setup'
@@ -32,7 +33,6 @@ import { prepareDirectWorkItemAgentLaunch } from '@/lib/workspace/creation/work-
 import { planAgentSessionLaunch } from '@/lib/agent-session/launch/routing/agent-session-launch-plan'
 
 import { createNonSecureContextUuid } from '../../../../../../shared/identifiers/non-secure-context-uuid'
-/** Create/activate a workspace and deliver work-item context to its agent. Setup decisions, unresolved repos or unavailable agents fall back to the modal; paste failures retain the usable workspace and surface a notice. */
 export async function launchWorkItemDirect(
   args: LaunchWorkItemDirectArgs
 ): Promise<DirectWorkItemLaunchResult> {
@@ -60,6 +60,9 @@ export async function launchWorkItemDirect(
     const { repo } = context
     const promptDelivery = args.promptDelivery ?? 'draft'
     const { itemType, itemNumber } = getDirectWorkItemIdentity(item)
+    if (itemType === 'issue' && !baseBranch && args.launchLocation !== 'new-worktree') {
+      return await launchIssueInCurrentCheckout(args, context)
+    }
     const setupDecision = await prepareDirectWorkItemSetup(
       repo,
       context.executionHostId,
@@ -77,7 +80,6 @@ export async function launchWorkItemDirect(
     let prStart: GitHubPrStartPoint | undefined
     if (!baseBranch && itemType === 'pr' && itemNumber) {
       try {
-        // Direct Use PR bypasses the picker but still needs its resolved head before git worktree add.
         prStart = await resolveDirectPrStartPoint(repoId, itemNumber, context.target, item)
       } catch {
         if (args.signal?.aborted) {
@@ -88,13 +90,12 @@ export async function launchWorkItemDirect(
         return false
       }
     }
-    const resolvedBaseBranch = prStart?.baseBranch ?? baseBranch
     // Approve the orca.yaml at the start point the create checks out, so a PR's own setup is what's reviewed.
     const confirmedSetup = await confirmDirectWorkItemSetup(
       repo,
       context.executionHostId,
       setupDecision,
-      { kind: 'base', baseBranch: resolvedBaseBranch },
+      { kind: 'base', baseBranch: prStart?.baseBranch ?? baseBranch },
       args.signal
     )
     if (confirmedSetup === 'cancelled') {
@@ -108,11 +109,10 @@ export async function launchWorkItemDirect(
     if (!projectPreflight) {
       return reportFailure(unavailableAgentErrorMessage())
     }
-    const projectContext = projectPreflight.context
     const { prospectiveAgent, unavailable } = await resolveDirectProspectiveAgent(
       store,
       repo,
-      projectContext,
+      projectPreflight.context,
       args
     )
     if (args.signal?.aborted) {
@@ -134,7 +134,7 @@ export async function launchWorkItemDirect(
     const preflightPlan = await planDirectWorkItemLaunch({
       requestId,
       prospectiveAgent,
-      projectContext,
+      projectContext: projectPreflight.context,
       repoId,
       repoOwnerHostId: context.executionHostId,
       draftContent,
@@ -151,7 +151,7 @@ export async function launchWorkItemDirect(
     const agentArgsError = directWorkItemAgentArgsError(
       preflightInputs ? preflightInputs.agentArgs : args.agentArgs,
       context.shell,
-      Boolean(projectContext && preflightPlan?.route === 'structured-native-chat'),
+      Boolean(projectPreflight.context && preflightPlan?.route === 'structured-native-chat'),
       failureAgent
     )
     if (agentArgsError) {
@@ -166,7 +166,7 @@ export async function launchWorkItemDirect(
     const result = await store.createWorktree(
       repoId,
       workspaceName,
-      resolvedBaseBranch,
+      prStart?.baseBranch ?? baseBranch,
       confirmedSetup.setupDecision,
       undefined,
       telemetrySource,
@@ -195,11 +195,10 @@ export async function launchWorkItemDirect(
       }
     )
     const worktreeId = result.worktree.id
-    const worktreePath = result.worktree.path
 
     const launchPreparation = await prepareDirectWorkItemAgentLaunch({
       worktreeId,
-      worktreePath,
+      worktreePath: result.worktree.path,
       repoId,
       agentOverride,
       agentLaunchPreferences: args.agentLaunchPreferences,
@@ -276,7 +275,6 @@ export async function launchWorkItemDirect(
     }
     const activation = activationHolder.value
     if (!activation) {
-      // Report a workspace disappearing between create and activation rather than silently drop its draft.
       return reportFailure(workspaceActivationErrorMessage())
     }
     store.setSidebarOpen(true)

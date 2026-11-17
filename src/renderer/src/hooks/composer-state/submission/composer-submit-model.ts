@@ -51,12 +51,14 @@ export type ComposerSubmitModel = {
     workspaceRunContext: WorktreeCreationRequest['workspaceRunContext'],
     repoId: string,
     options?: QuickSubmitOptions,
-    handoff?: ComposerCreateHandoff
+    handoff?: ComposerCreateHandoff,
+    launchLocation?: WorktreeCreationRequest['launchLocation']
   ) => Promise<void>
   prepareQuickSubmit: (
     resolution: PendingSmartGitHubSubmitResolution,
     requestedAgent: TuiAgent | null,
-    workspaceNameSeed: string
+    workspaceNameSeed: string,
+    launchLocation?: WorktreeCreationRequest['launchLocation']
   ) => Promise<PreparedQuickSubmit | null>
   prepareQuickSubmitSource: (
     resolution: PendingSmartGitHubSubmitResolution,

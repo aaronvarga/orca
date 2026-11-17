@@ -322,6 +322,13 @@ export function renderWorktreeSectionHeaderRow(
                   className="size-4"
                   iconClassName="size-3.5"
                 />
+              ) : folderBackedProjectGroup ? (
+                <RepoIconGlyph
+                  repoIcon={folderBackedProjectGroup.repoIcon}
+                  color={folderBackedProjectGroup.color ?? undefined}
+                  className="size-4"
+                  iconClassName="size-3.5"
+                />
               ) : (
                 <headerVisual.icon className="size-3" />
               )}

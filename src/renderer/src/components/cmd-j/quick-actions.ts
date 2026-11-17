@@ -1,3 +1,4 @@
+import { useAppStore } from '@/store'
 import { gitGraphSupport, openGitGraph } from '@/lib/source-control/graph/git-graph-tab'
 import {
   GitGraph,
@@ -81,6 +82,22 @@ export async function runBrowserWorkspaceAction(
 
 // Keep context-heavy imports in Settings, where explanatory UI and failure states fit.
 export const getCmdJQuickActions = createLocalizedCatalog((): CmdJQuickAction[] => [
+  {
+    id: 'command-center',
+    kind: 'action',
+    title: translate('commandCenter.title', 'Command Center'),
+    description: translate(
+      'commandCenter.description',
+      'View terminals across projects and hosts.'
+    ),
+    icon: SquareTerminal,
+    verbKeywords: ['command center', 'terminals', 'sessions'],
+    isAvailable: () => ({ available: true }),
+    run: async () => {
+      useAppStore.getState().openCommandCenter()
+      return { status: 'ok' }
+    }
+  },
   {
     id: 'git-graph',
     kind: 'action',
@@ -193,7 +210,7 @@ export const getCmdJQuickActions = createLocalizedCatalog((): CmdJQuickAction[] 
     ],
     isAvailable: () => ({ available: true }),
     run: async (ctx) => {
-      ctx.openCreateWorkspace()
+      ctx.openCreateWorkspace('new-worktree')
       return { status: 'ok' }
     }
   },

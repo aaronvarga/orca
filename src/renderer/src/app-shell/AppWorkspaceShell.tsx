@@ -8,6 +8,7 @@ import { useHandToBotRequest } from '@/components/bots/hand-to-bot/hand-to-bot-o
 import { pendingCreationOpensNativeChat } from '@/lib/workspace/creation/pending-worktree-creation'
 import { showsFloatingRightSidebarToggle } from '@/components/right-sidebar/visibility/right-sidebar-visibility'
 import Sidebar from '../components/sidebar/index'
+import ProjectRail from '../components/sidebar/ProjectRail'
 import RightSidebar from '../components/right-sidebar/RightSidebar'
 import { RecoverableRenderErrorBoundary } from '../components/error-boundaries/RecoverableRenderErrorBoundary'
 import { FloatingTerminalToggleButton } from '../components/floating-terminal/trigger/FloatingTerminalToggleButton'
@@ -54,6 +55,7 @@ const GitHubInstallMount = lazy(() =>
   }))
 )
 const Terminal = lazy(() => import('../components/terminal/workbench/Terminal'))
+const CommandCenter = lazy(() => import('../components/command-center/CommandCenter'))
 
 type WorktreeSidebarScrollRefs = {
   scrollOffsetRef: React.MutableRefObject<number>
@@ -86,10 +88,14 @@ function WorktreeSidebar({
             )
       }
     >
-      <Sidebar
-        worktreeScrollOffsetRef={scrollRefs.scrollOffsetRef}
-        worktreeScrollAnchorRef={scrollRefs.scrollAnchorRef}
-      />
+      {layout.sidebarOpen ? (
+        <Sidebar
+          worktreeScrollOffsetRef={scrollRefs.scrollOffsetRef}
+          worktreeScrollAnchorRef={scrollRefs.scrollAnchorRef}
+        />
+      ) : (
+        <ProjectRail reserveTitlebar={layout.leftTitlebarChromeLayout.shouldMount} />
+      )}
     </RecoverableRenderErrorBoundary>
   )
 }
@@ -144,6 +150,7 @@ function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element 
       {activeView === 'automations' ? <AutomationsPage /> : null}
       {activeView === 'activity' ? <ActivityPrototypePage /> : null}
       {activeView === 'space' ? <WorkspaceSpacePage /> : null}
+      {activeView === 'command-center' ? <CommandCenter /> : null}
       {activeView === 'mobile' ? <MobilePage /> : null}
       <BotShareReceiveMount />
       <BotTemplatesMount />
@@ -211,7 +218,8 @@ export function AppWorkspaceShell(props: {
               layout.leftTitlebarChromeLayout.shouldMount ? (
                 /* Remove the collapsed header from flex layout so panes reclaim the left edge. */
                 <div
-                  className={`flex min-h-0 flex-col shrink-0${layout.sidebarOpen ? '' : ' relative w-0 overflow-visible'}`}
+                  className={`relative flex min-h-0 flex-col shrink-0${layout.sidebarOpen ? '' : ' overflow-visible'}`}
+                  style={layout.sidebarOpen ? undefined : { width: layout.renderedSidebarWidth }}
                 >
                   <div
                     // The floating header covers the center border; restore the seam and size to its own controls.

@@ -59,6 +59,9 @@ export async function prepareGroupFolderCreation(args: {
 }): Promise<FolderWorkspaceCreateResult> {
   const { input, workspace, group } = args
   const result: FolderWorkspaceCreateResult = { folderWorkspace: workspace }
+  if (input.initialSurface === 'chooser') {
+    return result
+  }
   const owner = projectGroupHookOwner(group)
   const skip = resolveRuntimeSetupDecision(input) === 'skip'
   let prepared: Awaited<ReturnType<typeof prepareRuntimeLocalWorktreeSetup>> | undefined

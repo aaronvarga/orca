@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import { renderedSidebarWidth, PROJECT_RAIL_WIDTH } from '@/components/sidebar/sidebar-geometry'
 import { SYNC_FIT_PANES_EVENT } from '@/constants/terminal'
 import { canShowRightSidebarForView } from '@/components/right-sidebar/visibility/right-sidebar-visibility'
 import { resolveLeftSidebarStyleVariables } from '@/app-shell/appearance/left-sidebar-appearance'
@@ -19,6 +20,7 @@ export type AppChromeLayout = ReturnType<typeof useAppChromeLayout>
 export function useAppChromeLayout() {
   const activeView = useAppStore((s) => s.activeView)
   const sidebarOpen = useAppStore((s) => s.sidebarOpen)
+  const sidebarWidth = useAppStore((s) => s.sidebarWidth)
   const rightSidebarOpen = useAppStore((s) => s.rightSidebarOpen)
   const rightSidebarTab = useAppStore((s) => s.rightSidebarTab)
   const rightSidebarExplorerView = useAppStore((s) => s.rightSidebarExplorerView)
@@ -64,8 +66,7 @@ export function useAppChromeLayout() {
   const workspaceChromeActive =
     activeView === 'terminal' && hasActiveWorktree && !creationLayoutActive
   // Activity/Space own full pages and hide the workspace sidebar.
-  const showSidebar =
-    activeView !== 'settings' && activeView !== 'activity' && activeView !== 'space'
+  const showSidebar = true
   // Tasks/Landing keep sidebar-width chrome when open; creation suppresses stacked chrome.
   const stackedSidebarOpen =
     !workspaceChromeActive && !creationLayoutActive && showSidebar && sidebarOpen
@@ -112,7 +113,10 @@ export function useAppChromeLayout() {
     activeView,
     activePendingCreationId,
     activeTabCanExpand,
-    collapsedSidebarHeaderWidth,
+    collapsedSidebarHeaderWidth: Math.max(
+      0,
+      collapsedSidebarHeaderWidth - (sidebarOpen ? 0 : PROJECT_RAIL_WIDTH)
+    ),
     creationLayoutActive,
     hasActiveWorktree,
     isFullScreen,
@@ -128,6 +132,7 @@ export function useAppChromeLayout() {
     showTitlebarAppName: settings?.showTitlebarAppName !== false,
     showTitlebarExpandButton: workspaceChromeActive && !hasTabBar && effectiveActiveTabExpanded,
     sidebarOpen,
+    renderedSidebarWidth: renderedSidebarWidth(sidebarOpen, sidebarWidth),
     stackedSidebarOpen,
     // Retained workbench panes need a separate visibility condition.
     terminalWorkbenchVisible: workspaceChromeActive,

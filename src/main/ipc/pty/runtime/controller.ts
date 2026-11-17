@@ -1,4 +1,5 @@
 import { adoptMaterializedRuntimePtySpawn } from './spawn-early'
+import { stopFencedRendererPty } from '../ipc/renderer-kill'
 import { createRuntimePtySpawnState } from './spawn-state'
 import { getProviderForPty, hasPtyProviderForInspection, localProvider } from '../provider/registry'
 import {
@@ -74,6 +75,7 @@ export function installPtyRuntimeController(deps: PtyRuntimeControllerDeps): voi
     // Attach-only ingestion serves unmounted daemon sessions without creating/resizing; SSH uses leases and local PTYs already stream.
     attach: (ptyId) => attachPtyFromRuntimeController(deps, ptyId),
     kill: (ptyId) => killPtyFromRuntimeController(deps, ptyId),
+    killFenced: (request, beforeKill) => stopFencedRendererPty(deps, request, beforeKill),
     retireRejectedPty: (ptyId, stopConfirmed, incarnationId) =>
       retireRejectedPtyFromRuntimeController(deps, ptyId, stopConfirmed, incarnationId),
     stopAndWait: (ptyId, opts) => stopAndWaitPtyFromRuntimeController(deps, ptyId, opts),

@@ -33,6 +33,9 @@ export const EMPTY_PROJECT_HOST_SETUP_OPTIONS: ProjectHostSetupOption[] = []
 export const EMPTY_EPHEMERAL_VM_RECIPES: EphemeralVmRecipeOption[] = []
 
 export type NewWorkspaceComposerCardProps = {
+  launchLocation?: 'current-checkout' | 'new-worktree'
+  onLaunchLocationChange?: (value: 'current-checkout' | 'new-worktree') => void
+  checkoutBranch?: string
   contextualTourSource?: string
   containerClassName?: string
   contentClassName?: string

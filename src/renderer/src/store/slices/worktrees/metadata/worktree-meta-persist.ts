@@ -1,3 +1,4 @@
+import { assertLinkedWorkItemCapability } from '@/runtime/workspace-links/runtime-linked-work-item-capabilities'
 import { assertWorkspaceAttachmentWriteCapability } from '../../../../runtime/workspace-links/runtime-workspace-attachment-capabilities'
 import type { WorkspaceAttachmentMutation } from '../../../../../../shared/workspace-attachments/workspace-attachment-mutation'
 import { getLegacyWorkspaceReviewSelectionUpdates } from '../../../../../../shared/workspace-attachments/workspace-attachment-legacy'
@@ -97,6 +98,7 @@ async function persistWorktreeMetaUntracked(
     return
   }
   await assertWorkspaceAttachmentWriteCapability(target, updates)
+  await assertLinkedWorkItemCapability(target, updates)
   if (updates.firstAgentMessageRenameError === null && updates.displayName === undefined) {
     await assertRuntimeEnvironmentCapability(
       target.environmentId,

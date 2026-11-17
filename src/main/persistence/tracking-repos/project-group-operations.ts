@@ -1,3 +1,4 @@
+import { sanitizeRepoIcon } from '../../../shared/repository/appearance/repo-icon'
 import type { ProfileSaveDomains } from '../profile-save-domains'
 import { WORKSPACE_SESSION_DOMAINS } from '../workspace-session-domains'
 import type { PersistedState } from '../../../shared/orca-profiles/persisted-state-types'
@@ -104,6 +105,15 @@ export class ProjectGroupPersistenceOperations {
     if (updates.name !== undefined) {
       group.name = normalizeProjectGroupName(updates.name, group.name)
     }
+    if (updates.hiddenAt === null) {
+      delete group.hiddenAt
+    } else if (
+      updates.hiddenAt !== undefined &&
+      Number.isFinite(updates.hiddenAt) &&
+      updates.hiddenAt > 0
+    ) {
+      group.hiddenAt = updates.hiddenAt
+    }
     if (updates.isCollapsed !== undefined) {
       group.isCollapsed = updates.isCollapsed
     }
@@ -117,6 +127,9 @@ export class ProjectGroupPersistenceOperations {
       Number.isFinite(updates.rootProjectOrder)
     ) {
       group.rootProjectOrder = updates.rootProjectOrder
+    }
+    if (updates.repoIcon !== undefined) {
+      group.repoIcon = sanitizeRepoIcon(updates.repoIcon)
     }
     if (updates.color !== undefined) {
       group.color = typeof updates.color === 'string' ? updates.color : null

@@ -5,6 +5,8 @@ import { persistedUIValuesEqual } from '../../../../../shared/collections/persis
 /** Capture hydrated baseline and persist only locally changed fields: shared desktop/web/mobile UI snapshots otherwise overwrite peers’ disjoint updates (STA-5781). */
 export type PersistedUIWriteBaseline = {
   gitGraphFiltersByWorktree?: PersistedUIState['gitGraphFiltersByWorktree']
+  projectRailSeparators?: PersistedUIState['projectRailSeparators']
+  commandCenterPresentation?: PersistedUIState['commandCenterPresentation']
   sidebarWidth: number
   sidebarOpen: boolean
   rightSidebarOpen: boolean
@@ -38,6 +40,8 @@ export type PersistedUIWriteBaseline = {
 // Require exhaustive Record coverage; keyof arrays validate members but silently omit new fields, losing persistence (ui-state-schema-parity.ts).
 const PERSISTED_UI_WRITE_BASELINE_FIELD_SET = {
   gitGraphFiltersByWorktree: true,
+  projectRailSeparators: true,
+  commandCenterPresentation: true,
   sidebarWidth: true,
   sidebarOpen: true,
   rightSidebarOpen: true,
@@ -103,7 +107,7 @@ function stringArrayEqual(a: readonly string[], b: readonly string[]): boolean {
 
 /** Compares collection fields by value so hydration does not produce redundant persistence writes from new identities. */
 function writeFieldEqual(field: keyof PersistedUIWriteBaseline, a: unknown, b: unknown): boolean {
-  if (field === 'gitGraphFiltersByWorktree') {
+  if (field === 'gitGraphFiltersByWorktree' || field === 'commandCenterPresentation' || field === 'projectRailSeparators') {
     // Same equality as hydration, so a key-order-only difference is never unsaved.
     return persistedUIValuesEqual(a, b)
   }
