@@ -26,6 +26,8 @@ function pickBrowserFiles(): Promise<File[]> {
 export function createShellApi(): NonNullable<Partial<PreloadApi>['shell']> {
   const openResult = { ok: true } as const
   return {
+    getProjectSymbolCatalog: () => Promise.resolve(null),
+    renderProjectSymbols: () => Promise.resolve({}),
     openPath: (path) =>
       Promise.resolve(window.open(path, '_blank', 'noopener,noreferrer') as never),
     openInFileManager: () => Promise.resolve(openResult),
@@ -41,6 +43,7 @@ export function createShellApi(): NonNullable<Partial<PreloadApi>['shell']> {
     pathsExist: (paths) => Promise.all(paths.map((path) => pathExistsOnRuntime(path))),
     pickAttachment: () => Promise.resolve(null),
     // Tokens for the picked files, which the chat upload reads; a browser has no file paths.
+    captureScreenshot: () => Promise.resolve(null),
     pickAttachments: async () => holdBrowserAttachmentFiles(await pickBrowserFiles()),
     pickImage: () => Promise.resolve(null),
     pickRepoIconImage: () => Promise.resolve(null),

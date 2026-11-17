@@ -70,7 +70,12 @@ export function RepositoryIconPicker({
   const selectedEmoji = repo.repoIcon?.type === 'emoji' ? repo.repoIcon.emoji : ''
   const selectedBadgeColor = normalizeRepoBadgeColor(repo.badgeColor) ?? DEFAULT_REPO_BADGE_COLOR
   const initialTab =
-    repo.repoIcon?.type === 'emoji' ? 'emoji' : repo.repoIcon?.type === 'lucide' ? 'icon' : 'avatar'
+    repo.repoIcon?.type === 'emoji'
+      ? 'emoji'
+      : repo.repoIcon?.type === 'lucide' ||
+          (repo.repoIcon?.type === 'image' && repo.repoIcon.source === 'symbol')
+        ? 'icon'
+        : 'avatar'
   const runtimeTarget = useMemo(
     () => runtimeTargetForOwnerEnvironment(ownerEnvironmentId),
     [ownerEnvironmentId]
@@ -177,6 +182,11 @@ export function RepositoryIconPicker({
         initialTab={initialTab}
         selectedLucideName={selectedLucideName}
         selectedEmoji={selectedEmoji}
+        selectedSymbolName={
+          repo.repoIcon?.type === 'image' && repo.repoIcon.source === 'symbol'
+            ? repo.repoIcon.label
+            : null
+        }
         loadingGitHub={loadingGitHub}
         onSetIcon={setIcon}
         onUseGitHubAvatar={() => void handleUseGitHubAvatar()}

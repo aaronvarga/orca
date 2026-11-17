@@ -532,7 +532,6 @@
     },
     "repository": {
       "iconPickErrors": {
-        "notPng": "Los iconos del repositorio deben ser archivos PNG.",
         "tooLarge": "La imagen del icono del repositorio debe tener un tamaño máximo de 256 KB."
       }
     },
@@ -6176,7 +6175,6 @@
           "64e55f7f01": "Quitar del grupo",
           "4a08fb55f2": "Mover al grupo",
           "cbfd565f83": "Nuevo grupo del proyecto",
-          "e82d3589a1": "Cambiar icono de proyecto",
           "2cdffbc728": "Ajustes del proyecto",
           "2ef41bf9a7": "Acciones del proyecto",
           "609633a9e6": "Acciones del proyecto para {{value0}}",
@@ -8231,11 +8229,8 @@
         },
         "RepositoryIconPicker": {
           "2b7d27b93c": "Usar {{value0}} como color del repositorio",
-          "useRepoIcon": "Usar {{value0}} como icono del repositorio",
-          "fde066a63b": "Las cargas PNG deben tener un tamaño de 256 KB o menos.",
           "cc1286e263": "Favicon",
           "03ca1a4e9b": "example.com",
-          "381b4844fd": "Subir PNG",
           "7da623abcc": "Se usa de forma predeterminada: GitHub siempre proporciona uno, incluso cuando el propietario no configuró una imagen personalizada.",
           "c490787d24": "Emoji",
           "b2d7fd2116": "Icono",
@@ -11080,17 +11075,6 @@
                   "05863d2599": "Pull requests y estados de commit mediante la API REST de Gitea.",
                   "52f75876be": "Pull requests y estados de commit para los repositorios detectados",
                   "0b5242f8a2": "{{value0}} · Pull requests y estados de commit",
-                  "40f678df73": "Las credenciales de Azure DevOps están configuradas, pero no se pudo autenticar. Comprueba el token, la URL base de la API y los permisos del repositorio; después reinicia Orca si cambiaron las variables de entorno.",
-                  "7bd345e3f6": "solo cuando Orca no pueda derivar la URL base de la API desde el remote de git.",
-                  "186a6689df": "ORCA_AZURE_DEVOPS_API_BASE_URL",
-                  "b8a10b07c1": ". Configura",
-                  "fbfd237f5e": "ORCA_AZURE_DEVOPS_ACCESS_TOKEN",
-                  "087feb92f1": ", o configura",
-                  "48842720d2": "ORCA_AZURE_DEVOPS_TOKEN",
-                  "7bbc9c64f0": "Configura",
-                  "f3f47dc7de": "El estado de Azure DevOps aún no está disponible en este runtime.",
-                  "0eb50d5593": "Pull requests y estados de build mediante tokens de la API REST de Azure DevOps.",
-                  "54636c65d4": "Pull requests y estados de build para Azure Repos detectados",
                   "ea204f5e03": "{{value0}} · Pull requests y estados de build",
                   "6154b02093": "Las credenciales de Bitbucket están configuradas, pero no se pudo autenticar. Comprueba el token y los permisos del repositorio; después reinicia Orca si cambiaron las variables de entorno.",
                   "24ac1c69dc": "El estado de Bitbucket aún no está disponible en este runtime.",

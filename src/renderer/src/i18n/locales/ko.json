@@ -526,7 +526,6 @@
     },
     "repository": {
       "iconPickErrors": {
-        "notPng": "저장소 아이콘은 PNG 파일이어야 합니다.",
         "tooLarge": "저장소 아이콘 이미지는 256 KB 이하여야 합니다."
       }
     },
@@ -5922,7 +5921,6 @@
           "64e55f7f01": "그룹에서 제거",
           "4a08fb55f2": "그룹으로 이동",
           "cbfd565f83": "프로젝트의 새 그룹",
-          "e82d3589a1": "프로젝트 아이콘 변경",
           "2cdffbc728": "프로젝트 설정",
           "2ef41bf9a7": "프로젝트 작업",
           "609633a9e6": "{{value0}}에 대한 프로젝트 작업",
@@ -7939,11 +7937,8 @@
         },
         "RepositoryIconPicker": {
           "2b7d27b93c": "{{value0}} repo 색상 사용",
-          "useRepoIcon": "{{value0}} repo 아이콘 사용",
-          "fde066a63b": "PNG 업로드는 256KB 이하여야 합니다.",
           "cc1286e263": "파비콘",
           "03ca1a4e9b": "example.com",
-          "381b4844fd": "PNG 업로드",
           "7da623abcc": "기본적으로 사용됨 — GitHub는 소유자가 사용자 정의 이미지를 설정하지 않은 경우에도 항상 하나를 제공합니다.",
           "c490787d24": "이모티콘",
           "b2d7fd2116": "아이콘",
@@ -10799,17 +10794,6 @@
                   "05863d2599": "Gitea REST API를 통한 PR 및 commit 상태입니다.",
                   "52f75876be": "감지된 repos의 PR 및 commit 상태",
                   "0b5242f8a2": "{{value0}} · PR 및 commit 상태",
-                  "40f678df73": "Azure DevOps 자격 증명이 구성되어 있지만 인증할 수 없습니다. 토큰, API 기본 URL, repos 권한을 확인하고, 환경 변수가 변경되었다면 Orca를 다시 시작하세요.",
-                  "7bd345e3f6": "Orca가 Git 원격에서 API 기본 URL을 추론할 수 없는 경우에만 사용하세요.",
-                  "186a6689df": "ORCA_AZURE_DEVOPS_API_BASE_URL",
-                  "b8a10b07c1": ". 설정하세요",
-                  "fbfd237f5e": "ORCA_AZURE_DEVOPS_ACCESS_TOKEN",
-                  "087feb92f1": ", 또는 설정",
-                  "48842720d2": "ORCA_AZURE_DEVOPS_TOKEN",
-                  "7bbc9c64f0": "설정",
-                  "f3f47dc7de": "이 런타임에서는 아직 Azure DevOps 상태를 사용할 수 없습니다.",
-                  "0eb50d5593": "Azure DevOps REST API 토큰을 통한 PR 및 빌드 상태입니다.",
-                  "54636c65d4": "감지된 Azure Repos의 PR 및 빌드 상태",
                   "ea204f5e03": "{{value0}} · PR 및 빌드 상태",
                   "6154b02093": "Bitbucket 자격 증명이 구성되어 있지만 인증할 수 없습니다. 토큰과 repos 권한을 확인하고, 환경 변수가 변경되었다면 Orca를 다시 시작하세요.",
                   "24ac1c69dc": "이 런타임에서는 아직 Bitbucket 상태를 사용할 수 없습니다.",

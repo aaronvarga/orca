@@ -219,7 +219,7 @@ function prepareMacDevElectronApp() {
   const title = process.env.ORCA_DEV_DOCK_TITLE || 'Orca: dev'
   const identityKey = process.env.ORCA_DEV_INSTANCE_KEY || repoRoot
   // v11 stabilizes Info.plist/cdhash; ignored stale marker fields permit schema narrowing without another bump.
-  const bundleLayoutVersion = 'stable-cdhash-dock-name-from-bundle-dir-v11'
+  const bundleLayoutVersion = 'stable-cdhash-dock-name-from-bundle-dir-v12-project-symbols'
   const hash = createHash('sha1')
     .update(
       `${sourceAppPath}\0${electronVersion ?? ''}\0${title}\0${identityKey}\0${bundleLayoutVersion}`

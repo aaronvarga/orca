@@ -998,7 +998,6 @@
     },
     "repository": {
       "iconPickErrors": {
-        "notPng": "存放庫圖示必須是 PNG 檔案。",
         "tooLarge": "存放庫圖示圖片不得超過 256 KB。"
       }
     },
@@ -6477,7 +6476,6 @@
           "64e55f7f01": "從群組中移除",
           "4a08fb55f2": "移至群組",
           "cbfd565f83": "從專案建立新群組",
-          "e82d3589a1": "變更專案圖示",
           "2cdffbc728": "專案設定",
           "2ef41bf9a7": "專案操作",
           "609633a9e6": "{{value0}} 的專案操作",
@@ -8507,11 +8505,8 @@
         },
         "RepositoryIconPicker": {
           "2b7d27b93c": "使用 {{value0}} 存放庫顏色",
-          "useRepoIcon": "使用 {{value0}} 存放庫圖示",
-          "fde066a63b": "PNG 上傳必須為 256KB 或更小。",
           "cc1286e263": "網站圖示",
           "03ca1a4e9b": "example.com",
-          "381b4844fd": "上傳 PNG",
           "7da623abcc": "預設使用 — GitHub 始終提供一個，即使所有者尚未設定自訂影像。",
           "c490787d24": "表情符號",
           "b2d7fd2116": "圖示",
@@ -11300,17 +11295,6 @@
                   "05863d2599": "透過 Gitea REST API 取得 PR 和提交狀態。",
                   "52f75876be": "已偵測存放庫的 PR 和提交狀態",
                   "0b5242f8a2": "{{value0}} · PR 和提交狀態",
-                  "40f678df73": "Azure DevOps 憑證已設定但無法通過身分驗證。請檢查權杖、API 基礎 URL 和存放庫權限；如果環境變數已變更，請重新啟動 Orca。",
-                  "7bd345e3f6": "僅當 Orca 無法從 git remote 推導出 API 基礎 URL 時。",
-                  "186a6689df": "ORCA_AZURE_DEVOPS_API_BASE_URL",
-                  "b8a10b07c1": "。設定",
-                  "fbfd237f5e": "ORCA_AZURE_DEVOPS_ACCESS_TOKEN",
-                  "087feb92f1": "，或設定",
-                  "48842720d2": "ORCA_AZURE_DEVOPS_TOKEN",
-                  "7bbc9c64f0": "設定",
-                  "f3f47dc7de": "此執行環境尚無法提供 Azure DevOps 狀態。",
-                  "0eb50d5593": "透過 Azure DevOps REST API 權杖取得 PR 和建置狀態。",
-                  "54636c65d4": "已偵測 Azure Repos 的 PR 和建置狀態",
                   "ea204f5e03": "{{value0}} · PR 和建置狀態",
                   "6154b02093": "Bitbucket 憑證已設定但無法通過身分驗證。請檢查權杖和存放庫權限；如果環境變數已變更，請重新啟動 Orca。",
                   "24ac1c69dc": "此執行環境尚無法提供 Bitbucket 狀態。",

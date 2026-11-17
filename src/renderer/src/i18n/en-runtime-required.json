@@ -1851,6 +1851,11 @@
       "repoNotFound": "Repo not found"
     }
   },
+  "commandCenter": {
+    "sessions": "{{count}} sessions",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions"
+  },
   "components": {
     "RepositoryBrowserProfileSection": {
       "keywordCookies": "cookies",
@@ -2837,6 +2842,41 @@
       "unsupportedFile": "Unsupported file. Pick a PNG, APNG, JPG, GIF, WebP, or SVG."
     }
   },
+  "projectSymbols": {
+    "category": {
+      "accessibility": "Accessibility",
+      "arrows": "Arrows",
+      "automotive": "Automotive",
+      "cameraandphotos": "Camera & Photos",
+      "commerce": "Commerce",
+      "communication": "Communication",
+      "connectivity": "Connectivity",
+      "devices": "Devices",
+      "draw": "Draw",
+      "editing": "Editing",
+      "fitness": "Fitness",
+      "gaming": "Gaming",
+      "health": "Health",
+      "home": "Home",
+      "human": "Human",
+      "indices": "Indices",
+      "keyboard": "Keyboard",
+      "maps": "Maps",
+      "math": "Math",
+      "media": "Media",
+      "multicolor": "Multicolor",
+      "nature": "Nature",
+      "objectsandtools": "Objects & Tools",
+      "privacyandsecurity": "Privacy & Security",
+      "shapes": "Shapes",
+      "textformatting": "Text Formatting",
+      "time": "Time",
+      "transportation": "Transportation",
+      "variable": "Variable",
+      "weather": "Weather",
+      "whatsnew": "What's New"
+    }
+  },
   "projectViews": {
     "error": {
       "tooLargeCount_one": "This view has {{count}} item — too large to render in Orca. Narrow the view's filter on GitHub.",
@@ -2940,8 +2980,10 @@
     },
     "repository": {
       "iconPickErrors": {
-        "notPng": "Repo icons must be PNG files.",
-        "tooLarge": "Repo icon image must be 256KB or smaller."
+        "icnsTooLarge": "ICNS files must be 10MB or smaller.",
+        "invalidImage": "This ICNS file does not contain a supported image up to 2048 × 2048 pixels.",
+        "tooLarge": "Repo icon image must be 256KB or smaller.",
+        "unsupportedFormat": "Repo icons must be PNG or ICNS files."
       }
     },
     "shortcuts": {

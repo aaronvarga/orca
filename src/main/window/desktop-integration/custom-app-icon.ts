@@ -1,3 +1,4 @@
+import { readAppIconRaster } from './app-icon-container'
 import { existsSync } from 'node:fs'
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -17,8 +18,7 @@ import { fitAppIconToPlatformShape } from './platform-app-icon-shape'
 const STORED_ICON_SIDE = 1024
 const PREVIEW_ICON_SIDE = 192
 
-// Why not ICO/ICNS: Electron decodes ICNS nowhere and ICO only on Windows, at a single size.
-export const CUSTOM_APP_ICON_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg']
+export const CUSTOM_APP_ICON_FILE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'icns', 'ico']
 
 // Imports and removals share one file, so they run one at a time.
 let customAppIconMutations: Promise<unknown> = Promise.resolve()
@@ -72,10 +72,11 @@ async function decodeCustomAppIcon(sourcePath: string): Promise<Electron.NativeI
   if (sourceStat.size > CUSTOM_APP_ICON_MAX_BYTES) {
     throw new CustomAppIconImportError('tooLarge')
   }
-  const bytes = await readFile(sourcePath).catch(() => {
+  const source = await readFile(sourcePath).catch(() => {
     throw new CustomAppIconImportError('unreadable')
   })
-  if (!isPngOrJpeg(bytes)) {
+  const bytes = readAppIconRaster(source)
+  if (!bytes || !isPngOrJpeg(bytes)) {
     throw new CustomAppIconImportError('unsupportedFormat')
   }
   // Read the header before decoding so a decompression bomb never reaches the native decoder.

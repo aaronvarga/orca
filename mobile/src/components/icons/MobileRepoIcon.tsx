@@ -1,3 +1,4 @@
+import { resolveRepoIconColors } from '../../../../src/shared/repository/appearance/repo-icon-colors'
 import {
   Bot,
   Box,
@@ -64,6 +65,23 @@ export function MobileRepoIcon({ repoIcon, size = 14, color = colors.textSeconda
   useMobileColorScheme()
   // Keyed by src so a changed icon gets a fresh try; the page shell refuses every https load.
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
+  const { background, foreground } = resolveRepoIconColors(color)
+  if (repoIcon?.type === 'image' && repoIcon.source === 'symbol' && repoIcon.src !== failedSrc) {
+    return (
+      <Image
+        source={{ uri: repoIcon.src }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: radii.mark,
+          backgroundColor: background,
+          tintColor: foreground
+        }}
+        accessibilityLabel={repoIcon.label}
+        onError={() => setFailedSrc(repoIcon.src)}
+      />
+    )
+  }
   if (repoIcon?.type === 'image' && repoIcon.src !== failedSrc) {
     const { src } = repoIcon
     return (
@@ -80,8 +98,13 @@ export function MobileRepoIcon({ repoIcon, size = 14, color = colors.textSeconda
   }
   const Icon = (repoIcon?.type === 'lucide' && REPO_LUCIDE_ICONS[repoIcon.name]) || Folder
   return (
-    <View style={styles.glyph}>
-      <Icon size={size} color={color} strokeWidth={2} />
+    <View
+      style={[
+        styles.glyph,
+        { width: size, height: size, borderRadius: radii.mark, backgroundColor: background }
+      ]}
+    >
+      <Icon size={Math.round(size * 0.65)} color={foreground} strokeWidth={2} />
     </View>
   )
 }

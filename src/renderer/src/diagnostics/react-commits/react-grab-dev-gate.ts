@@ -4,6 +4,6 @@ export type ReactGrabDevEnv = {
 }
 
 export function shouldEnableReactGrab(env: ReactGrabDevEnv): boolean {
-  // pn dev omits VITE_ENABLE_REACT_GRAB; keep its Cmd/Ctrl+C shortcut unless developers explicitly opt out.
-  return env.dev && env.enableFlag !== 'false'
+  // Opt in explicitly so the development selector does not cover normal app controls.
+  return env.dev && env.enableFlag === 'true'
 }

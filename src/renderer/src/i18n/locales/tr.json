@@ -1027,7 +1027,6 @@
     },
     "repository": {
       "iconPickErrors": {
-        "notPng": "Repo simgeleri PNG dosyaları olmalıdır.",
         "tooLarge": "Repo simgesi görseli 256 KB veya daha küçük olmalıdır."
       }
     },
@@ -6751,7 +6750,6 @@
           "64e55f7f01": "Gruptan kaldır",
           "4a08fb55f2": "Gruba taşı",
           "cbfd565f83": "Projeden yeni grup",
-          "e82d3589a1": "Proje Simgesini Değiştir",
           "2cdffbc728": "Proje Ayarları",
           "2ef41bf9a7": "Proje işlemleri",
           "609633a9e6": "{{value0}} için proje işlemleri",
@@ -8800,11 +8798,8 @@
         },
         "RepositoryIconPicker": {
           "2b7d27b93c": "{{value0}} reposunun rengini kullan",
-          "useRepoIcon": "{{value0}} repo simgesini kullan",
-          "fde066a63b": "PNG yüklemeleri 256KB veya daha küçük olmalıdır.",
           "cc1286e263": "Favicon",
           "03ca1a4e9b": "example.com",
-          "381b4844fd": "PNG Yükle",
           "7da623abcc": "Varsayılan olarak kullanılır - sahibi özel bir görsel ayarlamamış olsa bile GitHub her zaman bir tane sağlar.",
           "c490787d24": "Emoji",
           "b2d7fd2116": "Simge",
@@ -11597,17 +11592,6 @@
                   "05863d2599": "Gitea REST API üzerinden pull request'ler ve commit durumları.",
                   "52f75876be": "Tespit edilen repository'ler için pull request'ler ve commit durumları",
                   "0b5242f8a2": "{{value0}} · Pull request'ler ve commit durumları",
-                  "40f678df73": "Azure DevOps kimlik bilgileri yapılandırılmış ancak kimlik doğrulanamadı. Belirteci, API temel URL'sini ve repository izinlerini kontrol edin, ardından ortam değişkenleri değiştiyse Orca'yı yeniden başlatın.",
-                  "7bd345e3f6": "yalnızca Orca API temel URL'sini git remote'undan türetemediğinde.",
-                  "186a6689df": "ORCA_AZURE_DEVOPS_API_BASE_URL",
-                  "b8a10b07c1": ". Şunu ayarlayın",
-                  "fbfd237f5e": "ORCA_AZURE_DEVOPS_ACCESS_TOKEN",
-                  "087feb92f1": ", ya da şunu ayarlayın",
-                  "48842720d2": "ORCA_AZURE_DEVOPS_TOKEN",
-                  "7bbc9c64f0": "Şunu ayarlayın",
-                  "f3f47dc7de": "Azure DevOps durumu bu runtime'da henüz kullanılamıyor.",
-                  "0eb50d5593": "Azure DevOps REST API belirteçleri üzerinden pull request'ler ve build durumları.",
-                  "54636c65d4": "Tespit edilen Azure Repos için pull request'ler ve build durumları",
                   "ea204f5e03": "{{value0}} · Pull request'ler ve build durumları",
                   "6154b02093": "Bitbucket kimlik bilgileri yapılandırılmış ancak kimlik doğrulanamadı. Belirteci ve repository izinlerini kontrol edin, ardından ortam değişkenleri değiştiyse Orca'yı yeniden başlatın.",
                   "24ac1c69dc": "Bitbucket durumu bu runtime'da henüz kullanılamıyor.",

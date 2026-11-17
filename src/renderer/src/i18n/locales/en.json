@@ -319,7 +319,36 @@
       "detailsRow": "Details row",
       "workspaceUnread": "Unread in this workspace",
       "unreadTab": "Unread tab"
-    }
+    },
+    "folderGroupAbsolutePath": "Enter an absolute folder path or use Browse.",
+    "folderGroupUnsupportedHost": "Reconnect this host to create a folder group.",
+    "folderGroupDefaultName": "Folder group",
+    "folderGroupCreateFailed": "Couldn't create the folder group.",
+    "newFolderGroup": "New folder group",
+    "folderGroupDescription": "Choose a parent folder. Browse its subfolders from the sidebar and choose which session to start.",
+    "folderGroupPath": "Parent folder",
+    "browseFolderGroup": "Browse…",
+    "folderGroupName": "Name",
+    "folderGroupCancel": "Cancel",
+    "folderGroupCreate": "Create",
+    "folderGroupBack": "Back to parent folder",
+    "folderGroupRefresh": "Refresh folders",
+    "folderGroupOpenFolder": "Open this folder",
+    "folderGroupLoading": "Loading folders…",
+    "folderGroupEmpty": "No subfolders",
+    "folderGroupBrowse": "Browse {{name}}",
+    "projectVisibility": "Project visibility",
+    "projectVisibilityFailed": "Couldn't change project visibility.",
+    "folderGroupHostUnavailable": "The folder group host is unavailable.",
+    "folderGroupOpenFailed": "The folder could not be opened on its host.",
+    "newFolderGroupMenu": "New folder group…",
+    "folderGroupHostNeedsUpdate": "Update the remote runtime to open folders without starting a session.",
+    "folderGroupImageTab": "Image",
+    "folderGroupAppearanceFailed": "Couldn't save the group appearance. Its host may need an Orca update.",
+    "folderGroupAppearance": "Group icon and color",
+    "projectIconAndColor": "Project icon and color",
+    "removeRailSeparator": "Remove separator above",
+    "addRailSeparator": "Add separator above"
   },
   "app": {
     "saving": {
@@ -649,6 +678,17 @@
   },
   "settings": {
     "chat": {
+      "launch": {
+        "on": "Chat UI is on",
+        "off": "Chat UI is off",
+        "agents": "Default launch mode per agent",
+        "agentsDescription": "Choose whether each agent opens in Chat UI or its CLI.",
+        "chatDescription": "New agents will launch in chat mode by default.",
+        "cliDescription": "New agents will launch as CLI by default.",
+        "turnOn": "Turn on",
+        "turnOff": "Turn off",
+        "toggle": "Use Chat UI by default"
+      },
       "permissionsAgentsLink": "Settings → Agents",
       "permissionsTitle": "Permissions for new chats",
       "permissionsDescription": "New chats only. Agent-specific defaults are in Settings → Agents.",
@@ -676,18 +716,7 @@
         "searchTerminal": "terminal",
         "antigravityAccount": "Account"
       },
-      "permissionsDescriptionOwnAgents": "New chats follow each agent’s permission in Settings → Agents.",
-      "launch": {
-        "on": "Chat UI is on",
-        "off": "Chat UI is off",
-        "agents": "Default launch mode per agent",
-        "agentsDescription": "Choose whether each agent opens in Chat UI or its CLI.",
-        "chatDescription": "New agents will launch in chat mode by default.",
-        "cliDescription": "New agents will launch as CLI by default.",
-        "turnOn": "Turn on",
-        "turnOff": "Turn off",
-        "toggle": "Use Chat UI by default"
-      }
+      "permissionsDescriptionOwnAgents": "New chats follow each agent’s permission in Settings → Agents."
     },
     "terminal": {
       "optionLayoutAlt": "ABC or U.S. — Option sends Alt/Esc sequences",
@@ -869,7 +898,7 @@
         "customKeyword": "custom",
         "importKeyword": "import",
         "importErrors": {
-          "unsupportedFormat": "Unsupported image. Pick a PNG or JPEG file.",
+          "unsupportedFormat": "Unsupported image. Pick a PNG, JPEG, ICNS, or ICO file.",
           "unreadable": "Could not read the selected file.",
           "tooLarge": "Image is larger than {{max}} MB.",
           "notSquare": "App icons must be square.",
@@ -1452,8 +1481,12 @@
       }
     },
     "repository": {
+      "uploadIcon": "Upload PNG or ICNS",
+      "iconUploadHint": "PNG: up to 256KB. ICNS: up to 10MB.",
       "iconPickErrors": {
-        "notPng": "Repo icons must be PNG files.",
+        "unsupportedFormat": "Repo icons must be PNG or ICNS files.",
+        "invalidImage": "This ICNS file does not contain a supported image up to 2048 × 2048 pixels.",
+        "icnsTooLarge": "ICNS files must be 10MB or smaller.",
         "tooLarge": "Repo icon image must be 256KB or smaller."
       }
     },
@@ -5158,8 +5191,8 @@
             "downloadAlreadyLocal": "'{{value0}}' is already on this computer.",
             "downloadFolderUnsupported": "Folder '{{value0}}' can't be downloaded from this host.",
             "downloadOpenFailed": "Failed to download '{{value0}}'.",
-            "openInThisGroupRefused": "Couldn't open {{value0}} in this group",
-            "openInNewTab": "Open in new tab"
+            "openInNewTab": "Open in new tab",
+            "openInThisGroupRefused": "Couldn't open {{value0}} in this group"
           },
           "TerminalSessionStateSaveFailureDialog": {
             "6bee0c8f17": "Open Disk Space Analyzer",
@@ -7757,7 +7790,6 @@
           "64e55f7f01": "Remove from group",
           "4a08fb55f2": "Move to group",
           "cbfd565f83": "New group from project",
-          "e82d3589a1": "Change Project Icon",
           "2cdffbc728": "Project Settings",
           "2ef41bf9a7": "Project actions",
           "609633a9e6": "Project actions for {{value0}}",
@@ -9867,11 +9899,8 @@
         },
         "RepositoryIconPicker": {
           "2b7d27b93c": "Use {{value0}} repo color",
-          "useRepoIcon": "Use {{value0}} repo icon",
-          "fde066a63b": "PNG uploads must be 256KB or smaller.",
           "cc1286e263": "Favicon",
           "03ca1a4e9b": "example.com",
-          "381b4844fd": "Upload PNG",
           "7da623abcc": "Used by default — GitHub always provides one, even when the owner hasn't set a custom image.",
           "c490787d24": "Emoji",
           "b2d7fd2116": "Icon",
@@ -12572,6 +12601,7 @@
               "recipe": {
                 "options": {
                   "commitMessage": "Generate the commit message from staged changes.",
+                  "commitMessageSharedModel": "Pull request details, Branch name and Chat name can also use this model when they don’t pick their own; their “Same as default” option shows which model they use.",
                   "pullRequest": "Generate the hosted review title and description.",
                   "branchName": "Rename Orca-created branches from the initial agent task.",
                   "fixCommitFailure": "Start an agent when a commit hook or git commit fails.",
@@ -12581,8 +12611,7 @@
                   "supportedAgents": "Supported agents for this recipe: {{value0}}.",
                   "unsupportedSavedAgent": "{{value0}} cannot run this text-generation recipe. Pick one of the supported agents below.",
                   "resolveComments": "Start an agent from selected unresolved PR or MR comments.",
-                  "fixPushFailure": "Start an agent when a pre-push hook or git push fails.",
-                  "commitMessageSharedModel": "Pull request details, Branch name and Chat name can also use this model when they don’t pick their own; their “Same as default” option shows which model they use."
+                  "fixPushFailure": "Start an agent when a pre-push hook or git push fails."
                 }
               }
             }
@@ -12702,17 +12731,6 @@
                   "05863d2599": "Pull requests and commit statuses via the Gitea REST API.",
                   "52f75876be": "Pull requests and commit statuses for detected repositories",
                   "0b5242f8a2": "{{value0}} · Pull requests and commit statuses",
-                  "40f678df73": "Azure DevOps credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Orca if environment variables changed.",
-                  "7bd345e3f6": "only when Orca cannot derive the API base URL from the git remote.",
-                  "186a6689df": "ORCA_AZURE_DEVOPS_API_BASE_URL",
-                  "b8a10b07c1": ". Set",
-                  "fbfd237f5e": "ORCA_AZURE_DEVOPS_ACCESS_TOKEN",
-                  "087feb92f1": ", or set",
-                  "48842720d2": "ORCA_AZURE_DEVOPS_TOKEN",
-                  "7bbc9c64f0": "Set",
-                  "f3f47dc7de": "Azure DevOps status is not available in this runtime yet.",
-                  "0eb50d5593": "Pull requests and build statuses via Azure DevOps REST API tokens.",
-                  "54636c65d4": "Pull requests and build statuses for detected Azure Repos",
                   "ea204f5e03": "{{value0}} · Pull requests and build statuses",
                   "6154b02093": "Bitbucket credentials are configured but could not authenticate. Check the token and repository permissions, then restart Orca if environment variables changed.",
                   "24ac1c69dc": "Bitbucket status is not available in this runtime yet.",
@@ -23718,7 +23736,11 @@
         "noMatches": "No matches",
         "searchAgentsAndFiles": "Search agents and files",
         "searchShort": "Search",
-        "terminal": "Terminal"
+        "terminal": "Terminal",
+        "newChat": "New chat…",
+        "newNamedChat": "New {{agent}} chat",
+        "loadingChats": "Loading chats…",
+        "noChats": "No chat agents available on this host"
       }
     },
     "toastFallbacks": {
@@ -24621,7 +24643,8 @@
     "cancel": "Cancel",
     "unassigned": "Unassigned",
     "copy": "Copy",
-    "delete": "Delete"
+    "delete": "Delete",
+    "save": "Save"
   },
   "terminal": {
     "sessionSaveFailure": {
@@ -25308,7 +25331,13 @@
         "provisionFailed": "The VM was not created, or creation was interrupted. Open Settings to destroy or remove it."
       },
       "suspendFailed": "Failed to suspend VM workspace"
-    }
+    },
+    "launchLocation": "Launch location",
+    "currentCheckout": "Current checkout",
+    "newIsolatedWorktree": "New isolated worktree",
+    "startSession": "Start session",
+    "currentCheckoutUnavailable": "Current checkout is unavailable. Reconnect the project and refresh its workspaces.",
+    "startingSession": "Starting session…"
   },
   "tabHoverCard": {
     "browser": "Browser",
@@ -26051,6 +26080,7 @@
     },
     "repairChoice": {
       "sectionStartsEmpty": "{{section}}: no readable backup, so it will start empty.",
+      "sectionKeptCurrent": "{{section}}: your current runs will be kept",
       "sectionRestored": "{{section}}: restored from the backup saved {{time}}.",
       "projectsForgotten": "Orca will forget your projects and their workspace details. Files on disk are not touched.",
       "newerProjectsRemoved": "Projects added after that backup will be removed from Orca, along with their workspace details. Files on disk are not touched.",
@@ -26059,8 +26089,7 @@
       "title": "Repair profile",
       "message": "Part of this profile's saved state is damaged.",
       "restUnchanged": "Everything else stays as it is now.",
-      "damagedCopyKept": "Orca keeps a copy of the damaged file in its data folder, then restarts.",
-      "sectionKeptCurrent": "{{section}}: your current runs will be kept"
+      "damagedCopyKept": "Orca keeps a copy of the damaged file in its data folder, then restarts."
     },
     "recoveryNotApplied": {
       "quitButton": "Quit",
@@ -29509,6 +29538,205 @@
     "monthCalendar": {
       "previous": "Previous month",
       "next": "Next month"
+    }
+  },
+  "commandCenter": {
+    "title": "Command Center",
+    "description": "View terminals across projects and hosts.",
+    "project": "Project",
+    "back": "Back",
+    "refresh": "Refresh sessions",
+    "autoGrid": "Auto Grid",
+    "autoColumns": "Auto Columns",
+    "projectFilter": "Project filter",
+    "allProjects": "All projects",
+    "hostFilter": "Host filter",
+    "allHosts": "All hosts",
+    "group": "Group by project",
+    "showHidden": "Show Hidden",
+    "empty": "No sessions match this view.",
+    "terminal": "Terminal",
+    "expand": "Expand terminal",
+    "collapse": "Collapse terminal",
+    "needsInput": "Needs input",
+    "unreadUpdate": "Unread update",
+    "sessionActions": "Session actions",
+    "openInProject": "Open in Project",
+    "moveEarlier": "Move Earlier",
+    "moveLater": "Move Later",
+    "showSession": "Show Session",
+    "hide": "Hide Session",
+    "end": "End Session",
+    "sessions": "{{count}} sessions",
+    "unreadCompletion": "Unread completion",
+    "openCheckout": "Open current checkout",
+    "newSession": "New session",
+    "openProject": "Open Project Command Center",
+    "projects": "Projects",
+    "search": "Search",
+    "addProject": "Add project",
+    "settings": "Settings",
+    "more": "More navigation",
+    "activity": "Activity",
+    "space": "Space",
+    "automations": "Automations",
+    "skills": "Skills",
+    "mobile": "Mobile",
+    "viewOptions": "View options",
+    "customLayout": "Custom layout…",
+    "closeChat": "Close Chat",
+    "chatGone": "This chat is no longer open. Refresh Command Center.",
+    "chatOpenFailed": "The chat could not be opened on its host.",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions"
+  },
+  "paneToolbar": {
+    "splitLeft": "Split Left",
+    "splitRight": "Split Right",
+    "splitDown": "Split Down",
+    "dock": "Dock Pane",
+    "float": "Float Pane",
+    "restore": "Restore Pane",
+    "maximize": "Maximize Pane",
+    "equalize": "Equalize Splits",
+    "close": "Close Pane",
+    "move": "Move Pane",
+    "numberedPane": "Pane {{number}}"
+  },
+  "terminalComposer": {
+    "draftNotSaved": "Draft could not be saved on this device. Copy it before closing Orca.",
+    "submitFailed": "Text was pasted, but Enter was not sent. Check the terminal before continuing.",
+    "pasteFailed": "Delivery stopped. Your draft is retained; check the terminal for partially pasted text before retrying.",
+    "send": "Send",
+    "collapse": "Collapse composer",
+    "expand": "Expand composer",
+    "input": "Message to terminal",
+    "placeholder": "Type or speak…",
+    "insert": "Send without Enter",
+    "attachFailed": "Could not attach files.",
+    "attach": "Attach file",
+    "screenshot": "Capture screenshot",
+    "quickCommands": "Quick commands",
+    "noQuickCommands": "No quick commands",
+    "clear": "Clear",
+    "more": "More composer actions",
+    "clearAfterSending": "Clear after sending",
+    "richInput": "Rich input",
+    "activePane": "Active pane",
+    "removeAttachment": "Remove {{name}}",
+    "screenshotRestart": "Restart Orca to enable screenshot capture",
+    "manageQuickCommands": "Manage quick commands…",
+    "close": "Close composer",
+    "clipboardPasteFailed": "Clipboard paste failed."
+  },
+  "fileActions": {
+    "openFolderFailed": "Could not open folder."
+  },
+  "azure": {
+    "settings": {
+      "description": "Azure Boards and Azure Repos, with credentials stored on the selected host.",
+      "connected": "Connected",
+      "setup": "Connect an organization",
+      "host": "Credential host",
+      "test": "Test",
+      "reconnect": "Reconnect",
+      "disconnect": "Disconnect",
+      "connect": "Connect organization",
+      "scopes": "Use Work Items Read (vso.work) and Project and Team Read (vso.project). Code Read is optional for pull requests; creating pull requests requires Code Read & Write. The token stays on the selected host.",
+      "url": "Organization or collection URL",
+      "label": "Label",
+      "token": "Personal access token",
+      "verifySave": "Verify and save",
+      "exampleUrl": "https://dev.azure.com/organization",
+      "scopeDescription": "Credentials belong to the host selected at the top of Settings."
+    },
+    "tasks": {
+      "description": "Browse Azure Boards work items and start linked workspaces.",
+      "openInOrca": "Open in Orca",
+      "offline": "Reconnect the source host to load Azure Boards.",
+      "removed": "The saved organization is unavailable. Select a connection again.",
+      "projectRemoved": "The saved project is inaccessible. Select an accessible project.",
+      "organization": "Organization",
+      "project": "Project",
+      "refresh": "Refresh",
+      "connections": "Connections",
+      "unavailableLink": "This linked source is unavailable. Reconnect or open in Azure DevOps.",
+      "loading": "Loading Azure Boards…",
+      "setup": "Connect an Azure DevOps organization to browse work items.",
+      "openSettings": "Open Azure DevOps settings",
+      "view": "View",
+      "assigned": "Assigned to me",
+      "all": "All work items",
+      "saved": "Saved query",
+      "queryRoots": "Query roots",
+      "team": "Team (optional)",
+      "noTeam": "No team",
+      "search": "Search ID or title",
+      "state": "State",
+      "anyState": "Any state",
+      "type": "Type",
+      "anyType": "Any type",
+      "external": "Open in Azure DevOps",
+      "capped": "First 200 results; narrow the filters or open in Azure DevOps.",
+      "partial": "Some work items were deleted or are inaccessible. Results are partial.",
+      "empty": "No matching work items.",
+      "item": "Work item",
+      "assignee": "Assignee",
+      "updated": "Updated",
+      "back": "Back to work items",
+      "launch": "Launch",
+      "acceptance": "Acceptance criteria",
+      "provider": "Azure DevOps",
+      "upgrade": "Update Orca on this host to use Azure Boards. Your draft is retained.",
+      "destinationUpgrade": "Update Orca on the destination host to link Azure Boards work items. Your draft is retained.",
+      "sourceHost": "Source host",
+      "itemHeading": "AB#{{id}} {{title}}",
+      "reference": "AB#{{id}}"
+    }
+  },
+  "projectSymbols": {
+    "title": "Icon",
+    "choose": "Choose icon…",
+    "search": "Search symbols…",
+    "categories": "Symbol categories",
+    "all": "All Symbols",
+    "loading": "Loading symbols…",
+    "empty": "No symbols found",
+    "count": "{{count}} symbols",
+    "remove": "Remove Icon",
+    "loadFailed": "Could not load symbols. Reopen the picker to try again.",
+    "category": {
+      "whatsnew": "What's New",
+      "draw": "Draw",
+      "variable": "Variable",
+      "multicolor": "Multicolor",
+      "communication": "Communication",
+      "weather": "Weather",
+      "maps": "Maps",
+      "objectsandtools": "Objects & Tools",
+      "devices": "Devices",
+      "cameraandphotos": "Camera & Photos",
+      "gaming": "Gaming",
+      "connectivity": "Connectivity",
+      "transportation": "Transportation",
+      "automotive": "Automotive",
+      "accessibility": "Accessibility",
+      "privacyandsecurity": "Privacy & Security",
+      "human": "Human",
+      "home": "Home",
+      "fitness": "Fitness",
+      "nature": "Nature",
+      "editing": "Editing",
+      "textformatting": "Text Formatting",
+      "media": "Media",
+      "keyboard": "Keyboard",
+      "commerce": "Commerce",
+      "time": "Time",
+      "health": "Health",
+      "shapes": "Shapes",
+      "arrows": "Arrows",
+      "indices": "Indices",
+      "math": "Math"
     }
   }
 }

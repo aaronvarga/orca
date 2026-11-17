@@ -1,3 +1,4 @@
+import type { ProjectSymbolCatalog } from '../../../shared/repository/appearance/project-symbol-catalog'
 import type { RepoIconPickResult } from '../../../shared/repository/appearance/repo-icon-pick-failure-copy'
 import type { ExecutionHostId } from '../../../shared/execution-host/execution-host'
 import type { ShellPathExistence } from '../../../shared/file-access/path-existence-batch'
@@ -10,6 +11,8 @@ import type {
 import type { RuntimeFileOpenPosition } from '../../../shared/file-access/runtime-editor-file-open'
 
 export type ShellApi = {
+  getProjectSymbolCatalog?: () => Promise<ProjectSymbolCatalog | null>
+  renderProjectSymbols?: (names: string[]) => Promise<Record<string, string>>
   /** Every OS open names the path's owner; main refuses anything not owned by this computer. */
   openPath: (path: string, ownerHostId: ExecutionHostId) => Promise<void>
   openInFileManager: (
@@ -30,6 +33,7 @@ export type ShellApi = {
   /** `wakeWslDistro`: a click, a user act that may start a stopped WSL distro. */
   pathExists: (path: string, options?: { wakeWslDistro?: boolean }) => Promise<boolean>
   pickAttachment: () => Promise<string | null>
+  captureScreenshot: () => Promise<string | null>
   pickAttachments: () => Promise<string[]>
   pickImage: () => Promise<string | null>
   pickRepoIconImage: () => Promise<RepoIconPickResult>

@@ -45,7 +45,7 @@ function importFailureText(t: Translate, code: CustomAppIconImportFailureCode): 
     case 'unsupportedFormat':
       return t(
         'settings.appearance.appIcon.importErrors.unsupportedFormat',
-        'Unsupported image. Pick a PNG or JPEG file.'
+        'Unsupported image. Pick a PNG, JPEG, ICNS, or ICO file.'
       )
     case 'unreadable':
       return t(

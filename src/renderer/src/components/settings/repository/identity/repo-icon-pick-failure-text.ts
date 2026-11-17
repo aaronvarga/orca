@@ -6,7 +6,10 @@ import {
 } from '../../../../../../shared/repository/appearance/repo-icon-pick-failure-copy'
 
 const COPY: Record<RepoIconPickFailureCode, () => string> = {
-  notPng: () => translate('settings.repository.iconPickErrors.notPng', EN.notPng),
+  unsupportedFormat: () =>
+    translate('settings.repository.iconPickErrors.unsupportedFormat', EN.unsupportedFormat),
+  invalidImage: () => translate('settings.repository.iconPickErrors.invalidImage', EN.invalidImage),
+  icnsTooLarge: () => translate('settings.repository.iconPickErrors.icnsTooLarge', EN.icnsTooLarge),
   tooLarge: () => translate('settings.repository.iconPickErrors.tooLarge', EN.tooLarge)
 }
 

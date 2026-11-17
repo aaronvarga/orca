@@ -1,6 +1,6 @@
 import { validateRasterImageDataUri } from '../../file-preview/image-data-uri'
 
-export type RepoIconImageSource = 'upload' | 'file' | 'favicon' | 'github'
+export type RepoIconImageSource = 'upload' | 'file' | 'favicon' | 'github' | 'symbol'
 
 export type RepoIcon =
   | { type: 'lucide'; name: string }
@@ -12,7 +12,11 @@ export const MAX_REPO_ICON_DATA_URL_LENGTH = 400 * 1024
 
 const LUCIDE_ICON_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9]*$/
 const isRepoIconImageSource = (value: string): value is RepoIconImageSource =>
-  value === 'upload' || value === 'file' || value === 'favicon' || value === 'github'
+  value === 'upload' ||
+  value === 'file' ||
+  value === 'favicon' ||
+  value === 'github' ||
+  value === 'symbol'
 
 export function faviconUrlFromWebsite(rawUrl: string): string | null {
   const trimmed = rawUrl.trim()
@@ -72,7 +76,7 @@ function normalizeGitHubAvatarHost(rawHost?: string): string {
 }
 
 function computeIsSupportedImageSrc(src: string, source: RepoIconImageSource): boolean {
-  if (source === 'upload') {
+  if (source === 'upload' || source === 'symbol') {
     return (
       /^data:image\/png;base64,[A-Za-z0-9+/=\s]+$/i.test(src) &&
       validateRasterImageDataUri(src) !== null
@@ -165,7 +169,7 @@ export function sanitizeRepoIcon(value: unknown): RepoIcon | null | undefined {
     return {
       type: 'image',
       src,
-      source: source as RepoIconImageSource,
+      source,
       ...(label ? { label } : {})
     }
   }

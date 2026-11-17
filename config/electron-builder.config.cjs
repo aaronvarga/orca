@@ -597,6 +597,11 @@ module.exports = {
         context.packager
       )
       await signMacStandaloneHelper(
+        join(resourcesDir, '..', 'MacOS', 'orca-project-symbols'),
+        'orca-project-symbols',
+        context.packager
+      )
+      await signMacStandaloneHelper(
         join(resourcesDir, '..', 'MacOS', 'orca-process-footprint'),
         'orca-process-footprint',
         context.packager
@@ -725,6 +730,10 @@ module.exports = {
       {
         from: 'native/keyboard-layout-macos/.build/release/orca-keyboard-layout',
         to: 'MacOS/orca-keyboard-layout'
+      },
+      {
+        from: 'native/project-symbols-macos/.build/release/orca-project-symbols',
+        to: 'MacOS/orca-project-symbols'
       },
       {
         from: 'native/process-footprint-macos/.build/release/orca-process-footprint',

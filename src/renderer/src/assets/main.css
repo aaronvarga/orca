@@ -45,6 +45,9 @@
 
 /* Not inline: the chat root rescales these, so utilities must read the variables. */
 @theme {
+  --text-base: 0.875rem;
+  --text-sm: 0.8125rem;
+  --text-xs: 0.6875rem;
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: calc(1 / 0.6875);
   --text-3xs: 0.625rem;
@@ -213,6 +216,12 @@
 }
 
 :root {
+  --pane-working-gradient: linear-gradient(
+    to right,
+    var(--color-purple-500),
+    var(--color-orange-400),
+    var(--color-cyan-400)
+  );
   --app-font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-sans: var(--app-font-family);
   --font-mono:
@@ -354,6 +363,12 @@
 }
 
 .dark {
+  --pane-working-gradient: linear-gradient(
+    to right,
+    var(--color-purple-500),
+    var(--color-orange-400),
+    var(--color-cyan-400)
+  );
   --orca-security-background: #0a0a0a;
   --orca-security-foreground: #f0f0f0;
   --orca-security-card: #171717;
@@ -884,7 +899,7 @@ body[data-modal-overlay-open]
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-sm text-foreground;
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -4295,6 +4310,26 @@ body:has([data-contextual-tour-target='tab-create-menu'][data-state='open'])
   }
 
   .browser-agent-cursor-layer[data-agent-active]::before {
+    animation: none;
+  }
+}
+
+@keyframes command-center-working-pulse {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.command-center-working-strip {
+  background: var(--pane-working-gradient);
+  animation: command-center-working-pulse 0.8s linear infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-center-working-strip {
     animation: none;
   }
 }

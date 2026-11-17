@@ -12,6 +12,9 @@ import type { ShellPathExistence } from '../../../shared/file-access/path-existe
 import type { PreloadApi } from '../../api-types'
 
 export const shellApi = {
+  getProjectSymbolCatalog: () => ipcRenderer.invoke('shell:getProjectSymbolCatalog'),
+  renderProjectSymbols: (names: string[]) =>
+    ipcRenderer.invoke('shell:renderProjectSymbols', names),
   openPath: (path: string, ownerHostId: ExecutionHostId): Promise<void> =>
     ipcRenderer.invoke('shell:openPath', path, ownerHostId),
 
@@ -43,6 +46,8 @@ export const shellApi = {
     ipcRenderer.invoke('shell:pathExists', path, options),
 
   pickAttachment: (): Promise<string | null> => ipcRenderer.invoke('shell:pickAttachment'),
+
+  captureScreenshot: (): Promise<string | null> => ipcRenderer.invoke('shell:captureScreenshot'),
 
   pickAttachments: (): Promise<string[]> => ipcRenderer.invoke('shell:pickAttachments'),
 

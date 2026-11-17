@@ -36,6 +36,7 @@ const repoIconBranches = {
   image: z.looseObject({
     type: z.literal('image'),
     src: z.string(),
+    source: salvagedOptional('source', z.string()),
     label: salvagedOptional('label', z.string())
   })
 } satisfies Readonly<Record<RepoIcon['type'], z.ZodType>>
@@ -51,7 +52,7 @@ export function readMobileRepoIcon(value: unknown): MobileHostRepoIcon | null {
 }
 
 // Drop catalog rows without id/displayName; salvage badgeColor and unknown icon arms to the renderer’s existing fallbacks. path labels older hosts’ repo sections.
-// Image icons read only src/label; leave source opaque so newer source arms do not erase usable images.
+// Keep unknown image sources renderable; symbol sources additionally carry the project color.
 // Keep host ids as strings: getRepoExecutionHostId already maps unknown spellings to local, preserving newer hosts’ rows.
 export const hostRepoCatalogRepos = salvagingArray(
   z.looseObject({

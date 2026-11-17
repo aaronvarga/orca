@@ -1,3 +1,4 @@
+import { resolveRepoIconColors } from '../../../../shared/repository/appearance/repo-icon-colors'
 import React from 'react'
 import {
   Bot,
@@ -142,7 +143,10 @@ export function RepoIconGlyph({
   iconClassName?: string
   color?: string
 }): React.JSX.Element {
-  const imageSrc = repoIcon?.type === 'image' ? repoIcon.src : null
+  const imageSrc = repoIcon?.type === 'image' && repoIcon.source !== 'symbol' ? repoIcon.src : null
+  const symbolSrc = repoIcon?.type === 'image' && repoIcon.source === 'symbol' ? repoIcon.src : null
+  const { background, foreground } = resolveRepoIconColors(color)
+  const squareStyle = { backgroundColor: background, color: foreground }
   // Private GHES avatars may require cookies; track failed URLs without hiding later replacement icons.
   const [failedImageSrc, setFailedImageSrc] = React.useState<string | null>(null)
 
@@ -161,10 +165,32 @@ export function RepoIconGlyph({
     )
   }
 
+  if (symbolSrc) {
+    return (
+      <span
+        className={cn('inline-flex items-center justify-center rounded-[4px]', className)}
+        style={squareStyle}
+      >
+        <span
+          className={cn('size-full bg-current', iconClassName)}
+          style={{
+            maskImage: `url("${symbolSrc}")`,
+            maskSize: 'contain',
+            maskRepeat: 'no-repeat',
+            maskPosition: 'center'
+          }}
+        />
+      </span>
+    )
+  }
   if (repoIcon?.type === 'emoji') {
     return (
       <span
-        className={cn('inline-flex items-center justify-center leading-none', className)}
+        className={cn(
+          'inline-flex items-center justify-center rounded-[4px] leading-none',
+          className
+        )}
+        style={squareStyle}
         aria-hidden="true"
       >
         <span className={cn('inline-flex items-center justify-center text-[0.9em]', iconClassName)}>
@@ -176,10 +202,13 @@ export function RepoIconGlyph({
 
   const Icon = getRepoLucideIcon(repoIcon?.type === 'lucide' ? repoIcon.name : 'Folder')
   return (
-    <span className={cn('inline-flex items-center justify-center', className)}>
+    <span
+      className={cn('inline-flex items-center justify-center rounded-[4px]', className)}
+      style={squareStyle}
+    >
       {React.createElement(Icon, {
         className: iconClassName,
-        style: color ? { color } : undefined
+        style: { maxWidth: '65%', maxHeight: '65%' }
       })}
     </span>
   )

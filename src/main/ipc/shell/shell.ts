@@ -1,8 +1,13 @@
+import {
+  getProjectSymbolCatalog,
+  renderProjectSymbols
+} from '../../repository-icons/project-symbol-catalog'
+import { readRepoIconImage, REPO_ICON_FILE_EXTENSIONS } from './repo-icon-image'
+import { registerShellScreenshotHandler } from './shell-screenshot'
 import { translateMain } from '../../i18n/main-i18n'
 import { BrowserWindow, ipcMain, shell } from 'electron'
 import { showSingleFlightOpenDialog } from '../dialogs/single-flight-open-dialog'
-import { readFile, stat } from 'node:fs/promises'
-import { basename, extname, posix, win32 } from 'node:path'
+import { posix, win32 } from 'node:path'
 import type {
   ShellOpenExternalEditorRequest,
   ShellOpenExternalEditorResult,
@@ -10,11 +15,7 @@ import type {
   ShellOpenLocalPathResult
 } from '../../../shared/shell/opening/shell-open-types'
 import type { RuntimeFileOpenPosition } from '../../../shared/file-access/runtime-editor-file-open'
-import { MAX_REPO_ICON_UPLOAD_BYTES } from '../../../shared/repository/appearance/repo-icon'
-import {
-  repoIconPickFailure,
-  type RepoIconPickResult
-} from '../../../shared/repository/appearance/repo-icon-pick-failure-copy'
+import type { RepoIconPickResult } from '../../../shared/repository/appearance/repo-icon-pick-failure-copy'
 import type { Store } from '../../persistence/loading-store/store'
 import {
   launchExternalEditor,
@@ -37,10 +38,6 @@ import {
 } from './shell-owned-path-target'
 import { inspectLinkedFile } from './linked-file-inspection'
 import { registerShellPathExistenceHandlers } from './shell-path-existence-handlers'
-
-const REPO_ICON_IMAGE_MIME_TYPES: Record<string, string> = {
-  '.png': 'image/png'
-}
 
 async function openInFileManager(
   pathValue: string,
@@ -151,6 +148,11 @@ export function registerShellHandlers(
   store: ShellHandlerStore,
   listRuntimeEnvironments: ListRuntimeEnvironments = listAppRuntimeEnvironments
 ): void {
+  registerShellScreenshotHandler()
+  ipcMain.handle('shell:getProjectSymbolCatalog', () => getProjectSymbolCatalog())
+  ipcMain.handle('shell:renderProjectSymbols', (_event, names: unknown) =>
+    renderProjectSymbols(names)
+  )
   ipcMain.handle(
     'shell:openPath',
     async (_event, path: string, ownerHostId: unknown): Promise<void> => {
@@ -277,7 +279,7 @@ export function registerShellHandlers(
         filters: [
           {
             name: translateMain('native.dialog.repoIconImages', 'Repo icon images'),
-            extensions: ['png']
+            extensions: REPO_ICON_FILE_EXTENSIONS
           }
         ]
       },
@@ -287,23 +289,7 @@ export function registerShellHandlers(
       return null
     }
 
-    const filePath = result.filePaths[0]
-    const extension = extname(filePath).toLowerCase()
-    const mimeType = REPO_ICON_IMAGE_MIME_TYPES[extension]
-    if (!mimeType) {
-      return repoIconPickFailure('notPng')
-    }
-
-    const stats = await stat(filePath)
-    if (stats.size > MAX_REPO_ICON_UPLOAD_BYTES) {
-      return repoIconPickFailure('tooLarge')
-    }
-
-    const buffer = await readFile(filePath)
-    return {
-      dataUrl: `data:${mimeType};base64,${buffer.toString('base64')}`,
-      fileName: basename(filePath)
-    }
+    return readRepoIconImage(result.filePaths[0])
   })
 
   ipcMain.handle('shell:pickAudio', async (event): Promise<string | null> => {
