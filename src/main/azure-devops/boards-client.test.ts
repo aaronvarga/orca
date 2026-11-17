@@ -72,7 +72,7 @@ describe('Azure Boards owning read boundary', () => {
     )
   })
   it('enumerates every team using offset pages without a continuation header', async () => {
-    const saved = connection()
+    const saved = await connection()
     fetchMock.mockImplementation(async (input) => {
       const url = new URL(String(input))
       expect(url.searchParams.get('$top')).toBe('100')
@@ -93,7 +93,7 @@ describe('Azure Boards owning read boundary', () => {
     expect(new URL(String(fetchMock.mock.calls[1][0])).searchParams.get('$skip')).toBe('100')
   })
   it('preserves query order and identifies capped and omitted results while hydrating at most 200 IDs', async () => {
-    const saved = connection()
+    const saved = await connection()
     fetchMock.mockImplementation(async (input, init) => {
       const url = new URL(String(input))
       if (url.pathname.includes('/_apis/projects/')) {
@@ -127,7 +127,7 @@ describe('Azure Boards owning read boundary', () => {
     expect(result.omittedIds.at(-1)).toBe(200)
   })
   it('rejects cross-project flat results instead of assigning the query project to them', async () => {
-    const saved = connection()
+    const saved = await connection()
     fetchMock
       .mockResolvedValueOnce(json({ id: projectId, name: 'Selected' }))
       .mockResolvedValueOnce(json({ queryType: 'flat', workItems: [{ id: 5 }] }))
@@ -146,7 +146,7 @@ describe('Azure Boards owning read boundary', () => {
     ).rejects.toThrow('Cross-project queries are unsupported')
   })
   it.each(['tree', 'oneHop'])('rejects %s queries before hydration', async (queryType) => {
-    const saved = connection()
+    const saved = await connection()
     fetchMock
       .mockResolvedValueOnce(json({ id: projectId, name: 'Selected' }))
       .mockResolvedValueOnce(json({ queryType, workItemRelations: [] }))
@@ -161,12 +161,12 @@ describe('Azure Boards owning read boundary', () => {
     ).rejects.toThrow('Hierarchical and linked queries are unsupported')
   })
   it('does not publish invalid replacement credentials or treat an anonymous viewer as verified', async () => {
-    const saved = connection()
+    const saved = await connection()
     fetchMock.mockResolvedValueOnce(json({}, 401))
     await expect(
       azureDevOpsConnect({ baseUrl: saved.baseUrl, label: 'Replacement', token: 'bad' })
     ).rejects.toThrow(AzureDevOpsCredentialAccessError)
-    expect(resolveAzureDevOpsAuthConfig(saved.baseUrl).pat).toBe('saved-pat')
+    expect((await resolveAzureDevOpsAuthConfig(saved.baseUrl)).pat).toBe('saved-pat')
     fetchMock.mockResolvedValueOnce(
       json({
         authenticatedUser: {
@@ -178,11 +178,15 @@ describe('Azure Boards owning read boundary', () => {
     await expect(
       azureDevOpsConnect({ baseUrl: saved.baseUrl, label: 'Replacement', token: 'anonymous' })
     ).rejects.toThrow('authenticated viewer')
-    expect(azureDevOpsStatus().connections[0].revision).toBe(saved.revision)
+    expect((await azureDevOpsStatus()).connections[0].revision).toBe(saved.revision)
   })
   it('prevents a pending old revision from returning after successful replacement', async () => {
-    const saved = connection()
+    const saved = await connection()
     let finish!: (value: string) => void
+    let start!: () => void
+    const started = new Promise<void>((resolve) => {
+      start = resolve
+    })
     const pending = withAzureDevOpsRead(
       saved.id,
       saved.revision,
@@ -190,24 +194,28 @@ describe('Azure Boards owning read boundary', () => {
       async () =>
         new Promise<string>((resolve) => {
           finish = resolve
+          start()
         })
     )
-    const next = connection('https://dev.azure.com/alpha', 'replacement')
+    await started
+    const next = await connection('https://dev.azure.com/alpha', 'replacement')
     finish('old account data')
     await expect(pending).rejects.toThrow()
     expect(next.id).toBe(saved.id)
     expect(next.revision).not.toBe(saved.revision)
-    expect(resolveAzureDevOpsAuthConfig(saved.baseUrl).pat).toBe('replacement')
+    expect((await resolveAzureDevOpsAuthConfig(saved.baseUrl)).pat).toBe('replacement')
   })
   it('isolates saved credentials, prefers them to environment auth, and refuses redirects', async () => {
-    connection()
-    connection('https://dev.azure.com/beta', 'beta-pat')
+    await connection()
+    await connection('https://dev.azure.com/beta', 'beta-pat')
     vi.stubEnv('ORCA_AZURE_DEVOPS_TOKEN', 'environment-pat')
-    expect(resolveAzureDevOpsAuthConfig('https://alpha.visualstudio.com/Project').pat).toBe(
+    expect((await resolveAzureDevOpsAuthConfig('https://alpha.visualstudio.com/Project')).pat).toBe(
       'saved-pat'
     )
-    expect(resolveAzureDevOpsAuthConfig('https://dev.azure.com/beta/Project').pat).toBe('beta-pat')
-    expect(resolveAzureDevOpsAuthConfig('https://dev.azure.com/unknown/Project').pat).toBe(
+    expect((await resolveAzureDevOpsAuthConfig('https://dev.azure.com/beta/Project')).pat).toBe(
+      'beta-pat'
+    )
+    expect((await resolveAzureDevOpsAuthConfig('https://dev.azure.com/unknown/Project')).pat).toBe(
       'environment-pat'
     )
     fetchMock.mockResolvedValue(json({ ok: true }))
@@ -225,7 +233,7 @@ describe('Azure Boards owning read boundary', () => {
 })
 
 it('reports saved-account Code permission failures instead of returning an absent PR', async () => {
-  connection()
+  await connection()
   vi.stubEnv('ORCA_AZURE_DEVOPS_TOKEN', 'other-working-account')
   fetchMock.mockResolvedValue(json({}, 403))
   await expect(
@@ -238,13 +246,13 @@ it('reports saved-account Code permission failures instead of returning an absen
     Authorization: 'Basic OnNhdmVkLXBhdA=='
   })
 })
-it('advances an environment read generation when its effective bearer token changes alongside a stable PAT', () => {
+it('advances an environment read generation when its effective bearer token changes alongside a stable PAT', async () => {
   vi.stubEnv('ORCA_AZURE_DEVOPS_API_BASE_URL', 'https://dev.azure.com/environment-org')
   vi.stubEnv('ORCA_AZURE_DEVOPS_TOKEN', 'stable-pat')
   vi.stubEnv('ORCA_AZURE_DEVOPS_ACCESS_TOKEN', 'first-bearer')
-  const before = azureDevOpsStatus().connections.find((entry) => entry.externallyManaged)!
+  const before = (await azureDevOpsStatus()).connections.find((entry) => entry.externallyManaged)!
   vi.stubEnv('ORCA_AZURE_DEVOPS_ACCESS_TOKEN', 'second-bearer')
-  const after = azureDevOpsStatus().connections.find((entry) => entry.externallyManaged)!
+  const after = (await azureDevOpsStatus()).connections.find((entry) => entry.externallyManaged)!
   expect(after.id).toBe(before.id)
   expect(after.revision).not.toBe(before.revision)
 })
@@ -260,19 +268,24 @@ it('verifies and connects two independent organizations without exposing tokens 
         })
       : json({ value: [] })
   )
-  const alpha = await azureDevOpsConnect({
-    baseUrl: 'https://alpha.visualstudio.com',
-    label: 'Alpha',
-    token: 'first-secret'
-  })
-  const beta = await azureDevOpsConnect({
-    baseUrl: 'https://dev.azure.com/beta',
-    label: 'Beta',
-    token: 'second-secret'
-  })
+  const [alpha, beta] = await Promise.all([
+    azureDevOpsConnect({
+      baseUrl: 'https://alpha.visualstudio.com',
+      label: 'Alpha',
+      token: 'first-secret'
+    }),
+    azureDevOpsConnect({
+      baseUrl: 'https://dev.azure.com/beta',
+      label: 'Beta',
+      token: 'second-secret'
+    })
+  ])
   expect(alpha.baseUrl).toBe('https://dev.azure.com/alpha')
   expect(beta.id).not.toBe(alpha.id)
-  expect(azureDevOpsStatus().connections.map((entry) => entry.label)).toEqual(['Alpha', 'Beta'])
-  expect(JSON.stringify(azureDevOpsStatus())).not.toContain('first-secret')
+  expect((await azureDevOpsStatus()).connections.map((entry) => entry.label).sort()).toEqual([
+    'Alpha',
+    'Beta'
+  ])
+  expect(JSON.stringify(await azureDevOpsStatus())).not.toContain('first-secret')
   expect(JSON.stringify(beta)).not.toContain('second-secret')
 })

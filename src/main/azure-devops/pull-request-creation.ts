@@ -27,13 +27,13 @@ import { getAzureDevOpsRepoRef, type AzureDevOpsRepoRef } from './repository-ref
 
 const CREATE_REQUEST_TIMEOUT_MS = 60_000
 
-export function isAzureDevOpsReviewCreationAuthenticated(baseUrl: string): boolean {
-  const config = resolveAzureDevOpsAuthConfig(baseUrl)
+export async function isAzureDevOpsReviewCreationAuthenticated(baseUrl: string): Promise<boolean> {
+  const config = await resolveAzureDevOpsAuthConfig(baseUrl)
   return Boolean(config.pat || config.accessToken)
 }
 
-function apiUrl(repo: AzureDevOpsRepoRef, path: string): URL {
-  const baseUrl = resolveAzureDevOpsGitApiBaseUrl(repo)
+async function apiUrl(repo: AzureDevOpsRepoRef, path: string): Promise<URL> {
+  const baseUrl = await resolveAzureDevOpsGitApiBaseUrl(repo)
   const url = new URL(`${baseUrl.replace(/\/+$/, '')}${path}`)
   url.searchParams.set('api-version', azureDevOpsApiVersionForOrigin(url.origin))
   return url
@@ -46,7 +46,7 @@ async function requestCreatePullRequest(
   init: Omit<RequestInit, 'signal'>
 ): Promise<RawAzureDevOpsPullRequest> {
   for (let attempt = 1; ; attempt++) {
-    const url = apiUrl(repo, path)
+    const url = await apiUrl(repo, path)
     try {
       return await requestHostedReviewJson<RawAzureDevOpsPullRequest>(
         url,
@@ -211,7 +211,7 @@ export async function createAzureDevOpsPullRequest(
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          ...azureDevOpsAuthHeaders(resolveAzureDevOpsAuthConfig(repo.apiBaseUrl))
+          ...azureDevOpsAuthHeaders(await resolveAzureDevOpsAuthConfig(repo.apiBaseUrl))
         },
         body: JSON.stringify(requestBody)
       }

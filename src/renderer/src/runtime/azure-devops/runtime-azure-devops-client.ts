@@ -2,17 +2,19 @@ import { parseExecutionHostId } from '../../../../shared/execution-host/executio
 import { createNonSecureContextUuid } from '../../../../shared/identifiers/non-secure-context-uuid'
 import type { AzureDevOpsApi } from '../../../../preload/api/work-items/azure-devops-api'
 import { AZURE_DEVOPS_TASKS_RUNTIME_CAPABILITY } from '../../../../shared/work-items/task-source-runtime-capabilities'
-import { rowLessSourceTarget, type RowLessSource } from '../hosts/selection/default-creation-host'
+import type { RuntimeClientTarget } from '../../../../shared/remote-runtime/host-catalog/runtime-client-target'
+import type { TaskSourceContext } from '../../../../shared/work-items/task-source-context'
+import { taskSourceRuntimeTarget } from '@/lib/work-items/task-source-runtime-target'
 import { assertRuntimeEnvironmentCapability } from '../rpc/compatibility/runtime-capability-proof'
 import { callRuntimeRpc } from '../rpc/calls/runtime-rpc-call'
 import { readRuntimeIntegrationPayload } from '../jira/runtime-jira-payload-stream'
 import { translate } from '@/i18n/i18n'
 
 export function azureDevOpsApiForSource(
-  source: RowLessSource,
+  source: TaskSourceContext | RuntimeClientTarget,
   signal?: AbortSignal
 ): AzureDevOpsApi {
-  const target = rowLessSourceTarget(source)
+  const target = source.kind === 'task-source' ? taskSourceRuntimeTarget(source) : source
   async function call<T>(
     method: string,
     args: unknown,

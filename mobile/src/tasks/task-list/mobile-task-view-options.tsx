@@ -8,10 +8,14 @@ export const PROVIDER_LABELS: Record<TaskProvider, string> = {
   github: 'GitHub',
   gitlab: 'GitLab',
   linear: 'Linear',
-  jira: 'Jira'
+  jira: 'Jira',
+  'azure-devops': 'Azure Boards'
 }
 
 export const PROVIDER_EMPTY_LABELS: Record<TaskProvider, string> = {
+  get 'azure-devops'() {
+    return translate('chat.taskList.empty', 'No tasks')
+  },
   get github() {
     return translate('tasks.taskViewOptions.noGitHubTasks', 'No GitHub tasks')
   },

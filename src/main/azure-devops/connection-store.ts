@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, unlinkSync } from 'node:fs'
+import { mkdir, readFile, unlink } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import { z } from 'zod'
@@ -12,7 +12,6 @@ import {
   writeEncryptedCredential,
   writeCredentialFileAtomic
 } from '../credentials/integration-credential-file'
-import { createIntegrationStateFileCache } from '../credentials/integration-state-file-cache'
 import { createIntegrationTokenFileCache } from '../credentials/integration-token-file-cache'
 import { readCredentialFileProtection } from '../credentials/credential-file-protection'
 
@@ -27,21 +26,12 @@ const directory = () => join(homedir(), '.orca', 'azure-devops')
 const registryPath = () => join(directory(), 'connections.json')
 const tokenPath = (id: string) => join(directory(), `${Buffer.from(id).toString('base64url')}.enc`)
 const tokens = createIntegrationTokenFileCache({ service: 'Azure DevOps', filePath: tokenPath })
-const registry = createIntegrationStateFileCache({
-  filePath: registryPath,
-  readFromDisk: (): AzureDevOpsConnection[] => {
-    if (!existsSync(registryPath())) {
-      return []
-    }
-    return z.array(connectionSchema).parse(JSON.parse(readFileSync(registryPath(), 'utf8')))
-  }
-})
 let environmentSnapshot: {
   token: string
   authorizationKey: string
   connection: AzureDevOpsConnection
 } | null = null
-function environmentConnection(): AzureDevOpsConnection | null {
+async function environmentConnection(): Promise<AzureDevOpsConnection | null> {
   const accessToken = process.env.ORCA_AZURE_DEVOPS_ACCESS_TOKEN?.trim()
   const token =
     accessToken ||
@@ -58,7 +48,7 @@ function environmentConnection(): AzureDevOpsConnection | null {
   }
   try {
     const baseUrl = normalizeAzureDevOpsCollectionUrl(base)
-    if (savedAzureDevOpsConnections().some((entry) => entry.baseUrl === baseUrl)) {
+    if ((await savedAzureDevOpsConnections()).some((entry) => entry.baseUrl === baseUrl)) {
       return null
     }
     if (
@@ -83,19 +73,26 @@ function environmentConnection(): AzureDevOpsConnection | null {
     return null
   }
 }
-export function azureDevOpsConnections(): AzureDevOpsConnection[] {
-  const environment = environmentConnection()
-  return [...savedAzureDevOpsConnections(), ...(environment ? [environment] : [])]
+export async function azureDevOpsConnections(): Promise<AzureDevOpsConnection[]> {
+  const environment = await environmentConnection()
+  return [...(await savedAzureDevOpsConnections()), ...(environment ? [environment] : [])]
 }
 
 const reads = new Map<string, Set<AbortController>>()
 
-export function savedAzureDevOpsConnections(): AzureDevOpsConnection[] {
-  return registry.get()
+export async function savedAzureDevOpsConnections(): Promise<AzureDevOpsConnection[]> {
+  try {
+    return z.array(connectionSchema).parse(JSON.parse(await readFile(registryPath(), 'utf8')))
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
+      return []
+    }
+    throw error
+  }
 }
 
-export function azureDevOpsConnectionStatus(): AzureDevOpsStatus {
-  const connections = azureDevOpsConnections()
+export async function azureDevOpsConnectionStatus(): Promise<AzureDevOpsStatus> {
+  const connections = await azureDevOpsConnections()
   return {
     connections,
     credentialProtection: connections.some(
@@ -124,56 +121,76 @@ function invalidateReads(id: string, revision?: string): void {
   tokens.forget(revision ?? id)
 }
 
-function writeRegistry(connections: AzureDevOpsConnection[]): void {
-  mkdirSync(directory(), { recursive: true, mode: 0o700 })
+async function writeRegistry(connections: AzureDevOpsConnection[]): Promise<void> {
+  await mkdir(directory(), { recursive: true, mode: 0o700 })
   writeCredentialFileAtomic(registryPath(), Buffer.from(JSON.stringify(connections)))
-  registry.invalidate()
 }
 
-export function publishAzureDevOpsConnection(
+let mutations: Promise<unknown> = Promise.resolve()
+function mutate<T>(action: () => Promise<T>): Promise<T> {
+  const result = mutations.then(action, action)
+  mutations = result.then(
+    () => undefined,
+    () => undefined
+  )
+  return result
+}
+
+export async function publishAzureDevOpsConnection(
   input: Omit<AzureDevOpsConnection, 'id' | 'revision'>,
   token: string
-): AzureDevOpsConnection {
-  const connections = savedAzureDevOpsConnections()
-  const previous = connections.find((entry) => entry.baseUrl === input.baseUrl)
-  const connection = { ...input, id: previous?.id ?? randomUUID(), revision: randomUUID() }
-  mkdirSync(directory(), { recursive: true, mode: 0o700 })
-  writeEncryptedCredential('Azure DevOps', tokenPath(connection.revision), token)
-  try {
-    writeRegistry([...connections.filter((entry) => entry.id !== connection.id), connection])
-  } catch (error) {
-    unlinkSync(tokenPath(connection.revision))
-    throw error
-  }
-  invalidateReads(connection.id, previous?.revision)
-  if (previous && existsSync(tokenPath(previous.revision))) {
+): Promise<AzureDevOpsConnection> {
+  return mutate(async () => {
+    const connections = await savedAzureDevOpsConnections()
+    const previous = connections.find((entry) => entry.baseUrl === input.baseUrl)
+    const connection = { ...input, id: previous?.id ?? randomUUID(), revision: randomUUID() }
+    await mkdir(directory(), { recursive: true, mode: 0o700 })
+    writeEncryptedCredential('Azure DevOps', tokenPath(connection.revision), token)
     try {
-      unlinkSync(tokenPath(previous.revision))
-    } catch {
-      /* Published metadata already selects the new credential. */
+      await writeRegistry([
+        ...connections.filter((entry) => entry.id !== connection.id),
+        connection
+      ])
+    } catch (error) {
+      await unlink(tokenPath(connection.revision))
+      throw error
     }
-  }
-  return connection
+    invalidateReads(connection.id, previous?.revision)
+    if (previous) {
+      try {
+        await unlink(tokenPath(previous.revision))
+      } catch {
+        /* Published metadata already selects the new credential. */
+      }
+    }
+    return connection
+  })
 }
 
-export function disconnectAzureDevOpsConnection(id: string): void {
-  if (id === 'environment') {
-    throw new Error(
-      'Change the Azure DevOps environment variables on this host to disconnect this connection.'
-    )
-  }
-  const connections = savedAzureDevOpsConnections()
-  writeRegistry(connections.filter((entry) => entry.id !== id))
-  const previous = connections.find((entry) => entry.id === id)
-  invalidateReads(id, previous?.revision)
-  if (previous && existsSync(tokenPath(previous.revision))) {
-    unlinkSync(tokenPath(previous.revision))
-  }
+export async function disconnectAzureDevOpsConnection(id: string): Promise<void> {
+  return mutate(async () => {
+    if (id === 'environment') {
+      throw new Error(
+        'Change the Azure DevOps environment variables on this host to disconnect this connection.'
+      )
+    }
+    const connections = await savedAzureDevOpsConnections()
+    await writeRegistry(connections.filter((entry) => entry.id !== id))
+    const previous = connections.find((entry) => entry.id === id)
+    invalidateReads(id, previous?.revision)
+    if (previous) {
+      await unlink(tokenPath(previous.revision)).catch((error: unknown) => {
+        if (!(error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT')) {
+          throw error
+        }
+      })
+    }
+  })
 }
 
-export function savedAzureDevOpsToken(connection: AzureDevOpsConnection): string {
+export async function savedAzureDevOpsToken(connection: AzureDevOpsConnection): Promise<string> {
   if (connection.externallyManaged) {
-    const current = environmentConnection()
+    const current = await environmentConnection()
     if (!current || current.revision !== connection.revision || !environmentSnapshot) {
       throw new Error('Environment credential changed. Refresh the connection.')
     }
@@ -192,7 +209,7 @@ export async function withAzureDevOpsRead<T>(
   signal: AbortSignal | undefined,
   action: (connection: AzureDevOpsConnection, signal: AbortSignal) => Promise<T>
 ): Promise<T> {
-  const connection = azureDevOpsConnections().find((entry) => entry.id === connectionId)
+  const connection = (await azureDevOpsConnections()).find((entry) => entry.id === connectionId)
   if (!connection || connection.revision !== revision) {
     throw new Error('Azure DevOps connection changed. Refresh and select the connection again.')
   }
@@ -205,7 +222,8 @@ export async function withAzureDevOpsRead<T>(
     const result = await action(connection, readSignal)
     readSignal.throwIfAborted()
     if (
-      azureDevOpsConnections().find((entry) => entry.id === connectionId)?.revision !== revision
+      (await azureDevOpsConnections()).find((entry) => entry.id === connectionId)?.revision !==
+      revision
     ) {
       throw new Error('Azure DevOps connection changed during the read. Refresh and try again.')
     }

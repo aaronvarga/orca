@@ -23,7 +23,7 @@ vi.mock('./repository-ref', () => ({
   }))
 }))
 const fetchMock = vi.fn<typeof fetch>()
-beforeEach(() => {
+beforeEach(async () => {
   home.path = mkdtempSync(join(tmpdir(), 'orca-azure-pr-auth-'))
   setSecretStore({
     isEncryptionAvailable: () => false,
@@ -37,7 +37,7 @@ beforeEach(() => {
   })
   vi.stubGlobal('fetch', fetchMock)
   fetchMock.mockReset()
-  publishAzureDevOpsConnection(
+  await publishAzureDevOpsConnection(
     {
       baseUrl: 'https://dev.azure.com/alpha',
       label: 'Alpha',

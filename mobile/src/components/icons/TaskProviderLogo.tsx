@@ -1,6 +1,7 @@
 import Svg, { Path } from 'react-native-svg'
+import { PanelsTopLeft } from 'lucide-react-native'
 
-export type TaskProviderLogoKind = 'github' | 'gitlab' | 'linear' | 'jira'
+export type TaskProviderLogoKind = 'github' | 'gitlab' | 'linear' | 'jira' | 'azure-devops'
 
 type Props = {
   provider: TaskProviderLogoKind
@@ -9,6 +10,9 @@ type Props = {
 }
 
 export function TaskProviderLogo({ provider, size = 16, color }: Props) {
+  if (provider === 'azure-devops') {
+    return <PanelsTopLeft size={size} color={color} />
+  }
   if (provider === 'github') {
     return (
       <Svg

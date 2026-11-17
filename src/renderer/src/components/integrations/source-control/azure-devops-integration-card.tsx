@@ -52,19 +52,19 @@ function AzureDevOpsConnections({ source }: { source: RuntimeClientTarget }): Re
     setBusy(true)
     setError('')
     const api = azureDevOpsApiForSource(source)
-    try {
-      await action()
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
-    } finally {
-      try {
-        setStatus(await api.status())
+    await action()
+      .catch((cause: unknown) => {
+        setError(cause instanceof Error ? cause.message : String(cause))
+      })
+      .then(() => api.status())
+      .then((status) => {
+        setStatus(status)
         window.dispatchEvent(new Event(AZURE_DEVOPS_CONNECTIONS_CHANGED))
-      } catch (cause) {
+      })
+      .catch((cause: unknown) => {
         setError((current) => current || String(cause))
-      }
-      setBusy(false)
-    }
+      })
+      .finally(() => setBusy(false))
   }
   return (
     <IntegrationCardShell

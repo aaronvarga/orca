@@ -203,6 +203,8 @@ type TaskListInput = Pick<
 export function taskListParams(input: TaskListInput, repoKey: string): HostQueryParams | null {
   const { appliedQuery: query, provider } = input
   switch (provider) {
+    case 'azure-devops':
+      return null
     case 'github':
       return input.githubMode === 'items'
         ? { provider, kind: input.githubKind, query, repos: repoKey }

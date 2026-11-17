@@ -55,13 +55,16 @@ function reader(baseUrl: string, authorization: string, signal?: AbortSignal): R
       )
     )
 }
-function authorizedReader(connection: AzureDevOpsConnection, signal?: AbortSignal): Reader {
+async function authorizedReader(
+  connection: AzureDevOpsConnection,
+  signal?: AbortSignal
+): Promise<Reader> {
   const authorization = azureDevOpsAuthHeaders(
     connection.externallyManaged
       ? getAzureDevOpsAuthConfig()
       : {
           apiBaseUrl: connection.baseUrl,
-          pat: savedAzureDevOpsToken(connection),
+          pat: await savedAzureDevOpsToken(connection),
           accessToken: null,
           username: null
         }
@@ -142,8 +145,11 @@ export async function azureDevOpsConnect(args: { baseUrl: string; label: string;
   )
 }
 export function azureDevOpsTestConnection(args: { connectionId: string; revision: string }) {
-  return withAzureDevOpsRead(args.connectionId, args.revision, undefined, (connection, signal) =>
-    verify(authorizedReader(connection, signal))
+  return withAzureDevOpsRead(
+    args.connectionId,
+    args.revision,
+    undefined,
+    async (connection, signal) => verify(await authorizedReader(connection, signal))
   )
 }
 
@@ -152,16 +158,23 @@ function readSelection<T>(
   signal: AbortSignal | undefined,
   action: (read: Reader, connection: AzureDevOpsConnection) => Promise<T>
 ) {
-  return withAzureDevOpsRead(args.connectionId, args.revision, signal, (connection, readSignal) =>
-    action(authorizedReader(connection, readSignal), connection)
+  return withAzureDevOpsRead(
+    args.connectionId,
+    args.revision,
+    signal,
+    async (connection, readSignal) =>
+      action(await authorizedReader(connection, readSignal), connection)
   )
 }
 export function azureDevOpsListProjects(
   args: { connectionId: string; revision: string },
   signal?: AbortSignal
 ) {
-  return withAzureDevOpsRead(args.connectionId, args.revision, signal, (connection, readSignal) =>
-    projects(authorizedReader(connection, readSignal))
+  return withAzureDevOpsRead(
+    args.connectionId,
+    args.revision,
+    signal,
+    async (connection, readSignal) => projects(await authorizedReader(connection, readSignal))
   )
 }
 async function selectedProject(read: Reader, id: string): Promise<AzureDevOpsProject> {

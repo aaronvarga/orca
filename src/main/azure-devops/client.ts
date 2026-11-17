@@ -143,7 +143,7 @@ function sortPullRequestsForBranch(
 }
 
 export async function getAzureDevOpsAuthStatus(): Promise<AzureDevOpsAuthStatus> {
-  const saved = savedAzureDevOpsConnections()
+  const saved = await savedAzureDevOpsConnections()
   if (saved.length) {
     return {
       configured: true,

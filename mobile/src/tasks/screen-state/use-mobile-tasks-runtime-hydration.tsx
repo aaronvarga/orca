@@ -106,7 +106,10 @@ export function useMobileTasksRuntimeHydration(model: ClientSettingsActionsModel
     const resume = hydration.ui?.taskResumeState ?? {}
     setGithubProjectHiddenFieldIdsByView(resume.githubProjectHiddenFieldIdsByView ?? {})
 
-    const preferredProviders = normalizeVisibleTaskProviders(settings.visibleTaskProviders)
+    // shortcut: Azure Boards has no native mobile task reader; include it when that reader ships.
+    const preferredProviders = normalizeVisibleTaskProviders(settings.visibleTaskProviders).filter(
+      (provider) => provider !== 'azure-devops'
+    )
     const linearIsConnected = hydration.linearConnected
     const availableProviders = filterAvailableTaskProviders(preferredProviders, {
       gitlabInstalled: hydration.glabInstalled,

@@ -16,6 +16,7 @@ import { useRefreshHint } from '../../query/refresh-hint'
 
 function refreshLabels(t: Translate) {
   return {
+    'azure-devops': 'Azure Boards',
     github: t('tasks.screenChrome.refreshGitHub', 'Refresh GitHub work'),
     gitlab: t('tasks.screenChrome.refreshGitLab', 'Refresh GitLab work items'),
     linear: t('tasks.screenChrome.refreshLinear', 'Refresh Linear'),

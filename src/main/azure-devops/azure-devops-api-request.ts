@@ -139,8 +139,10 @@ export function azureDevOpsAuthHeaders(config: AzureDevOpsAuthConfig): Record<st
   return {}
 }
 
-export function resolveAzureDevOpsAuthConfig(baseUrl: string): AzureDevOpsAuthConfig {
-  const saved = savedAzureDevOpsConnections().find((connection) => {
+export async function resolveAzureDevOpsAuthConfig(
+  baseUrl: string
+): Promise<AzureDevOpsAuthConfig> {
+  const saved = (await savedAzureDevOpsConnections()).find((connection) => {
     try {
       return (
         connection.baseUrl === normalizeAzureDevOpsCollectionUrl(baseUrl) ||
@@ -158,7 +160,7 @@ export function resolveAzureDevOpsAuthConfig(baseUrl: string): AzureDevOpsAuthCo
     ? {
         apiBaseUrl: baseUrl,
         savedConnectionId: saved.id,
-        pat: savedAzureDevOpsToken(saved),
+        pat: await savedAzureDevOpsToken(saved),
         accessToken: null,
         username: null
       }
@@ -180,8 +182,8 @@ function isUrlPathAncestor(ancestor: string, descendant: string): boolean {
   }
 }
 
-export function resolveAzureDevOpsGitApiBaseUrl(repo: AzureDevOpsRepoRef): string {
-  const config = resolveAzureDevOpsAuthConfig(repo.apiBaseUrl)
+export async function resolveAzureDevOpsGitApiBaseUrl(repo: AzureDevOpsRepoRef): Promise<string> {
+  const config = await resolveAzureDevOpsAuthConfig(repo.apiBaseUrl)
   const configured = config.apiBaseUrl
   if (!configured) {
     return repo.apiBaseUrl
@@ -222,7 +224,7 @@ export async function requestAzureDevOpsJsonAtBase<T>(
   // Creation preflight must distinguish lookup failure from an absent PR.
   throwOnFailure = false
 ): Promise<T | null> {
-  const config = options.authorization ? null : resolveAzureDevOpsAuthConfig(baseUrl)
+  const config = options.authorization ? null : await resolveAzureDevOpsAuthConfig(baseUrl)
   const doFetch = (url: URL): Promise<Response> =>
     fetch(url, {
       headers: {
@@ -289,14 +291,14 @@ export async function requestAzureDevOpsJsonAtBase<T>(
   }
 }
 
-export function requestAzureDevOpsJson<T>(
+export async function requestAzureDevOpsJson<T>(
   repo: AzureDevOpsRepoRef,
   path: string,
   options: AzureDevOpsRequestOptions = {},
   throwOnFailure = false
 ): Promise<T | null> {
   return requestAzureDevOpsJsonAtBase(
-    resolveAzureDevOpsGitApiBaseUrl(repo),
+    await resolveAzureDevOpsGitApiBaseUrl(repo),
     path,
     options,
     throwOnFailure
