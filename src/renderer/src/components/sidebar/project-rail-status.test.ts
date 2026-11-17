@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { useAppStore } from '@/store'
 import { acceptedAgentStatuses } from '@/store/slices/agent-status/accepted-agent-statuses'
 import { makeTab } from '@/store/terminals/testing/terminal-tab.test-fixture'
@@ -12,7 +12,12 @@ import { getProjectRailStatus } from './project-rail-status'
 
 const original = useAppStore.getState()
 const leaf = '11111111-1111-4111-8111-111111111111'
-afterEach(() => useAppStore.setState(original, true))
+const now = 1_700_000_000_000
+beforeEach(() => vi.useFakeTimers({ now }))
+afterEach(() => {
+  useAppStore.setState(original, true)
+  vi.useRealTimers()
+})
 
 function session(id: string): CommandCenterSession {
   return {
@@ -39,7 +44,6 @@ function session(id: string): CommandCenterSession {
 }
 
 function seed(entries: [string, AgentStatusEntry['state']][]) {
-  const now = Date.now()
   useAppStore.setState({
     tabsByWorktree: {
       workspace: entries.map(([id]) => makeTab({ id, worktreeId: 'workspace', ptyId: `pty-${id}` }))
@@ -119,7 +123,6 @@ it('does not borrow unread or progress from a replaced pane, or count an unavail
 it('includes native chat status in folder workspaces on a remote host', () => {
   seed([])
   const key = structuredAgentSessionPaneKey('chat-tab', 'chat-session')
-  const now = Date.now()
   useAppStore.setState({
     repos: [
       {

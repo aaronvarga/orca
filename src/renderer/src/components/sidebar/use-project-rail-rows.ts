@@ -13,8 +13,7 @@ import { EMPTY_SIDEBAR_FEED_DOMAINS } from '../../../../shared/sidebar-feed-clie
 import { NO_WORKSPACE_ROW_FILTERS } from '../../../../shared/workspace-view/workspace-row-filters'
 import {
   getLocalExecutionHostLabel,
-  getRepoExecutionHostId,
-  getSettingsFocusedExecutionHostId
+  getRepoExecutionHostId
 } from '../../../../shared/execution-host/execution-host'
 import { getHostDisplayLabelOverrides } from '../../../../shared/execution-host/host-setting-overrides'
 import type { Repo } from '../../../../shared/repository/repo-types'
@@ -55,7 +54,7 @@ export function useProjectRailRows(): ProjectRailRow[] {
         visibleWorkspaceHostIds: state.visibleWorkspaceHostIds,
         workspaceStatuses: [],
         pinnedDisplayPolicy: 'single-location',
-        defaultHostId: getSettingsFocusedExecutionHostId(state.settings),
+        defaultHostId: 'local',
         hostLabelOverrides: getHostDisplayLabelOverrides(state.settings),
         localHostLabel: getLocalExecutionHostLabel(),
         workspaceHostOrder: state.workspaceHostOrder
@@ -73,7 +72,7 @@ export function useProjectRailRows(): ProjectRailRow[] {
         return filterProjectGroupsForVisibleHosts(
           state.projectGroups,
           getVisibleSidebarHostIdSet(state.visibleWorkspaceHostIds, state.workspaceHostScope),
-          getSettingsFocusedExecutionHostId(state.settings)
+          'local'
         )
           .filter((group) => group.id === row.projectGroup?.id && group.parentPath)
           .flatMap((group) => {

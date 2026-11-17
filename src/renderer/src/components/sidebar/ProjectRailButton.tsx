@@ -107,6 +107,7 @@ export function ProjectRailButton({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [reason, setReason] = useState<string | null>(null)
+  const projectGroups = useAppStore((s) => s.projectGroups)
   const active = useAppStore(
     (s) =>
       s.activeRepoId === repo.id &&
@@ -146,7 +147,7 @@ export function ProjectRailButton({
         <RepoHeaderProjectActionsMenu
           repo={repo}
           label={repo.displayName}
-          projectGroups={useAppStore.getState().projectGroups}
+          projectGroups={projectGroups}
           actions={actions}
           hideTrigger
           onCloseAutoFocus={(event) => {

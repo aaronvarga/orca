@@ -1,3 +1,4 @@
+import { selectFolderWorkspaces } from '@/store/workspaces/catalog/workspace-record-fields'
 import { FolderOpen, Plus, Grid2X2 } from 'lucide-react'
 import { ProjectRailSeparatorMenuItem } from './ProjectRailSeparatorMenuItem'
 import { FolderGroupBrowser } from './FolderGroupBrowser'
@@ -37,7 +38,7 @@ export function FolderGroupRailButton({
     (state) =>
       state.activeView === 'terminal' &&
       state.activeWorkspaceExecutionHostId === hostId &&
-      state.folderWorkspaces.some(
+      selectFolderWorkspaces(state).some(
         (folder) =>
           folder.projectGroupId === projectGroup.id &&
           folderWorkspaceKey(folder.id) === state.activeWorktreeId

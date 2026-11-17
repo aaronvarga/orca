@@ -1,5 +1,5 @@
 import NativeChatView from '@/components/native-chat/NativeChatView'
-import { commandCenterChatSessions } from './command-center-chat-sessions'
+import { useCommandCenterChatSessions } from './use-command-center-chat-sessions'
 import { openCommandCenterChat, closeCommandCenterChat } from './command-center-chat-actions'
 import { getProjectRailStatus } from '../sidebar/project-rail-status'
 import { useCallback, useState } from 'react'
@@ -49,14 +49,6 @@ function ProfileCommandCenter({ profile }: { profile: string }) {
     setError(null)
     void operation.catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
   }, [])
-  const chatCatalog = useAppStore(
-    useShallow((state) => ({
-      unifiedTabsByWorktree: state.unifiedTabsByWorktree,
-      worktreesByRepo: state.worktreesByRepo,
-      detectedWorktreesByRepo: state.detectedWorktreesByRepo,
-      folderWorkspaces: state.folderWorkspaces
-    }))
-  )
   const tiles: CommandCenterTile[] = sessions.map((session) => {
     const projectGroup = groups.find(
       (group) =>
@@ -84,7 +76,7 @@ function ProfileCommandCenter({ profile }: { profile: string }) {
       activity: getProjectRailStatus([session], statusState)
     }
   })
-  const chats = commandCenterChatSessions({ ...useAppStore.getState(), ...chatCatalog })
+  const chats = useCommandCenterChatSessions()
   return (
     <CommandCenterView
       sessions={[

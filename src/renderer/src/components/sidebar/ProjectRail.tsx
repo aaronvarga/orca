@@ -1,9 +1,14 @@
+import {
+  selectWorktreesByRepo,
+  selectFolderWorkspaces,
+  selectDetectedWorktreesByRepo
+} from '@/store/workspaces/catalog/workspace-record-fields'
 import { ProjectVisibilityMenu } from './ProjectVisibilityMenu'
 import { Fragment } from 'react'
 import { ProjectRailButton, RailButton } from './ProjectRailButton'
 import { FolderGroupRailButton } from './FolderGroupRailButton'
 import { getProjectRailStatus, type ProjectRailSession } from './project-rail-status'
-import { commandCenterChatSessions } from '../command-center/command-center-chat-sessions'
+import { useCommandCenterChatSessions } from '../command-center/use-command-center-chat-sessions'
 import { useShallow } from 'zustand/react/shallow'
 import { folderWorkspaceRepoId } from '../../../../shared/folder-workspaces/folder-workspace-worktree'
 import {
@@ -49,9 +54,9 @@ export default function ProjectRail({ reserveTitlebar = false }: { reserveTitleb
       agentStatusByPaneKey: s.agentStatusByPaneKey,
       agentStatusEpoch: s.agentStatusEpoch,
       unifiedTabsByWorktree: s.unifiedTabsByWorktree,
-      worktreesByRepo: s.worktreesByRepo,
-      detectedWorktreesByRepo: s.detectedWorktreesByRepo,
-      folderWorkspaces: s.folderWorkspaces
+      worktreesByRepo: selectWorktreesByRepo(s),
+      detectedWorktreesByRepo: selectDetectedWorktreesByRepo(s),
+      folderWorkspaces: selectFolderWorkspaces(s)
     }))
   )
   const repos = useAppStore((s) => s.repos)
@@ -60,8 +65,21 @@ export default function ProjectRail({ reserveTitlebar = false }: { reserveTitleb
   const defaults = useAppStore((s) => s.worktreeVisibilityDefaultsByHost)
   const repoMap = useRepoMap()
   const dialogs = useProjectGroupDialogs({ repos, repoMap, projectGroups })
-  const state = useAppStore.getState()
-  const allSessions: ProjectRailSession[] = [...sessions, ...commandCenterChatSessions(state)]
+  const state = useAppStore(
+    useShallow((s) => ({
+      openSettingsTarget: s.openSettingsTarget,
+      openSettingsPage: s.openSettingsPage,
+      openModal: s.openModal,
+      openCommandCenter: s.openCommandCenter,
+      openActivityPage: s.openActivityPage,
+      openSpacePage: s.openSpacePage,
+      openAutomationsPage: s.openAutomationsPage,
+      openSkillsPage: s.openSkillsPage,
+      openMobilePage: s.openMobilePage
+    }))
+  )
+  const chats = useCommandCenterChatSessions()
+  const allSessions: ProjectRailSession[] = [...sessions, ...chats]
   const actions: RepoHeaderProjectActions = {
     getWorktreeVisibilityDefaults: (repo) =>
       getRepoOwnerWorktreeVisibilityDefaults(repo, settings, defaults),

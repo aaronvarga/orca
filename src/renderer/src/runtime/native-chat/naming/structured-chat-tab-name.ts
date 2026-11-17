@@ -1,6 +1,6 @@
 import type { Tab } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
 import { isAgentSessionConversationName } from '../../../../../shared/agent-session/conversation-naming/agent-session-conversation-name'
-import type { AppState } from '@/store/types'
+import type { WorktreeRuntimeOwnerState } from '@/lib/workspace/ownership/worktree-runtime-owner-state'
 import type { ExecutionHostId } from '../../../../../shared/execution-host/execution-host'
 import {
   structuredAgentSessionOwnerForTab,
@@ -19,7 +19,7 @@ type ChatTabNameSource = Pick<
  *  Legacy tabs resolve their owner from the workspace just as the reactive tab reader does. */
 export function resolveStructuredChatTabName(
   tab: ChatTabNameSource,
-  state: AppState
+  state: WorktreeRuntimeOwnerState
 ): StructuredChatTabName {
   const owner = structuredAgentSessionOwnerForTab(state, tab)
   const target = structuredAgentSessionTargetForHost(owner)
@@ -51,13 +51,16 @@ export function projectedStructuredChatTabName(tab: Tab, names: StructuredChatTa
 }
 export function readStructuredChatTabSavedName(
   tab: ChatTabNameSource,
-  state: AppState
+  state: WorktreeRuntimeOwnerState
 ): string | null {
   return resolveStructuredChatTabName(tab, state).savedName
 }
 
 /** The chat tab's shown label: its name, else the tab's default label. */
-export function readStructuredChatTabName(tab: ChatTabNameSource, state: AppState): string {
+export function readStructuredChatTabName(
+  tab: ChatTabNameSource,
+  state: WorktreeRuntimeOwnerState
+): string {
   return readStructuredChatTabSavedName(tab, state) ?? tab.label
 }
 
@@ -66,7 +69,7 @@ export function readStructuredChatTabName(tab: ChatTabNameSource, state: AppStat
 export function readStructuredChatSessionNamingOnTabHost(
   tab: ChatTabNameSource,
   sessionId: string,
-  state: AppState
+  state: WorktreeRuntimeOwnerState
 ): { name: string | null; forked: boolean } | undefined {
   const target = structuredAgentSessionTargetForHost(structuredAgentSessionOwnerForTab(state, tab))
   const feed = target ? getStructuredAgentSessionStatusFeed(target) : null

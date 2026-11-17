@@ -50,14 +50,10 @@ export function FolderGroupBrowser({
   const open = async (path: string) => {
     setOpening(true)
     setError(null)
-    try {
-      await openFolderGroupDirectory(group, path)
-      onOpened()
-    } catch (error) {
-      setError(error instanceof Error ? error.message : String(error))
-    } finally {
-      setOpening(false)
-    }
+    await openFolderGroupDirectory(group, path)
+      .then(onOpened)
+      .catch((error: unknown) => setError(error instanceof Error ? error.message : String(error)))
+      .finally(() => setOpening(false))
   }
   return (
     <PopoverContent side="right" align="start" className="w-80">

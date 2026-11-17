@@ -11,9 +11,12 @@ import { runtimeEnvironmentIdUnlessTwin } from '@/lib/workspace/ownership/resolv
 import { selectRuntimeAwareSshTargetLabel } from '@/store/slices/ssh/runtime-environment-ssh-selectors'
 import type { AppState } from '@/store/types'
 
+export type ExecutionHostDisplayState = Pick<AppState, 'settings' | 'runtimeEnvironments'> &
+  Parameters<typeof selectRuntimeAwareSshTargetLabel>[0]
+
 /** Prefer the user rename, then published machine/SSH label, then raw host ID. */
 export function selectExecutionHostDisplayLabel(
-  state: AppState,
+  state: ExecutionHostDisplayState,
   hostId: ExecutionHostId,
   // SSH labels are published per runtime environment when the target is reached through one.
   options: { sshEnvironmentId?: string | null; t?: Translate } = {}

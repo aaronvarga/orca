@@ -30,28 +30,27 @@ export function FolderGroupAppearanceDialog({
   const save = async () => {
     setPending(true)
     setError(null)
-    try {
-      if (
-        await useAppStore
-          .getState()
-          .updateProjectGroup(
-            group.id,
-            { repoIcon: icon, color: color || null },
-            { hostId: getRepoExecutionHostId(group) }
+    await useAppStore
+      .getState()
+      .updateProjectGroup(
+        group.id,
+        { repoIcon: icon, color: color || null },
+        { hostId: getRepoExecutionHostId(group) }
+      )
+      .then((saved) => {
+        if (saved) {
+          onClose()
+        } else {
+          setError(
+            t(
+              'sidebar.folderGroupAppearanceFailed',
+              "Couldn't save the group appearance. Its host may need an Orca update."
+            )
           )
-      ) {
-        onClose()
-      } else {
-        setError(
-          t(
-            'sidebar.folderGroupAppearanceFailed',
-            "Couldn't save the group appearance. Its host may need an Orca update."
-          )
-        )
-      }
-    } finally {
-      setPending(false)
-    }
+        }
+      })
+      .catch((error: unknown) => setError(error instanceof Error ? error.message : String(error)))
+      .finally(() => setPending(false))
   }
   return (
     <Dialog

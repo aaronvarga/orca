@@ -78,43 +78,42 @@ export function TerminalPaneComposer({
     sendingRef.current = true
     setSending(true)
     setError(null)
-    try {
-      const result = await onSend(
-        [...attachments.map((file) => file.text), text].filter(Boolean).join(' '),
-        submit
-      )
-      if (result === 'sent' || result === 'inserted' || result === 'submit-failed') {
-        if (clearAfter && useComposerDrafts.getState().drafts[key] === text) {
-          updateDraft('')
-          useComposerDrafts.getState().setAttachments(key, [])
+    await onSend([...attachments.map((file) => file.text), text].filter(Boolean).join(' '), submit)
+      .then((result) => {
+        if (result === 'sent' || result === 'inserted' || result === 'submit-failed') {
+          if (clearAfter && useComposerDrafts.getState().drafts[key] === text) {
+            updateDraft('')
+            useComposerDrafts.getState().setAttachments(key, [])
+          }
         }
-      }
-      if (result === 'submit-failed') {
-        setError(
-          t(
-            'terminalComposer.submitFailed',
-            'Text was pasted, but Enter was not sent. Check the terminal before continuing.'
+        if (result === 'submit-failed') {
+          setError(
+            t(
+              'terminalComposer.submitFailed',
+              'Text was pasted, but Enter was not sent. Check the terminal before continuing.'
+            )
           )
-        )
-      } else if (result === 'paste-failed') {
+        } else if (result === 'paste-failed') {
+          setError(
+            t(
+              'terminalComposer.pasteFailed',
+              'Delivery stopped. Your draft is retained; check the terminal for partially pasted text before retrying.'
+            )
+          )
+        }
+      })
+      .catch(() => {
         setError(
           t(
             'terminalComposer.pasteFailed',
             'Delivery stopped. Your draft is retained; check the terminal for partially pasted text before retrying.'
           )
         )
-      }
-    } catch {
-      setError(
-        t(
-          'terminalComposer.pasteFailed',
-          'Delivery stopped. Your draft is retained; check the terminal for partially pasted text before retrying.'
-        )
-      )
-    } finally {
-      sendingRef.current = false
-      setSending(false)
-    }
+      })
+      .finally(() => {
+        sendingRef.current = false
+        setSending(false)
+      })
   }
   const sendLabel = t('terminalComposer.send', 'Send')
   const expandLabel = expanded
@@ -126,18 +125,20 @@ export function TerminalPaneComposer({
     }
     setPreparing(true)
     setError(null)
-    try {
-      const files = await prepareTerminalComposerFiles(target, paths)
-      useComposerDrafts.getState().setAttachments(key, [...attachments, ...files])
-    } catch (error) {
-      setError(
-        error instanceof Error
-          ? error.message
-          : t('terminalComposer.attachFailed', 'Could not attach files.')
-      )
-    } finally {
-      setPreparing(false)
-    }
+    await prepareTerminalComposerFiles(target, paths)
+      .then((files) => {
+        useComposerDrafts.getState().setAttachments(key, [...attachments, ...files])
+      })
+      .catch((error: unknown) => {
+        setError(
+          error instanceof Error
+            ? error.message
+            : t('terminalComposer.attachFailed', 'Could not attach files.')
+        )
+      })
+      .finally(() => {
+        setPreparing(false)
+      })
   }
   const onPaste = useTerminalComposerPaste({
     inputRef,

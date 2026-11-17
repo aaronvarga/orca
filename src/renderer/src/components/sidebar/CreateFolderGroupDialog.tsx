@@ -20,6 +20,40 @@ import {
   type ExecutionHostId
 } from '../../../../shared/execution-host/execution-host'
 
+async function createFolderGroupAtPath(
+  path: string,
+  name: string,
+  hostId: ExecutionHostId,
+  t: ReturnType<typeof useTranslate>
+): Promise<void> {
+  const owner = parseExecutionHostId(hostId)
+  let folderPath = path.trim()
+  if (owner?.kind === 'runtime') {
+    folderPath = (await browseRuntimeServerDirectory(owner.environmentId, folderPath)).resolvedPath
+  } else if (owner?.kind === 'local') {
+    if (!folderPath.startsWith('/') && !isWindowsAbsolutePathLike(folderPath)) {
+      throw new Error(
+        t('sidebar.folderGroupAbsolutePath', 'Enter an absolute folder path or use Browse.')
+      )
+    }
+    await window.api.fs.readDir({ dirPath: folderPath })
+  } else {
+    throw new Error(
+      t('sidebar.folderGroupUnsupportedHost', 'Reconnect this host to create a folder group.')
+    )
+  }
+  const group = await useAppStore
+    .getState()
+    .createProjectGroup(
+      name.trim() || basename(folderPath) || t('sidebar.folderGroupDefaultName', 'Folder group'),
+      hostId,
+      folderPath
+    )
+  if (!group) {
+    throw new Error(t('sidebar.folderGroupCreateFailed', "Couldn't create the folder group."))
+  }
+}
+
 export function CreateFolderGroupDialog({
   hostId,
   onClose
@@ -36,41 +70,10 @@ export function CreateFolderGroupDialog({
   const create = async () => {
     setPending(true)
     setError(null)
-    try {
-      let folderPath = path.trim()
-      if (owner?.kind === 'runtime') {
-        folderPath = (await browseRuntimeServerDirectory(owner.environmentId, folderPath))
-          .resolvedPath
-      } else if (owner?.kind === 'local') {
-        if (!folderPath.startsWith('/') && !isWindowsAbsolutePathLike(folderPath)) {
-          throw new Error(
-            t('sidebar.folderGroupAbsolutePath', 'Enter an absolute folder path or use Browse.')
-          )
-        }
-        await window.api.fs.readDir({ dirPath: folderPath })
-      } else {
-        throw new Error(
-          t('sidebar.folderGroupUnsupportedHost', 'Reconnect this host to create a folder group.')
-        )
-      }
-      const group = await useAppStore
-        .getState()
-        .createProjectGroup(
-          name.trim() ||
-            basename(folderPath) ||
-            t('sidebar.folderGroupDefaultName', 'Folder group'),
-          hostId,
-          folderPath
-        )
-      if (!group) {
-        throw new Error(t('sidebar.folderGroupCreateFailed', "Couldn't create the folder group."))
-      }
-      onClose()
-    } catch (error) {
-      setError(error instanceof Error ? error.message : String(error))
-    } finally {
-      setPending(false)
-    }
+    await createFolderGroupAtPath(path, name, hostId, t)
+      .then(onClose)
+      .catch((error: unknown) => setError(error instanceof Error ? error.message : String(error)))
+      .finally(() => setPending(false))
   }
   return (
     <Dialog

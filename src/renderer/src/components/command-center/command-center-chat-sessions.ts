@@ -1,3 +1,5 @@
+import type { ExecutionHostDisplayState } from '@/runtime/hosts/display/execution-host-display-label'
+import type { WorktreeRuntimeOwnerState } from '@/lib/workspace/ownership/worktree-runtime-owner-state'
 import type { AppState } from '@/store/types'
 import {
   structuredAgentSessionOwnerForTab,
@@ -9,7 +11,17 @@ import { getRepoExecutionHostId } from '../../../../shared/execution-host/execut
 import { folderWorkspaceRepoId } from '../../../../shared/folder-workspaces/folder-workspace-worktree'
 import type { CommandCenterChatTile } from './CommandCenterView'
 
-export function commandCenterChatSessions(state: AppState): CommandCenterChatTile[] {
+export function commandCenterChatSessions(
+  state: Pick<
+    AppState,
+    'repos' | 'projectGroups' | 'unifiedTabsByWorktree' | 'getKnownWorktreeById'
+  > &
+    Omit<
+      WorktreeRuntimeOwnerState,
+      'repos' | 'projectGroups' | 'settings' | 'runtimeEnvironments'
+    > &
+    ExecutionHostDisplayState
+): CommandCenterChatTile[] {
   return Object.values(state.unifiedTabsByWorktree).flatMap((tabs) =>
     tabs.flatMap((tab) => {
       if (tab.contentType !== 'agent-session' || !tab.agentSessionAgent) {

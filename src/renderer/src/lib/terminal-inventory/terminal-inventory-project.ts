@@ -1,4 +1,8 @@
 import {
+  selectWorktreesByRepo,
+  selectFolderWorkspaces
+} from '@/store/workspaces/catalog/workspace-record-fields'
+import {
   getRepoExecutionHostId,
   toRuntimeExecutionHostId,
   type ExecutionHostId
@@ -41,7 +45,7 @@ export function terminalInventoryProject(
   }
   const scope = parseWorkspaceKey(session.terminal.worktreeId)
   if (scope?.type === 'folder') {
-    const workspace = state.folderWorkspaces.find(
+    const workspace = selectFolderWorkspaces(state).find(
       (candidate) =>
         candidate.id === scope.folderWorkspaceId &&
         catalogHosts.includes(getFolderWorkspaceHostId(candidate, state.projectGroups))
@@ -66,7 +70,7 @@ export function terminalInventoryProject(
   if (session.route.target.kind === 'environment' && session.route.at !== 'local') {
     const environmentId = session.route.target.environmentId
     if (
-      !(state.worktreesByRepo[repoId] ?? []).some(
+      !(selectWorktreesByRepo(state)[repoId] ?? []).some(
         (worktree) =>
           worktreeIdsEqual(worktree.id, session.terminal.worktreeId) &&
           worktree.runtimeOwnerEnvironmentId === environmentId &&

@@ -1,3 +1,6 @@
+import { useBoundedHostRows } from '@/components/host-picker/use-bounded-host-rows'
+import { HostListSearchField } from '@/components/host-picker/HostListSearchField'
+import { HostListOverflowNote } from '@/components/host-picker/HostListOverflowNote'
 import { useState } from 'react'
 import { ChevronDown, Grid2X2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -32,6 +35,7 @@ export function CommandCenterViewMenu({
   onShowHiddenChange: (value: boolean) => void
 }) {
   const t = useTranslate()
+  const hostRows = useBoundedHostRows(hosts.map(([id, label]) => ({ id, label })))
   const [open, setOpen] = useState(false)
   const [customOpen, setCustomOpen] = useState(false)
   const [preview, setPreview] = useState<[number, number]>([1, 1])
@@ -157,6 +161,9 @@ export function CommandCenterViewMenu({
 
         <DropdownMenuSeparator />
         <DropdownMenuLabel>{t('commandCenter.hostFilter', 'Host filter')}</DropdownMenuLabel>
+        {hostRows.searchable ? (
+          <HostListSearchField value={hostRows.query} onChange={hostRows.setQuery} inMenu />
+        ) : null}
         <DropdownMenuRadioGroup
           value={presentation.host}
           onValueChange={(host) => {
@@ -167,13 +174,14 @@ export function CommandCenterViewMenu({
           <DropdownMenuRadioItem value="all">
             {t('commandCenter.allHosts', 'All hosts')}
           </DropdownMenuRadioItem>
-          {hosts.map(([id, label]) => (
+          {hostRows.shown.map(({ id, label }) => (
             <DropdownMenuRadioItem key={id} value={id}>
               {label}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
 
+        <HostListOverflowNote hiddenCount={hostRows.hiddenCount} />
         {presentation.hidden.length > 0 ? (
           <>
             <DropdownMenuSeparator />

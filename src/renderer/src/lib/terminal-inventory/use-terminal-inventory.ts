@@ -1,3 +1,7 @@
+import {
+  selectWorktreesByRepo,
+  selectFolderWorkspaces
+} from '@/store/workspaces/catalog/workspace-record-fields'
 import { useEffect, useSyncExternalStore } from 'react'
 import { useAppStore } from '@/store'
 import {
@@ -144,8 +148,8 @@ function retainInventory(): () => void {
     const stopCatalog = useAppStore.subscribe((state, previous) => {
       if (
         state.repos !== previous.repos ||
-        state.worktreesByRepo !== previous.worktreesByRepo ||
-        state.folderWorkspaces !== previous.folderWorkspaces ||
+        selectWorktreesByRepo(state) !== selectWorktreesByRepo(previous) ||
+        selectFolderWorkspaces(state) !== selectFolderWorkspaces(previous) ||
         state.projectGroups !== previous.projectGroups ||
         state.visibleWorkspaceHostIds !== previous.visibleWorkspaceHostIds ||
         state.workspaceHostScope !== previous.workspaceHostScope ||

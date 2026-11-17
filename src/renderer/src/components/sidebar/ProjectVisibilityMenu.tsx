@@ -60,29 +60,31 @@ export function ProjectVisibilityMenu() {
           const visible = entry.kind === 'repo' ? !isRepoHidden(entry.repo) : !entry.group.hiddenAt
           const toggle = async (checked: boolean) => {
             setPending((prior) => new Set(prior).add(key))
-            try {
-              const saved =
-                entry.kind === 'repo'
-                  ? await setProjectHidden([entry.repo], !checked, name)
-                  : await useAppStore
-                      .getState()
-                      .updateProjectGroup(
-                        entry.group.id,
-                        { hiddenAt: checked ? null : Date.now() },
-                        { hostId }
-                      )
-              if (!saved && entry.kind === 'group') {
-                toast.error(
-                  t('sidebar.projectVisibilityFailed', "Couldn't change project visibility.")
-                )
-              }
-            } finally {
-              setPending((prior) => {
-                const next = new Set(prior)
-                next.delete(key)
-                return next
+            const operation =
+              entry.kind === 'repo'
+                ? setProjectHidden([entry.repo], !checked, name)
+                : useAppStore
+                    .getState()
+                    .updateProjectGroup(
+                      entry.group.id,
+                      { hiddenAt: checked ? null : Date.now() },
+                      { hostId }
+                    )
+            await operation
+              .then((saved) => {
+                if (!saved && entry.kind === 'group') {
+                  toast.error(
+                    t('sidebar.projectVisibilityFailed', "Couldn't change project visibility.")
+                  )
+                }
               })
-            }
+              .finally(() => {
+                setPending((prior) => {
+                  const next = new Set(prior)
+                  next.delete(key)
+                  return next
+                })
+              })
           }
           return (
             <DropdownMenuCheckboxItem
