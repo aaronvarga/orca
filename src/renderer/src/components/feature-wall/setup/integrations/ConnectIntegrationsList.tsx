@@ -107,7 +107,7 @@ export function ConnectIntegrationsList(): React.JSX.Element {
             <GitHubIntegrationCard />
             <GitLabIntegrationCard />
             <BitbucketIntegrationCard />
-            <AzureDevOpsIntegrationCard />
+            <AzureDevOpsIntegrationCard source={{ kind: 'local' }} />
             <GiteaIntegrationCard />
           </IntegrationCardGroup>
         </IntegrationStep>

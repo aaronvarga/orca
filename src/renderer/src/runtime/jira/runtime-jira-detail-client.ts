@@ -16,7 +16,7 @@ import {
 import { callRuntimeRpc } from '../rpc/calls/runtime-rpc-call'
 import { JIRA_TRANSITION_FIELDS_RUNTIME_CAPABILITY } from '../../../../shared/jira/jira-detail-capabilities'
 import { RuntimeRpcCallError } from '../rpc/calls/runtime-rpc-result'
-import { readRuntimeJiraPayload } from './runtime-jira-payload-stream'
+import { readRuntimeIntegrationPayload } from './runtime-jira-payload-stream'
 import { translate } from '@/i18n/i18n'
 
 export type JiraCommentResult = { ok: true; id: string } | { ok: false; error: string }
@@ -28,7 +28,7 @@ async function readRemoteJiraPayload<TResult>(
   args: unknown
 ): Promise<TResult> {
   try {
-    return await readRuntimeJiraPayload<TResult>(target, streamMethod, args)
+    return await readRuntimeIntegrationPayload<TResult>(target, streamMethod, args)
   } catch (error) {
     if (!(error instanceof RuntimeRpcCallError) || error.code !== 'method_not_found') {
       throw error

@@ -1,3 +1,4 @@
+import { createWebAzureDevOpsApi } from './preload-api/web-azure-devops-api'
 import type { PreloadApi } from '../../../preload/api-types'
 import type { StatsSummary } from '../../../shared/diagnostics/process-stats-types'
 import { createWebE2EApi } from './preload-api/app/web-e2e-api'
@@ -104,6 +105,7 @@ function createWebPreloadApi(): Omit<Partial<PreloadApi>, 'settings' | 'plugins'
     hostedReview: createRuntimeNamespaceApi('hostedReview'),
     linear: createRuntimeNamespaceApi('linear'),
     jira: createWebJiraApi(),
+    azureDevOps: createWebAzureDevOpsApi(),
     hooks: createHooksApi(),
     stats: {
       getSummary: async () =>

@@ -1,3 +1,4 @@
+import { parseAzureDevOpsWorkItemUrl } from '../azure-devops/work-item-url'
 import { parseJiraIssueUrl, JIRA_ISSUE_KEY_PATTERN } from '../jira/jira-issue-url'
 import { parseLinearIssueInput, parseLinearIssueUrlIntent } from '../linear/links'
 import { getTaskSourceCacheScope } from '../work-items/task-source-context'
@@ -88,6 +89,10 @@ function parseReferenceRoute(
   url: URL,
   providerHint?: WorkspaceAttachment['provider']
 ): WorkspaceAttachment {
+  const workItem = parseAzureDevOpsWorkItemUrl(url.href)
+  if (workItem) {
+    return { provider: 'azure-devops', type: 'issue', number: workItem.id, url: workItem.url }
+  }
   const linear = parseLinearIssueUrlIntent(url.href)
   if (linear) {
     url.pathname = `/${linear.organizationUrlKey.toLowerCase()}/issue/${linear.identifier}`
@@ -194,6 +199,8 @@ function externalUrl(item: WorkspaceAttachment): string | undefined {
       return identity.webUrl
         ? `${identity.webUrl.replace(/\/+$/, '')}/-/${item.type === 'mr' ? 'merge_requests' : 'issues'}/${item.number}`
         : undefined
+    case 'azure-devops':
+      return `${identity.baseUrl}/${encodeURIComponent(identity.projectId)}/_workitems/edit/${item.number}`
     case 'jira':
       return identity.siteUrl && identifier
         ? `${identity.siteUrl.replace(/\/+$/, '')}/browse/${identifier}`
@@ -217,6 +224,10 @@ export function getProvenWorkspaceReferenceIdentity(item: WorkspaceAttachment): 
           ? parsed.identifier === identifier?.toUpperCase()
           : parsed.number === item.number)
       ) {
+        if (parsed.provider === 'azure-devops' && parsed.type === 'issue') {
+          const azure = parseAzureDevOpsWorkItemUrl(parsed.url!)!
+          return JSON.stringify(['azure-devops', 'issue', azure.baseUrl.toLowerCase(), azure.id])
+        }
         const url = new URL(parsed.url!)
         // These hosts route case-insensitively; stored URLs keep the user's casing.
         const path = CASE_INSENSITIVE_PATH_PROVIDERS.has(parsed.provider)

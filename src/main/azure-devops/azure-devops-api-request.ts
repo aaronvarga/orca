@@ -1,3 +1,9 @@
+import { setTimeout as delay } from 'node:timers/promises'
+import { savedAzureDevOpsConnections, savedAzureDevOpsToken } from './connection-store'
+import {
+  normalizeAzureDevOpsCollectionUrl,
+  azureDevOpsCollectionForProjectUrl
+} from '../../shared/azure-devops/connection-url'
 import { Buffer } from 'node:buffer'
 import type { AzureDevOpsRepoRef } from './repository-ref'
 import { cancelUnreadResponseBody } from '../lib/unread-response-body'
@@ -61,17 +67,40 @@ export function recordAzureDevOpsApiVersionRejection(
   return true
 }
 
-type AzureDevOpsAuthConfig = {
+export type AzureDevOpsAuthConfig = {
   apiBaseUrl: string | null
   pat: string | null
   accessToken: string | null
   username: string | null
+  savedConnectionId?: string
+}
+
+export class AzureDevOpsCredentialAccessError extends Error {
+  constructor(
+    readonly status: number,
+    path: string
+  ) {
+    const permission = path.includes('/_apis/git/')
+      ? 'Code Read'
+      : path.includes('/_apis/projects')
+        ? 'Project and Team Read'
+        : 'Work Items Read'
+    super(
+      status === 401
+        ? 'Azure DevOps credential expired or is invalid. Reconnect this organization in Settings.'
+        : `Azure DevOps permission denied. Reconnect this organization with ${permission} access.`
+    )
+    this.name = 'AzureDevOpsCredentialAccessError'
+  }
 }
 
 export type AzureDevOpsRequestOptions = {
   searchParams?: Record<string, string | number>
   timeoutMs?: number
   onResponse?: (response: Response) => void
+  signal?: AbortSignal
+  body?: unknown
+  authorization?: string
 }
 
 function envValue(name: string): string | null {
@@ -99,7 +128,7 @@ export function azureDevOpsTokenConfigured(config: AzureDevOpsAuthConfig): boole
   return Boolean(config.pat || config.accessToken)
 }
 
-function authHeaders(config: AzureDevOpsAuthConfig): Record<string, string> {
+export function azureDevOpsAuthHeaders(config: AzureDevOpsAuthConfig): Record<string, string> {
   if (config.accessToken) {
     return { Authorization: `Bearer ${config.accessToken}` }
   }
@@ -108,6 +137,32 @@ function authHeaders(config: AzureDevOpsAuthConfig): Record<string, string> {
     return { Authorization: `Basic ${encoded}` }
   }
   return {}
+}
+
+export function resolveAzureDevOpsAuthConfig(baseUrl: string): AzureDevOpsAuthConfig {
+  const saved = savedAzureDevOpsConnections().find((connection) => {
+    try {
+      return (
+        connection.baseUrl === normalizeAzureDevOpsCollectionUrl(baseUrl) ||
+        connection.baseUrl === azureDevOpsCollectionForProjectUrl(baseUrl)
+      )
+    } catch {
+      try {
+        return connection.baseUrl === azureDevOpsCollectionForProjectUrl(baseUrl)
+      } catch {
+        return false
+      }
+    }
+  })
+  return saved
+    ? {
+        apiBaseUrl: baseUrl,
+        savedConnectionId: saved.id,
+        pat: savedAzureDevOpsToken(saved),
+        accessToken: null,
+        username: null
+      }
+    : getAzureDevOpsAuthConfig()
 }
 
 function isUrlPathAncestor(ancestor: string, descendant: string): boolean {
@@ -126,7 +181,8 @@ function isUrlPathAncestor(ancestor: string, descendant: string): boolean {
 }
 
 export function resolveAzureDevOpsGitApiBaseUrl(repo: AzureDevOpsRepoRef): string {
-  const configured = getAzureDevOpsAuthConfig().apiBaseUrl
+  const config = resolveAzureDevOpsAuthConfig(repo.apiBaseUrl)
+  const configured = config.apiBaseUrl
   if (!configured) {
     return repo.apiBaseUrl
   }
@@ -140,6 +196,14 @@ function apiUrl(
   path: string,
   searchParams?: AzureDevOpsRequestOptions['searchParams']
 ): URL {
+  if (
+    !path.startsWith('/') ||
+    path.startsWith('//') ||
+    /[?#]/.test(path) ||
+    path.split('/').some((part) => part === '..' || part === '.')
+  ) {
+    throw new Error('Invalid Azure DevOps API path.')
+  }
   const url = new URL(`${baseUrl.replace(/\/+$/, '')}${path}`)
   const params = {
     ...searchParams,
@@ -158,14 +222,25 @@ export async function requestAzureDevOpsJsonAtBase<T>(
   // Creation preflight must distinguish lookup failure from an absent PR.
   throwOnFailure = false
 ): Promise<T | null> {
-  const config = getAzureDevOpsAuthConfig()
+  const config = options.authorization ? null : resolveAzureDevOpsAuthConfig(baseUrl)
   const doFetch = (url: URL): Promise<Response> =>
     fetch(url, {
       headers: {
         Accept: 'application/json',
-        ...authHeaders(config)
+        ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(options.authorization
+          ? { Authorization: options.authorization }
+          : azureDevOpsAuthHeaders(config!))
       },
-      signal: AbortSignal.timeout(options.timeoutMs ?? REQUEST_TIMEOUT_MS)
+      method: options.body === undefined ? 'GET' : 'POST',
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      redirect: 'error',
+      signal: options.signal
+        ? AbortSignal.any([
+            options.signal,
+            AbortSignal.timeout(options.timeoutMs ?? REQUEST_TIMEOUT_MS)
+          ])
+        : AbortSignal.timeout(options.timeoutMs ?? REQUEST_TIMEOUT_MS)
     })
   try {
     for (let attempt = 1; ; attempt++) {
@@ -175,20 +250,39 @@ export async function requestAzureDevOpsJsonAtBase<T>(
         options.onResponse?.(response)
         return (await response.json()) as T
       }
+      if (response.status === 429 && attempt <= 2) {
+        const retryAfter = response.headers.get('retry-after') ?? '1'
+        const milliseconds = /^\d+$/.test(retryAfter)
+          ? Number(retryAfter) * 1000
+          : Date.parse(retryAfter) - Date.now()
+        await cancelUnreadResponseBody(response)
+        if (Number.isFinite(milliseconds) && milliseconds >= 0 && milliseconds <= 2000) {
+          await delay(milliseconds, undefined, { signal: options.signal })
+          continue
+        }
+      }
       const body = response.status === 400 ? await response.text().catch(() => '') : ''
       await cancelUnreadResponseBody(response)
       if (
         attempt >= AZURE_DEVOPS_MAX_REQUEST_ATTEMPTS ||
         !recordAzureDevOpsApiVersionRejection(url, response.status, body)
       ) {
+        if (
+          (response.status === 401 || response.status === 403) &&
+          (config?.savedConnectionId || throwOnFailure)
+        ) {
+          throw new AzureDevOpsCredentialAccessError(response.status, path)
+        }
         if (throwOnFailure) {
-          throw new Error(`Azure DevOps request failed: HTTP ${response.status}`)
+          throw new Error(
+            `Azure DevOps request failed: HTTP ${response.status}${response.status === 401 ? ' (expired or invalid credential)' : response.status === 403 ? ' (permission denied for this operation)' : ''}`
+          )
         }
         return null
       }
     }
   } catch (error) {
-    if (throwOnFailure) {
+    if (throwOnFailure || error instanceof AzureDevOpsCredentialAccessError) {
       throw error
     }
     return null

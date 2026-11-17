@@ -76,6 +76,9 @@ export type OpenAgentSendPopoverTargetModeArgs = {
 }
 
 export type TaskPageData = {
+  azureDevOpsSourceHostId?: ExecutionHostId
+  openAzureDevOpsWorkItem?: { number: number; url: string; sourceContext: TaskSourceContext }
+
   preselectedRepoId?: string
   prefilledName?: string
   taskSource?: TaskProvider
@@ -102,7 +105,7 @@ export type NewWorkspaceDraft = {
   note: string
   attachments: string[]
   linkedWorkItem: {
-    provider?: 'github' | 'gitlab' | 'linear' | 'jira'
+    provider?: 'github' | 'gitlab' | 'linear' | 'jira' | 'azure-devops'
     type: 'issue' | 'pr' | 'mr'
     number: number
     title: string

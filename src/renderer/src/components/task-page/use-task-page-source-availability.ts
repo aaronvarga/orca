@@ -24,6 +24,7 @@ export type TaskPageSourceAvailabilityPreludeModel = ReturnType<
 export function useTaskPageSourceAvailabilityPrelude(model: TaskPageRuntimeHostsModel) {
   const {
     settings,
+    pageData,
     preflightStatus,
     preflightStatusChecked,
     providerRuntimeContextKey,
@@ -104,10 +105,14 @@ export function useTaskPageSourceAvailabilityPrelude(model: TaskPageRuntimeHosts
       }
     }
   }, [unreachableTaskSourceHostIds])
-  const accountBackedTaskSourceHostId = useMemo(
-    () => getSettingsFocusedExecutionHostId(settings),
-    [settings]
-  )
+  const accountBackedTaskSourceHostId = useMemo(() => {
+    const defaultHostId = getSettingsFocusedExecutionHostId(settings)
+    return taskSource === 'azure-devops'
+      ? (pageData.openAzureDevOpsWorkItem?.sourceContext.hostId ??
+          pageData.azureDevOpsSourceHostId ??
+          defaultHostId)
+      : defaultHostId
+  }, [settings, pageData, taskSource])
   const fallbackTaskSourceProjectId = useMemo(() => {
     const firstRepoContext = selectedRepos
       .map((repo) => getTaskPageRepoSourceContext(repo, 'github'))
@@ -165,7 +170,7 @@ export function useTaskPageSourceAvailabilityPrelude(model: TaskPageRuntimeHosts
     ? getTaskSourceCacheScope(jiraTaskSourceContext)
     : providerRuntimeContextKey
   const accountBackedTaskSourceHostAvailability = useMemo<TaskSourceHostAvailability[]>(() => {
-    if (taskSource !== 'linear' && taskSource !== 'jira') {
+    if (taskSource !== 'linear' && taskSource !== 'jira' && taskSource !== 'azure-devops') {
       return []
     }
     const host = hostRegistryById.get(accountBackedTaskSourceHostId)

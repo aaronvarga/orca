@@ -62,13 +62,14 @@ export function getTaskSourceContextSummary(
   args:
     | ({ provider: Extract<TaskProvider, 'github' | 'gitlab'> } & RepoBackedTaskSourceSummaryArgs)
     | {
-        provider: Extract<TaskProvider, 'linear' | 'jira'>
+        provider: Extract<TaskProvider, 'linear' | 'jira' | 'azure-devops'>
         providerLabel: string
         hostAvailability?: readonly TaskSourceHostAvailability[]
         hostLabelById?: HostLabelLookup
         accountHostId?: ExecutionHostScope | null
         linearWorkspaceName?: string | null
         jiraSiteName?: string | null
+        azureOrganizationName?: string | null
       },
   t?: Translate
 ): TaskSourceContextSummary {
@@ -81,6 +82,17 @@ export function getTaskSourceContextSummary(
         args.providerLabel,
         {
           accountLabel: args.linearWorkspaceName,
+          accountHostId: args.accountHostId,
+          hostLabelById: args.hostLabelById,
+          hostAvailability: args.hostAvailability
+        },
+        t
+      )
+    case 'azure-devops':
+      return getAccountBackedTaskSourceSummary(
+        args.providerLabel,
+        {
+          accountLabel: args.azureOrganizationName,
           accountHostId: args.accountHostId,
           hostLabelById: args.hostLabelById,
           hostAvailability: args.hostAvailability
@@ -237,6 +249,8 @@ function getProviderIdentityLabel(
         : (identity.projectId ?? null)
     case 'linear':
       return identity.workspaceName ?? identity.workspaceId ?? null
+    case 'azure-devops':
+      return `${identity.baseUrl}/${identity.projectId}`
     case 'jira':
       return identity.siteUrl ?? identity.siteId ?? null
   }

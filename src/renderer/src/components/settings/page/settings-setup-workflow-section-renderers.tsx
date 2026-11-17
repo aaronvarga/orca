@@ -112,7 +112,7 @@ export function renderIntegrationsSettingsSection(
   context: SettingsRenderContext,
   t: Translate = translate
 ): React.JSX.Element {
-  const { navigation, view } = context
+  const { model, navigation, view } = context
   return (
     <SettingsSection
       id="integrations"
@@ -123,7 +123,9 @@ export function renderIntegrationsSettingsSection(
       )}
       searchEntries={navigation.getSectionSearchEntries('integrations')}
     >
-      {view.isSectionMounted('integrations') ? <IntegrationsPane /> : null}
+      {view.isSectionMounted('integrations') ? (
+        <IntegrationsPane source={model.settingsHostScope.target} />
+      ) : null}
     </SettingsSection>
   )
 }

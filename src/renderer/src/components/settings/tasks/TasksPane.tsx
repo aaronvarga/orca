@@ -1,5 +1,7 @@
+import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
+import { AzureDevOpsIntegrationCard } from '../../integrations/source-control/azure-devops-integration-card'
 import { useState } from 'react'
-import { Github, Gitlab } from 'lucide-react'
+import { Github, Gitlab, PanelsTopLeft } from 'lucide-react'
 import type { GlobalSettings } from '../../../../../shared/settings/global-settings-types'
 
 import {
@@ -33,6 +35,7 @@ import { useTranslate } from '@/i18n/use-translate'
 import { SettingsGroup } from '../section-layout/SettingsGroup'
 
 type TasksPaneProps = {
+  source: RuntimeClientTarget
   settings: GlobalSettings
   updateSettings: (updates: Partial<GlobalSettings>) => void
 }
@@ -45,6 +48,18 @@ const PROVIDER_META: Record<
     Icon: (props: { className?: string }) => React.JSX.Element
   }
 > = {
+  'azure-devops': {
+    get label() {
+      return translate('azure.tasks.provider', 'Azure DevOps')
+    },
+    get description() {
+      return translate(
+        'azure.tasks.description',
+        'Browse Azure Boards work items and start linked workspaces.'
+      )
+    },
+    Icon: ({ className }) => <PanelsTopLeft className={className} />
+  },
   github: {
     get label() {
       return translate('auto.components.settings.TasksPane.e14063e727', 'GitHub')
@@ -95,14 +110,14 @@ const PROVIDER_META: Record<
   }
 }
 
-export function TasksPane({ settings, updateSettings }: TasksPaneProps): React.JSX.Element {
+export function TasksPane({ settings, updateSettings, source }: TasksPaneProps): React.JSX.Element {
   const t = useTranslate()
   const visibleProviders = normalizeVisibleTaskProviders(settings.visibleTaskProviders)
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
   const checkJiraConnection = useAppStore((s) => s.checkJiraConnection)
   const refreshPreflightStatus = useAppStore((s) => s.refreshPreflightStatus)
-  const readinessByProvider = useTaskSourceProviderReadiness(visibleProviders)
+  const readinessByProvider = useTaskSourceProviderReadiness(visibleProviders, source)
   useIntegrationProviderStatusRefresh()
 
   // Warn only about started-then-stalled setup; untouched providers are the default.
@@ -201,7 +216,9 @@ export function TasksPane({ settings, updateSettings }: TasksPaneProps): React.J
               defaultExpanded={autoExpandedProvider === provider}
               onToggleVisible={() => toggleProvider(provider)}
             >
-              {provider === 'linear' ? (
+              {provider === 'azure-devops' ? (
+                <AzureDevOpsIntegrationCard source={source} />
+              ) : provider === 'linear' ? (
                 <TaskSourceLinearSetup
                   connected={readiness.connected}
                   checking={readiness.checking}

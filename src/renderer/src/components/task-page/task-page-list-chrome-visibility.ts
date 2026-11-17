@@ -21,6 +21,8 @@ export function shouldHideTaskPageListChrome({
 }: TaskPageListChromeVisibilityState): boolean {
   // Selections survive provider switches; another provider’s retained detail must not hide the active list chrome.
   switch (taskSource) {
+    case 'azure-devops':
+      return false
     case 'github':
       return hasGitHubDetail
     case 'gitlab':

@@ -5,12 +5,13 @@ import {
 } from '../../../../shared/jira/jira-payload-stream'
 import { RuntimeRpcCallError } from '../rpc/calls/runtime-rpc-result'
 
-type RuntimeJiraPayloadTarget = { kind: 'environment'; environmentId: string }
+type RuntimeIntegrationPayloadTarget = { kind: 'environment'; environmentId: string }
 
-export async function readRuntimeJiraPayload<TResult>(
-  target: RuntimeJiraPayloadTarget,
+export async function readRuntimeIntegrationPayload<TResult>(
+  target: RuntimeIntegrationPayloadTarget,
   method: string,
-  params: unknown
+  params: unknown,
+  signal?: AbortSignal
 ): Promise<TResult> {
   const chunks: string[] = []
   let receivedChars = 0
@@ -26,12 +27,26 @@ export async function readRuntimeJiraPayload<TResult>(
   }
 
   return new Promise<TResult>((resolve, reject) => {
+    signal?.throwIfAborted()
     let settled = false
+    const deadline = setTimeout(
+      () =>
+        fail(
+          new Error(
+            'Remote integration payload did not complete before the read deadline. Open the item externally.'
+          )
+        ),
+      60_000
+    )
+    const abort = (): void => fail(signal?.reason ?? new Error('Read cancelled.'))
+    signal?.addEventListener('abort', abort, { once: true })
     const fail = (error: unknown): void => {
       if (settled) {
         return
       }
       settled = true
+      clearTimeout(deadline)
+      signal?.removeEventListener('abort', abort)
       close()
       reject(error)
     }
@@ -40,11 +55,13 @@ export async function readRuntimeJiraPayload<TResult>(
         return
       }
       settled = true
+      clearTimeout(deadline)
+      signal?.removeEventListener('abort', abort)
       close()
       try {
         resolve(JSON.parse(chunks.join('')) as TResult)
       } catch {
-        reject(new Error('Remote Jira payload was not valid JSON.'))
+        reject(new Error('Remote integration payload was not valid JSON.'))
       }
     }
 
@@ -65,7 +82,7 @@ export async function readRuntimeJiraPayload<TResult>(
             }
             const message = rpcResponse.result
             if (!isJiraPayloadStreamMessage(message)) {
-              fail(new Error('Remote Jira payload stream returned an invalid message.'))
+              fail(new Error('Remote integration payload stream returned an invalid message.'))
               return
             }
             if (message.type === 'end') {
@@ -74,13 +91,14 @@ export async function readRuntimeJiraPayload<TResult>(
             }
             receivedChars += message.content.length
             if (receivedChars > JIRA_PAYLOAD_MAX_CHARS) {
-              fail(new Error('Remote Jira payload exceeded the transfer limit.'))
+              fail(new Error('Remote integration payload exceeded the transfer limit.'))
               return
             }
             chunks.push(message.content)
           },
           onError: fail,
-          onClose: () => fail(new Error('Remote Jira payload stream closed before completion.'))
+          onClose: () =>
+            fail(new Error('Remote integration payload stream closed before completion.'))
         }
       )
       .then((handle) => {

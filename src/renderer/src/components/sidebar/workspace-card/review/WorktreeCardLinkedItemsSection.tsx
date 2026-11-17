@@ -1,3 +1,4 @@
+import { openAzureDevOpsWorkItemInOrca } from '@/lib/work-items/azure-devops-work-item-open'
 import React from 'react'
 import { GitPullRequest, Link2, ListTodo } from 'lucide-react'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
@@ -105,6 +106,10 @@ export function WorktreeCardLinkedItemsSection({
   }
   const open = (item: WorkspaceAttachment, event: React.MouseEvent): void => {
     event.stopPropagation()
+    if (openAzureDevOpsWorkItemInOrca(item)) {
+      event.preventDefault()
+      return
+    }
     if (item.url) {
       if (onOpen) {
         onOpen(item.url, event)

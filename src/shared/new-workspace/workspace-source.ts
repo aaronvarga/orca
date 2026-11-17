@@ -1,3 +1,4 @@
+import { parseAzureDevOpsWorkItemUrl } from '../azure-devops/work-item-url'
 import { getLinearOrganizationUrlKeyFromIssueUrl } from '../linear/links'
 import { branchRefLabel } from '../git/refs/branch-ref-label'
 import type { WorkspaceLinkedItem as FolderWorkspaceLinkedTask } from '../worktree/types'
@@ -50,6 +51,7 @@ export type WorkspaceSourceSelectionKind =
   | 'branch'
   | 'linear'
   | 'jira'
+  | 'azure-devops'
 
 export type WorkspaceSourceSelection = {
   kind: WorkspaceSourceSelectionKind
@@ -82,6 +84,9 @@ function isJiraIssueUrl(url: string): boolean {
 export function getWorkspaceSourceProvider(item: WorkspaceSourceItemLike): WorkspaceSourceProvider {
   if (item.provider) {
     return item.provider
+  }
+  if (parseAzureDevOpsWorkItemUrl(item.url)) {
+    return 'azure-devops'
   }
   if (item.linearIdentifier) {
     return 'linear'
@@ -196,23 +201,25 @@ export function buildWorkspaceSourceSelection(args: {
   }
   const provider = getWorkspaceSourceProvider(linkedWorkItem)
   const kind: WorkspaceSourceSelectionKind =
-    provider === 'linear'
-      ? 'linear'
-      : provider === 'jira'
-        ? 'jira'
-        : provider === 'gitlab'
-          ? linkedWorkItem.type === 'mr'
-            ? 'gitlab-mr'
-            : 'gitlab-issue'
-          : linkedWorkItem.type === 'pr'
-            ? 'github-pr'
-            : 'github-issue'
+    provider === 'azure-devops'
+      ? 'azure-devops'
+      : provider === 'linear'
+        ? 'linear'
+        : provider === 'jira'
+          ? 'jira'
+          : provider === 'gitlab'
+            ? linkedWorkItem.type === 'mr'
+              ? 'gitlab-mr'
+              : 'gitlab-issue'
+            : linkedWorkItem.type === 'pr'
+              ? 'github-pr'
+              : 'github-issue'
   return {
     kind,
     label:
       provider === 'linear' || provider === 'jira' || linkedWorkItem.number === 0
         ? linkedWorkItem.title
-        : `#${linkedWorkItem.number} ${linkedWorkItem.title}`,
+        : `${provider === 'azure-devops' ? 'AB#' : '#'}${linkedWorkItem.number} ${linkedWorkItem.title}`,
     url: linkedWorkItem.url
   }
 }
@@ -224,5 +231,5 @@ export function shouldPreserveWorkspaceSourceOnRepoChange(
     return false
   }
   const provider = getWorkspaceSourceProvider(item)
-  return provider === 'linear' || provider === 'jira'
+  return provider === 'linear' || provider === 'jira' || provider === 'azure-devops'
 }

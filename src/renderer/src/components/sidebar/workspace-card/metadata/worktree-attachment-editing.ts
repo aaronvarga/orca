@@ -173,7 +173,7 @@ export function getActiveWorkspaceReviewKey(worktree: Worktree | undefined): str
         ? worktree.linkedGitLabMR === item.number
         : item.provider === 'bitbucket'
           ? worktree.linkedBitbucketPR === item.number
-          : item.provider === 'azure-devops'
+          : item.provider === 'azure-devops' && item.type === 'pr'
             ? worktree.linkedAzureDevOpsPR === item.number
             : item.provider === 'gitea'
               ? worktree.linkedGiteaPR === item.number

@@ -1,3 +1,4 @@
+import { azureDevOpsApi } from './api/work-items/azure-devops-bridge'
 import { contextBridge, ipcRenderer } from 'electron'
 import { HIDDEN_WINDOW_FRAME_PUMP_STOP_CHANNEL } from '../shared/app-lifecycle/windows/hidden-window-frame-pump'
 import { installHiddenWindowFramePump } from './renderer/hidden-window-frame-pump'
@@ -142,6 +143,7 @@ const api = {
   bitbucket: bitbucketApi,
   linear: linearApi,
   jira: jiraApi,
+  azureDevOps: azureDevOpsApi,
   starNag: starNagApi,
   telemetryTrack: telemetryTrackApi,
   telemetrySetOptIn: telemetrySetOptInApi,

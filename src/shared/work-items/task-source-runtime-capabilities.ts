@@ -8,6 +8,8 @@ import {
 import { JIRA_STATUS_FILTER_RUNTIME_CAPABILITY } from '../jira/jira-quick-filters'
 import { JIRA_SAVED_FILTER_RUNTIME_CAPABILITY } from '../jira/jira-saved-filter-capability'
 
+export const AZURE_DEVOPS_TASKS_RUNTIME_CAPABILITY = 'azure-devops.tasks.v1' as const
+
 export const TASK_SOURCE_CONTEXT_RUNTIME_CAPABILITY = 'task-source-context.v1' as const
 export const GITHUB_CANONICAL_DETAILS_RUNTIME_CAPABILITY = 'github.canonical-details.v1' as const
 export const GITHUB_EXACT_DETAILS_READ_INTENT_RUNTIME_CAPABILITY =
@@ -18,6 +20,7 @@ export const LINEAR_ISSUE_ATTRIBUTE_FILTER_RUNTIME_CAPABILITY =
   'linear.issue-attribute-filter.v1' as const
 
 export const TASK_SOURCE_RUNTIME_CAPABILITIES = [
+  AZURE_DEVOPS_TASKS_RUNTIME_CAPABILITY,
   TASK_SOURCE_CONTEXT_RUNTIME_CAPABILITY,
   GITHUB_CANONICAL_DETAILS_RUNTIME_CAPABILITY,
   GITHUB_EXACT_DETAILS_READ_INTENT_RUNTIME_CAPABILITY,

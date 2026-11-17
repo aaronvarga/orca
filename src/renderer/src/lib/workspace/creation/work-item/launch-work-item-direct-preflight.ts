@@ -199,8 +199,14 @@ export function directWorkItemAgentArgsError(
 
 export function prepareDirectLaunchContext(
   store: AppState,
-  args: Pick<LaunchWorkItemDirectArgs, 'repoId' | 'launchPlatform' | 'openModalFallback'>
+  args: Pick<LaunchWorkItemDirectArgs, 'repoId' | 'launchPlatform' | 'openModalFallback'> & {
+    item?: LaunchWorkItemDirectArgs['item']
+  }
 ) {
+  if (args.item?.provider === 'azure-devops') {
+    args.openModalFallback()
+    return null
+  }
   const owner = resolveDirectLaunchOwnerRow(store.repos, args.repoId)
   if (!owner) {
     args.openModalFallback()

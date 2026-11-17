@@ -71,6 +71,13 @@ const GithubIdentityField = z.string().refine((value) => value.trim().length > 0
 
 export const TaskProviderIdentity = z
   .discriminatedUnion('provider', [
+    z.object({
+      provider: z.literal('azure-devops'),
+      connectionId: z.string().min(1),
+      baseUrl: z.string().url(),
+      projectId: z.string().min(1),
+      teamId: z.string().nullable().optional()
+    }),
     z
       .object({
         provider: z.literal('github'),
@@ -113,7 +120,7 @@ export const TaskProviderIdentity = z
 export const TaskSourceContext = z
   .object({
     kind: z.literal('task-source'),
-    provider: z.enum(['github', 'gitlab', 'linear', 'jira']),
+    provider: z.enum(['github', 'gitlab', 'linear', 'jira', 'azure-devops']),
     projectId: requiredString('Missing source project id'),
     hostId: ExecutionHostId,
     projectHostSetupId: OptionalNullablePlainString,

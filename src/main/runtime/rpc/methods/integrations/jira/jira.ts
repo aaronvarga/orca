@@ -1,7 +1,4 @@
-import {
-  JIRA_PAYLOAD_CHUNK_CHARS,
-  JIRA_PAYLOAD_MAX_CHARS
-} from '../../../../../../shared/jira/jira-payload-stream'
+import { emitIntegrationPayload } from '../integration-payload'
 import { defineMethod, defineStreamingMethod, type RpcContext } from '../../../core'
 import { JIRA_ATTACHMENT_IMAGE_METHODS } from './jira-attachment-image'
 import { JiraFavouriteFilterParams } from '../../../../../../shared/rpc-contract/jira/jira-favourite-filter-params'
@@ -23,19 +20,6 @@ import {
   SiteSelection,
   UserSearch
 } from '../../../../../../shared/rpc-contract/jira/jira-params'
-
-/** Emits a Jira result over RPC, normalizing it to the shape clients decode. */
-function emitJiraPayload(value: unknown, emit: (result: unknown) => void): void {
-  const payload = JSON.stringify(value)
-  if (payload.length > JIRA_PAYLOAD_MAX_CHARS) {
-    throw new Error('Jira payload exceeded the transfer limit.')
-  }
-  // Chunk inline images under the remote WebSocket's 1 MiB frame cap, including SSH.
-  for (let offset = 0; offset < payload.length; offset += JIRA_PAYLOAD_CHUNK_CHARS) {
-    emit({ type: 'chunk', content: payload.slice(offset, offset + JIRA_PAYLOAD_CHUNK_CHARS) })
-  }
-  emit({ type: 'end' })
-}
 
 function generationOwner(context: Pick<RpcContext, 'pairedDeviceId' | 'caller'>): string {
   // One-shot RPCs use different sockets for Generate and Stop.
@@ -152,7 +136,7 @@ export const JIRA_METHODS = [
     permission: 'workspace',
     params: IssueKey,
     handler: async (params, { runtime }, emit) => {
-      emitJiraPayload(
+      emitIntegrationPayload(
         await runtime.jiraGetIssue(
           params.key.trim(),
           params.siteId,
@@ -204,7 +188,7 @@ export const JIRA_METHODS = [
     permission: 'workspace',
     params: IssueKey,
     handler: async (params, { runtime }, emit) => {
-      emitJiraPayload(
+      emitIntegrationPayload(
         await runtime.jiraIssueComments(
           params.key.trim(),
           params.siteId,

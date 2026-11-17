@@ -1,6 +1,6 @@
 import type { PreloadApi } from '../../../../../preload/api-types'
 import { translate } from '@/i18n/i18n'
-import { readRuntimeJiraPayload } from '../../../runtime/jira/runtime-jira-payload-stream'
+import { readRuntimeIntegrationPayload } from '../../../runtime/jira/runtime-jira-payload-stream'
 import { RuntimeRpcCallError } from '../../../runtime/rpc/calls/runtime-rpc-result'
 import { callRuntimeResult } from '../../runtime/client/web-runtime-calls'
 import { requireActiveEnvironment } from '../../runtime/client/web-runtime-session'
@@ -20,7 +20,7 @@ async function readJiraPayload<TResult>(
 ): Promise<TResult> {
   const target = { kind: 'environment', environmentId: requireActiveEnvironment().id } as const
   try {
-    return await readRuntimeJiraPayload<TResult>(target, `jira.${streamMethod}`, args)
+    return await readRuntimeIntegrationPayload<TResult>(target, `jira.${streamMethod}`, args)
   } catch (error) {
     if (!(error instanceof RuntimeRpcCallError) || error.code !== 'method_not_found') {
       throw error

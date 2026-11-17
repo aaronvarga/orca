@@ -138,6 +138,13 @@ export function haveConflictingTaskSourceAccounts(
   a: Pick<TaskSourceContext, 'provider' | 'providerIdentity' | 'accountLabel'>,
   b: Pick<TaskSourceContext, 'provider' | 'providerIdentity' | 'accountLabel'>
 ): boolean {
+  if (a.provider === 'azure-devops') {
+    const left = a.providerIdentity?.provider === 'azure-devops' ? a.providerIdentity : null
+    const right = b.providerIdentity?.provider === 'azure-devops' ? b.providerIdentity : null
+    return Boolean(
+      left && right && (left.connectionId !== right.connectionId || left.baseUrl !== right.baseUrl)
+    )
+  }
   if (a.provider === 'jira') {
     const left = a.providerIdentity?.provider === 'jira' ? a.providerIdentity.siteId : null
     const right = b.providerIdentity?.provider === 'jira' ? b.providerIdentity.siteId : null
@@ -228,6 +235,7 @@ function normalizeTaskProvider(value: unknown): TaskProvider | null {
     case 'gitlab':
     case 'linear':
     case 'jira':
+    case 'azure-devops':
       return value
     default:
       return null

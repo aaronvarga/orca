@@ -1,3 +1,4 @@
+import { registerAzureDevOpsHandlers } from '../azure-devops/register-handlers'
 import { app } from 'electron'
 import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../shared/workspace-layout/layout-owner-switch'
 import { registerAppHandlers } from '../app'
@@ -160,6 +161,7 @@ export async function registerCoreHandlers(
     registerHostedReviewHandlers(store, stats)
     registerLinearHandlers()
     registerJiraHandlers()
+    registerAzureDevOpsHandlers()
     registerJiraIssueSummaryGenerationHandlers(store, commitMessageAgentEnv)
     registerBitbucketHandlers()
     registerFeedbackHandlers()

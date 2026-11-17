@@ -1,3 +1,4 @@
+import type { AzureDevOpsApi } from './api/work-items/azure-devops-api'
 import type {
   ClaudeAccountsApi,
   CodexAccountsApi,
@@ -119,6 +120,7 @@ export type PreloadApi = {
   gl: GitLabApi
   bitbucket: BitbucketApi
   linear: LinearApi
+  azureDevOps: AzureDevOpsApi
   jira: JiraApi
   starNag: StarNagApi
   telemetryTrack: TelemetryApi['telemetryTrack']

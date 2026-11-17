@@ -1,3 +1,4 @@
+import { openAzureDevOpsWorkItemInOrca } from '@/lib/work-items/azure-devops-work-item-open'
 import React from 'react'
 import { ExternalLink, GitPullRequest, Terminal, Ticket, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -91,6 +92,11 @@ export function WorktreeLinkedItemRow({
             <TooltipContent>{sessionsLabel}</TooltipContent>
           </Tooltip>
         ) : null}
+        {item.provider === 'azure-devops' && item.type === 'issue' && item.taskSourceContext && (
+          <Button variant="ghost" size="xs" onClick={() => openAzureDevOpsWorkItemInOrca(item)}>
+            {t('azure.tasks.openInOrca', 'Open in Orca')}
+          </Button>
+        )}
         {item.url ? (
           <Tooltip>
             <TooltipTrigger asChild>

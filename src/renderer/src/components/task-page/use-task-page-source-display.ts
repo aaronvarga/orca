@@ -13,6 +13,7 @@ type TaskPageSourceDisplayInput = TaskPageLinearCreationStateModel & {
 export function useTaskPageSourceDisplay<Model extends TaskPageSourceDisplayInput>(model: Model) {
   const {
     taskSource,
+    pageData,
     githubMode,
     sourceOptions,
     selectedRepos,
@@ -51,12 +52,16 @@ export function useTaskPageSourceDisplay<Model extends TaskPageSourceDisplayInpu
         hostLabelById
       })
     }
-    if (taskSource === 'linear' || taskSource === 'jira') {
+    if (taskSource === 'linear' || taskSource === 'jira' || taskSource === 'azure-devops') {
       return getTaskSourceContextSummary({
         provider: taskSource,
         providerLabel,
         hostAvailability: accountBackedTaskSourceHostAvailability,
-        accountHostId: accountBackedTaskSourceHostId,
+        accountHostId:
+          taskSource === 'azure-devops'
+            ? (pageData.openAzureDevOpsWorkItem?.sourceContext.hostId ??
+              accountBackedTaskSourceHostId)
+            : accountBackedTaskSourceHostId,
         hostLabelById,
         linearWorkspaceName,
         jiraSiteName
@@ -89,6 +94,7 @@ export function useTaskPageSourceDisplay<Model extends TaskPageSourceDisplayInpu
     selectedRepos.length,
     sourceOptions,
     taskSource,
+    pageData,
     taskSourceHostAvailability,
     taskSourceRepoContexts
   ])

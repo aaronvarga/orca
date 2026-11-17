@@ -31,7 +31,8 @@ export function normalizeWorkspaceLinkedItem(value: unknown): WorkspaceLinkedIte
     raw.provider !== 'github' &&
     raw.provider !== 'gitlab' &&
     raw.provider !== 'linear' &&
-    raw.provider !== 'jira'
+    raw.provider !== 'jira' &&
+    raw.provider !== 'azure-devops'
   ) {
     return null
   }
@@ -45,6 +46,12 @@ export function normalizeWorkspaceLinkedItem(value: unknown): WorkspaceLinkedIte
     raw.title.trim().length === 0 ||
     typeof raw.url !== 'string' ||
     raw.url.trim().length === 0
+  ) {
+    return null
+  }
+  if (
+    raw.provider === 'azure-devops' &&
+    (raw.type !== 'issue' || !Number.isSafeInteger(raw.number) || raw.number! <= 0)
   ) {
     return null
   }

@@ -50,6 +50,9 @@ export function workspaceAttachmentReferenceLabel(
   >,
   formats: WorkspaceAttachmentLabelFormats = ENGLISH_ATTACHMENT_LABELS
 ): string {
+  if (item.provider === 'azure-devops' && item.type === 'issue') {
+    return `AB#${item.number}`
+  }
   if (item.provider === 'linear' || item.provider === 'jira') {
     return item.identifier ?? item.linearIdentifier ?? item.jiraIdentifier ?? `#${item.number}`
   }

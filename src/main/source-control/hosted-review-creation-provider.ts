@@ -1,6 +1,7 @@
 import type { ExecutionHostId } from '../../shared/execution-host/execution-host'
 import type { HostedReviewProvider } from '../../shared/source-control/hosted-review/hosted-review-contracts'
 import type { HostedReviewCreationProvider } from '../../shared/source-control/hosted-review/hosted-review-creation-providers'
+import { getAzureDevOpsRepoRef } from '../azure-devops/repository-ref'
 import { isAzureDevOpsReviewCreationAuthenticated } from '../azure-devops/pull-request-creation'
 import { isBitbucketReviewCreationAuthenticated } from '../bitbucket/pull-request-creation'
 import { isGiteaReviewCreationAuthenticated } from '../gitea/pull-request-creation'
@@ -122,7 +123,12 @@ export async function isProviderAuthenticated(
   options: HostedReviewExecutionOptions = {}
 ): Promise<boolean> {
   if (provider === 'azure-devops') {
-    return isAzureDevOpsReviewCreationAuthenticated()
+    const repo = await getAzureDevOpsRepoRef(
+      repoPath,
+      hostedReviewSshConnectionId(executionHostId),
+      getHostedReviewLocalGitOptions(options)
+    )
+    return repo ? isAzureDevOpsReviewCreationAuthenticated(repo.apiBaseUrl) : false
   }
   if (provider === 'gitea') {
     return isGiteaReviewCreationAuthenticated()

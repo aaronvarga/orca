@@ -89,7 +89,7 @@ export function normalizeWorkspaceAttachment(value: unknown): WorkspaceAttachmen
   if (
     context &&
     context.provider === provider &&
-    (provider !== 'jira' ||
+    ((provider !== 'jira' && provider !== 'azure-devops') ||
       (linkedItem && isWorkspaceLinkedItemSourceContextMatch(linkedItem, context)))
   ) {
     item.taskSourceContext = context

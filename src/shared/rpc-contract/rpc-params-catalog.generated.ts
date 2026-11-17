@@ -123,6 +123,15 @@ import {
   AutomationUpdate
 } from './automations/automation-params'
 import {
+  AzureConnect,
+  AzureConnection,
+  AzureDisconnect,
+  AzureQueries,
+  AzureQuery,
+  AzureSelection,
+  AzureWorkItem
+} from './azure-devops/azure-devops-params'
+import {
   ComposioApp,
   ComposioApps,
   ComposioBot,
@@ -1164,6 +1173,16 @@ export const RPC_PARAMS_BY_METHOD = {
   'automation.runs': AutomationRuns,
   'automation.show': AutomationId,
   'automation.update': AutomationUpdate,
+  'azureDevOps.connect': AzureConnect,
+  'azureDevOps.disconnect': AzureDisconnect,
+  'azureDevOps.getWorkItem': AzureWorkItem,
+  'azureDevOps.listProjects': AzureConnection,
+  'azureDevOps.listQueries': AzureQueries,
+  'azureDevOps.listTeams': AzureSelection,
+  'azureDevOps.metadata': AzureSelection,
+  'azureDevOps.queryWorkItems': AzureQuery,
+  'azureDevOps.status': null,
+  'azureDevOps.testConnection': AzureConnection,
   'bots.access.decide': BotAccessDecide,
   'bots.access.list': null,
   'bots.access.redeem': BotAccessRedeem,

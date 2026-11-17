@@ -1,3 +1,4 @@
+import { savedAzureDevOpsConnections } from './connection-store'
 import {
   deriveAzureDevOpsStatus,
   summarizeAzureDevOpsStatuses,
@@ -142,6 +143,16 @@ function sortPullRequestsForBranch(
 }
 
 export async function getAzureDevOpsAuthStatus(): Promise<AzureDevOpsAuthStatus> {
+  const saved = savedAzureDevOpsConnections()
+  if (saved.length) {
+    return {
+      configured: true,
+      authenticated: true,
+      account: saved.map((entry) => entry.viewer.displayName).join(', '),
+      baseUrl: saved[0].baseUrl,
+      tokenConfigured: true
+    }
+  }
   const config = getAzureDevOpsAuthConfig()
   const baseUrl = config.apiBaseUrl ? normalizeAzureDevOpsApiBaseUrl(config.apiBaseUrl) : null
   const hasToken = azureDevOpsTokenConfigured(config)

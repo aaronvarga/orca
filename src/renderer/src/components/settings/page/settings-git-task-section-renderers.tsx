@@ -71,7 +71,11 @@ export function renderTasksSettingsSection(
       searchEntries={navigation.getSectionSearchEntries('tasks')}
     >
       {view.isSectionMounted('tasks') ? (
-        <TasksPane settings={model.settings} updateSettings={model.updateSettings} />
+        <TasksPane
+          settings={model.settings}
+          updateSettings={model.updateSettings}
+          source={model.settingsHostScope.target}
+        />
       ) : null}
     </SettingsSection>
   )

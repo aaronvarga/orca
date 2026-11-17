@@ -1,3 +1,5 @@
+import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
+import { useAzureDevOpsReadiness } from '@/runtime/azure-devops/use-azure-devops-readiness'
 import { useMemo } from 'react'
 import {
   GLOBAL_AGENT_SKILL_SOURCE_KINDS,
@@ -14,8 +16,10 @@ import type { TaskProvider } from '../../../../../shared/work-items/task-provide
 import type { TaskProviderReadiness } from './task-source-setup-state'
 
 export function useTaskSourceProviderReadiness(
-  visibleProviders: readonly TaskProvider[]
+  visibleProviders: readonly TaskProvider[],
+  source: RuntimeClientTarget
 ): Record<TaskProvider, TaskProviderReadiness> {
+  const azureReadiness = useAzureDevOpsReadiness(source)
   const settings = useAppStore((s) => s.settings)
   const preflightStatus = useAppStore((s) => s.preflightStatus)
   const preflightStatusChecked = useAppStore((s) => s.preflightStatusChecked)
@@ -67,6 +71,7 @@ export function useTaskSourceProviderReadiness(
   return useMemo(() => {
     const visible = new Set(visibleProvidersKey.split(',') as TaskProvider[])
     return {
+      'azure-devops': { ...azureReadiness, visible: visible.has('azure-devops') },
       github: {
         connected: githubConnected,
         checking: reviewChecking,
@@ -94,6 +99,7 @@ export function useTaskSourceProviderReadiness(
       }
     }
   }, [
+    azureReadiness,
     githubConnected,
     gitlabConnected,
     jiraChecking,

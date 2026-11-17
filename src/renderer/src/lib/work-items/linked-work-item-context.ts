@@ -157,6 +157,9 @@ export function getLaunchableWorkItemDraftContent(args: {
   if (args.pasteContent?.trim()) {
     return args.pasteContent
   }
+  if (args.provider === 'azure-devops') {
+    return buildContainedLinkedContextBlock(args.linkedContext) ?? args.url
+  }
   if (isLinearWorkItemReference(args)) {
     const linearBlock = buildLinearLaunchContextBlock({
       provider: args.provider,
@@ -186,6 +189,10 @@ export function resolveQuickCreateLinkedWorkItemPrompt(
   note: string
 ): { prompt: string; draftPrompt: string | null } {
   const trimmedNote = note.trim()
+  const azureBlock =
+    linkedWorkItem?.provider === 'azure-devops'
+      ? buildContainedLinkedContextBlock(linkedWorkItem.linkedContext)
+      : null
   const linearBlock = isLinearWorkItemReference(linkedWorkItem)
     ? buildLinearLaunchContextBlock({
         provider: linkedWorkItem?.provider,
@@ -196,11 +203,13 @@ export function resolveQuickCreateLinkedWorkItemPrompt(
     : null
   const linearDraft = linearBlock ? formatDraftContextBlock(linearBlock) : null
   const linkedUrl = linkedWorkItem?.url?.trim() || null
-  const draftPrompt = linearDraft
-    ? [trimmedNote, linearDraft].filter(Boolean).join('\n\n')
-    : linkedUrl
-      ? [trimmedNote, linkedUrl].filter(Boolean).join('\n\n')
-      : null
+  const draftPrompt = azureBlock
+    ? [trimmedNote, azureBlock].filter(Boolean).join('\n\n')
+    : linearDraft
+      ? [trimmedNote, linearDraft].filter(Boolean).join('\n\n')
+      : linkedUrl
+        ? [trimmedNote, linkedUrl].filter(Boolean).join('\n\n')
+        : null
   const isLinearTypedOnly = linkedWorkItem?.number === 0 && Boolean(trimmedNote) && !draftPrompt
   return {
     prompt: isLinearTypedOnly ? trimmedNote : '',

@@ -1,3 +1,4 @@
+import { TaskPageAzureDevOpsContent } from './azure-devops/Content'
 import type { TaskPageComposerActionsModel } from './use-task-page-composer-actions'
 import '../github-item-dialog/load-item-details/work-item-details-cache'
 import PullRequestPage from '@/components/pull-request-page/page/surface'
@@ -29,7 +30,9 @@ export function TaskPageContent({
     closeTaskDetailPage,
     handleUseWorkItem
   } = model
-  return taskSource === 'github' && dialogWorkItem ? (
+  return taskSource === 'azure-devops' ? (
+    <TaskPageAzureDevOpsContent model={model} />
+  ) : taskSource === 'github' && dialogWorkItem ? (
     dialogWorkItem.type === 'pr' ? (
       <PullRequestPage
         workItem={dialogWorkItem}

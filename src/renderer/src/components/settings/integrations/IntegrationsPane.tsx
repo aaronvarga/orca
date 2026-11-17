@@ -1,3 +1,4 @@
+import type { RuntimeClientTarget } from '../../../../../shared/remote-runtime/host-catalog/runtime-client-target'
 import {
   AzureDevOpsIntegrationCard,
   GiteaIntegrationCard
@@ -31,7 +32,7 @@ function ProviderRow({
   )
 }
 
-export function IntegrationsPane(): React.JSX.Element {
+export function IntegrationsPane({ source }: { source: RuntimeClientTarget }): React.JSX.Element {
   const t = useTranslate()
   useIntegrationProviderStatusRefresh()
 
@@ -55,7 +56,7 @@ export function IntegrationsPane(): React.JSX.Element {
             <BitbucketIntegrationCard />
           </ProviderRow>
           <ProviderRow id={INTEGRATION_SETTING_TARGET_IDS.azuredevops}>
-            <AzureDevOpsIntegrationCard />
+            <AzureDevOpsIntegrationCard source={source} />
           </ProviderRow>
           <ProviderRow id={INTEGRATION_SETTING_TARGET_IDS.gitea}>
             <GiteaIntegrationCard />

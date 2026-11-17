@@ -1,3 +1,4 @@
+import { parseAzureDevOpsWorkItemUrl } from '../azure-devops/work-item-url'
 import { parseJiraIssueUrl } from '../jira/jira-issue-url'
 import { getWorkspaceSourceProvider } from '../new-workspace/workspace-source'
 import type { TaskSourceContext } from '../work-items/task-source-context'
@@ -35,6 +36,19 @@ export function isWorkspaceLinkedItemSourceContextMatch(
   const itemProvider = resolveLinkedItemProvider(item)
   if (itemProvider !== context.provider) {
     return false
+  }
+  if (itemProvider === 'azure-devops') {
+    const identity = context.providerIdentity
+    const parsed = parseAzureDevOpsWorkItemUrl(item.url)
+    return Boolean(
+      item.type === 'issue' &&
+      parsed &&
+      parsed.id === item.number &&
+      identity?.provider === 'azure-devops' &&
+      identity.connectionId &&
+      identity.baseUrl === parsed.baseUrl &&
+      parsed.project?.toLowerCase() === identity.projectId.toLowerCase()
+    )
   }
   if (itemProvider !== 'jira') {
     return true

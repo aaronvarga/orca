@@ -58,6 +58,7 @@ export const PAIRED_DESKTOP_METHODS = [
   'jira.listIssues',
   'jira.searchIssues',
   'jira.status',
+
   'linear.addIssueComment',
   'linear.agentSearchIssues',
   'linear.connect',
