@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { useTerminalQuickCommandHosts } from '@/hooks/use-terminal-quick-command-hosts'
+import { useTerminalQuickCommandHosts } from '@/lib/terminal/quick-commands/use-terminal-quick-command-hosts'
 import { getRepoIdFromWorktreeId } from '../../../../../shared/worktree/id'
 import type { TerminalComposerTarget } from './terminal-composer-files'
 

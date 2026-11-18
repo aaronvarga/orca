@@ -1,4 +1,3 @@
-import type { RuntimeTerminalClose } from '../../../../shared/terminal/runtime/runtime-terminal-contracts'
 import { IMMEDIATE_KILL_REPLY_BUDGET_MS } from '../../../daemon/sessions/immediate-kill-reply-budget'
 import { OrcaRuntimeWithFocusTerminal } from '../../terminal/focus/focus-terminal'
 

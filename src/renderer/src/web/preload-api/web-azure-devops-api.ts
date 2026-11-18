@@ -4,7 +4,7 @@ import { callRuntimeRpc } from '../../runtime/rpc/calls/runtime-rpc-call'
 import { assertRuntimeEnvironmentCapability } from '../../runtime/rpc/compatibility/runtime-capability-proof'
 import { AZURE_DEVOPS_TASKS_RUNTIME_CAPABILITY } from '../../../../shared/work-items/task-source-runtime-capabilities'
 import { translate } from '@/i18n/i18n'
-import { requireActiveEnvironment } from './web-runtime-session'
+import { requireActiveEnvironment } from '../runtime/client/web-runtime-session'
 async function call<T>(method: string, args?: unknown, stream = false): Promise<T> {
   const target = { kind: 'environment', environmentId: requireActiveEnvironment().id } as const
   await assertRuntimeEnvironmentCapability(

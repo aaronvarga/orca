@@ -1,5 +1,4 @@
 import { useSupportedGroupHookSettings } from '@/components/settings/repository/hooks/use-supported-group-hook-settings'
-import type { GeneralSubPage } from '../general/general-sub-pages'
 import { useSettingsLocation } from '../navigation/use-settings-location'
 import { useCallback, useMemo, useState } from 'react'
 import type { OrcaHooks } from '../../../../../shared/workspace-setup/orca-yaml-hook-types'

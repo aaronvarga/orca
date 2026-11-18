@@ -1,6 +1,6 @@
 import { ProjectRailSeparatorMenuItem } from './ProjectRailSeparatorMenuItem'
 import { useTranslate } from '@/i18n/use-translate'
-import { AgentStateDot, agentStateProgressLabel } from '@/components/AgentStateDot'
+import { AgentStateDot, agentStateProgressLabel } from '@/components/agent/status/AgentStateDot'
 import { Badge } from '@/components/ui/badge'
 import type { ProjectRailStatus } from './project-rail-status'
 import { useState, useRef } from 'react'

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/class-names'
-import { AgentStateDot } from '@/components/AgentStateDot'
+import { AgentStateDot } from '@/components/agent/status/AgentStateDot'
 import { normalizeRepoBadgeColor } from '../../../../shared/repository/appearance/repo-badge-color'
 import { FolderPathButton } from '@/components/file-actions/FolderPathButton'
 import { useAppStore } from '@/store'

@@ -4,7 +4,7 @@ import {
   selectDetectedWorktreesByRepo
 } from '@/store/workspaces/catalog/workspace-record-fields'
 import { ProjectVisibilityMenu } from './ProjectVisibilityMenu'
-import { toggleAgentDashboardFromShortcut } from '@/hooks/ipc-events/agent-dashboard-command'
+import { toggleAgentDashboardFromShortcut } from '@/hooks/app-commands/agent-dashboard-command'
 import { Fragment, Suspense } from 'react'
 import { lazyWithRetry } from '@/app-shell/startup/lazy-with-retry'
 import { resolveLeftSidebarStyleVariables } from '@/app-shell/appearance/left-sidebar-appearance'
@@ -45,7 +45,9 @@ import { useProjectGroupDialogs } from './worktree-list/rows/use-project-group-d
 import { SidebarWorktreeListDialogs } from './worktree-list/rows/ProjectGroupDialogs'
 import { AddProjectMenu } from './project-admission/menu/AddProjectMenu'
 
-const AgentDashboardSidebarHost = lazyWithRetry(() => import('./AgentDashboardSidebarHost'))
+const AgentDashboardSidebarHost = lazyWithRetry(
+  () => import('../dashboard/sidebar/AgentDashboardSidebarHost')
+)
 
 export default function ProjectRail({ reserveTitlebar = false }: { reserveTitlebar?: boolean }) {
   const t = useTranslate()

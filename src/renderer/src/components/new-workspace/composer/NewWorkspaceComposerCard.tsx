@@ -1,4 +1,4 @@
-import { CheckoutLocationField } from './new-workspace/composer/CheckoutLocationField'
+import { CheckoutLocationField } from './CheckoutLocationField'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'

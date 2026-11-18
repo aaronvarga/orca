@@ -1,4 +1,4 @@
-import { ProjectVisibilityMenu } from './ProjectVisibilityMenu'
+import { ProjectVisibilityMenu } from '../ProjectVisibilityMenu'
 import React, { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store/index'

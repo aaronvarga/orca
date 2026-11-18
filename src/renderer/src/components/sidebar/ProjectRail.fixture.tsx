@@ -1,4 +1,4 @@
-import { ConfirmationDialogProvider } from '../confirmation-dialog'
+import { ConfirmationDialogProvider } from '../dismiss/confirmation/confirmation-dialog'
 import { defineFixture } from '../../component-fixtures/component-fixture'
 import ProjectRail from './ProjectRail'
 import { RailButton } from './ProjectRailButton'

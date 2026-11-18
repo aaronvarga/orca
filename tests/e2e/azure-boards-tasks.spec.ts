@@ -1,4 +1,5 @@
-import { test, expect } from './helpers/orca-app'
+import { test } from './desktop/electron-fixtures/orca-app'
+import { expect } from '@stablyai/playwright-test'
 import {
   RUNTIME_CAPABILITIES,
   RUNTIME_PROTOCOL_VERSION,

@@ -1,5 +1,5 @@
 import type { AppState } from '@/store/types'
-import type { AgentDotState } from '@/components/AgentStateDot'
+import type { AgentDotState } from '@/components/agent/status/AgentStateDot'
 import type { CommandCenterChatTile } from '../command-center/CommandCenterView'
 import { agentRowDisplayDotState } from '@/lib/agent-status/presentation/agent-row-dot-state'
 import { resolveRowProgramStatus } from '@/lib/program-status/agent-row-presentation'

@@ -1,8 +1,11 @@
 import { expect, it, vi } from 'vitest'
-import '../../orca-runtime-tests/orca-runtime-test-lifecycle.spec'
+import '../../construction/test-context/orca-runtime-test-lifecycle.spec'
 import { identityFixture } from '../../terminal/query/terminal-identity.test-fixture'
-import { TEST_WORKTREE_ID, store } from '../../orca-runtime-tests/orca-runtime-test-fixtures.spec'
-import { partialRuntimeStore } from '../../orca-runtime-tests/runtime-store-partial-fixture'
+import {
+  TEST_WORKTREE_ID,
+  store
+} from '../../construction/test-context/orca-runtime-test-fixtures.spec'
+import { partialRuntimeStore } from '../../construction/test-context/runtime-store-partial-fixture'
 import { getDefaultWorkspaceSession } from '../../../../shared/orca-profiles/constants'
 
 it('refuses a session confirmation captured for a replaced incarnation', async () => {

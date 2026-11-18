@@ -9,7 +9,7 @@ import { usePanePresentationStyle } from './use-workspace-pane-presentation'
 import { MessageSquarePlus, SquareTerminal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NativeChatSettingsButton } from '@/components/native-chat/appearance/NativeChatSettingsButton'
-import { useDocumentDarkTheme } from '@/hooks/use-document-dark-theme'
+import { useDocumentDarkTheme } from '@/hooks/theme/use-document-dark-theme'
 
 const groups = [
   { id: 'left', worktreeId: 'toolbar-workspace', activeTabId: 'chat', tabOrder: ['chat'] },
