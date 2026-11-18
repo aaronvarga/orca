@@ -340,7 +340,6 @@ function Sidebar({
       {showAgentDashboard ? (
         <React.Suspense fallback={null}>
           <AgentDashboardSidebarHost
-            sidebarOpen={sidebarOpen}
             workspaceBoardOpen={workspaceBoardOpen}
             closeWorkspaceBoard={closeWorkspaceBoard}
             leftSidebarStyle={leftSidebarStyle}

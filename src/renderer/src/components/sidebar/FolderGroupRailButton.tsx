@@ -72,8 +72,8 @@ export function FolderGroupRailButton({
             <RepoIconGlyph
               repoIcon={projectGroup.repoIcon}
               color={projectGroup.color ?? undefined}
-              className="size-5 shrink-0"
-              iconClassName="size-5"
+              className="size-6 shrink-0 text-xl"
+              iconClassName="size-6"
             />
           </RailButton>
           <div className="pointer-events-none absolute inset-0">

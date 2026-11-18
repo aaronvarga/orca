@@ -3,7 +3,6 @@ import { useAppStore } from '@/store'
 import { AgentDashboardDrawer } from '@/components/dashboard/AgentDashboardDrawer'
 
 type AgentDashboardSidebarHostProps = {
-  sidebarOpen: boolean
   workspaceBoardOpen: boolean
   closeWorkspaceBoard: () => void
   leftSidebarStyle?: React.CSSProperties
@@ -11,7 +10,6 @@ type AgentDashboardSidebarHostProps = {
 }
 
 export default function AgentDashboardSidebarHost({
-  sidebarOpen,
   workspaceBoardOpen,
   closeWorkspaceBoard,
   leftSidebarStyle,
@@ -20,11 +18,6 @@ export default function AgentDashboardSidebarHost({
   const drawerOpen = useAppStore((s) => s.agentDashboardDrawerOpen)
   const setDrawerOpen = useAppStore((s) => s.setAgentDashboardDrawerOpen)
 
-  useEffect(() => {
-    if (!sidebarOpen && drawerOpen) {
-      setDrawerOpen(false)
-    }
-  }, [drawerOpen, setDrawerOpen, sidebarOpen])
   useEffect(() => {
     if (drawerOpen) {
       closeWorkspaceBoard()
@@ -36,7 +29,7 @@ export default function AgentDashboardSidebarHost({
     }
   }, [setDrawerOpen, workspaceBoardOpen])
 
-  return sidebarOpen ? (
+  return (
     <AgentDashboardDrawer leftSidebarStyle={leftSidebarStyle} statusBarVisible={statusBarVisible} />
-  ) : null
+  )
 }

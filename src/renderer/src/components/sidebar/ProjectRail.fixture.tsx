@@ -5,6 +5,8 @@ import { RailButton } from './ProjectRailButton'
 import { RepoIconGlyph } from '@/components/repo/repo-icon'
 import type { ProjectRailStatus } from './project-rail-status'
 import type { Repo } from '../../../../shared/repository/repo-types'
+import { useAppStore } from '@/store'
+import { getDefaultSettings } from '../../../../shared/orca-profiles/constants'
 
 const repos: Repo[] = [
   {
@@ -54,6 +56,48 @@ export const settings = defineFixture({
       </ConfirmationDialogProvider>
     </div>
   )
+})
+
+export const dashboard = defineFixture({
+  ...collapsed,
+  width: 1000,
+  render: () => (
+    <div className="flex h-[600px]">
+      <ConfirmationDialogProvider>
+        <ProjectRail />
+      </ConfirmationDialogProvider>
+    </div>
+  ),
+  setup: () =>
+    useAppStore.setState((state) => ({
+      settings: {
+        ...getDefaultSettings('/home/fixture'),
+        ...state.settings,
+        experimentalAgentDashboardPopout: true,
+        experimentalAgentDashboardMode: 'in-window'
+      }
+    }))
+})
+
+export const dashboardOpen = defineFixture({
+  ...dashboard,
+  interact: async (frame) => {
+    frame.querySelector<HTMLButtonElement>('[aria-label="Agent Dashboard"]')?.click()
+    const deadline = performance.now() + 3000
+    while (
+      !document.querySelector('[data-agent-dashboard-sheet]') &&
+      performance.now() < deadline
+    ) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    }
+    const state = useAppStore.getState()
+    if (!state.agentDashboardDrawerOpen || state.sidebarOpen) {
+      throw new Error('Opening the Agent Dashboard must preserve the collapsed project pane')
+    }
+    if (!document.querySelector('[data-agent-dashboard-sheet]')) {
+      throw new Error('The dashboard must render alongside the collapsed rail')
+    }
+  }
 })
 export const unavailableMenu = defineFixture({
   width: 420,
@@ -140,18 +184,18 @@ export const indicators = defineFixture({
   width: 220,
   render: () => (
     <div className="flex bg-worktree-sidebar text-sidebar-foreground">
-      <div className="flex w-10 shrink-0 flex-col items-center gap-3 py-2">
+      <div className="flex w-10 shrink-0 flex-col items-center gap-1 py-2">
         {indicatorStates.map(([label, status]) => (
           <RailButton key={label} label={label} status={status} onClick={() => {}}>
             <RepoIconGlyph
               repoIcon={{ type: 'lucide', name: 'Code2' }}
-              className="size-5"
-              iconClassName="size-5"
+              className="size-6 text-xl"
+              iconClassName="size-6"
             />
           </RailButton>
         ))}
       </div>
-      <div className="flex flex-col gap-3 px-4 py-2 text-2xs text-muted-foreground">
+      <div className="flex flex-col gap-1 px-4 py-2 text-2xs text-muted-foreground">
         {indicatorStates.map(([label]) => (
           <span key={label} className="flex h-8 items-center">
             {label}

@@ -4,6 +4,7 @@ import {
 } from '../drag/root-project-header-drop'
 import React from 'react'
 import { ChevronDown } from 'lucide-react'
+import { FolderGroupBrowserButton } from '../../FolderGroupBrowser'
 import { ProjectHeaderHostLabel, ProjectHeaderHostTooltip } from './ProjectHeaderHostLabel'
 import type { VirtualItem } from '@tanstack/react-virtual'
 import { cn } from '@/lib/class-names'
@@ -323,12 +324,7 @@ export function renderWorktreeSectionHeaderRow(
                   iconClassName="size-3.5"
                 />
               ) : folderBackedProjectGroup ? (
-                <RepoIconGlyph
-                  repoIcon={folderBackedProjectGroup.repoIcon}
-                  color={folderBackedProjectGroup.color ?? undefined}
-                  className="size-4"
-                  iconClassName="size-3.5"
-                />
+                <FolderGroupBrowserButton group={folderBackedProjectGroup} />
               ) : (
                 <headerVisual.icon className="size-3" />
               )}

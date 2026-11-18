@@ -5,7 +5,7 @@ import { resolveAgentDashboardMode } from '../../components/dashboard/settings/a
 export function toggleAgentDashboardFromShortcut(
   state: Pick<
     AppState,
-    'activeView' | 'agentDashboardDrawerOpen' | 'setSidebarOpen' | 'setAgentDashboardDrawerOpen'
+    'activeView' | 'agentDashboardDrawerOpen' | 'setAgentDashboardDrawerOpen'
   > & {
     settings: Pick<
       GlobalSettings,
@@ -24,10 +24,5 @@ export function toggleAgentDashboardFromShortcut(
     openPopout()
     return
   }
-  const nextOpen = !state.agentDashboardDrawerOpen
-  // The drawer self-closes with the sidebar: reveal only when opening, never while closing.
-  if (nextOpen) {
-    state.setSidebarOpen(true)
-  }
-  state.setAgentDashboardDrawerOpen(nextOpen)
+  state.setAgentDashboardDrawerOpen(!state.agentDashboardDrawerOpen)
 }

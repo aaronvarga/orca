@@ -20,6 +20,7 @@ export function RailButton({
   onClick,
   children,
   active = false,
+  disabled = false,
   buttonRef,
   status
 }: {
@@ -27,6 +28,7 @@ export function RailButton({
   onClick: () => void
   children: React.ReactNode
   active?: boolean
+  disabled?: boolean
   status?: ProjectRailStatus
   buttonRef?: React.Ref<HTMLButtonElement>
 }) {
@@ -54,6 +56,7 @@ export function RailButton({
           className="relative shrink-0"
           aria-label={accessibleLabel}
           aria-current={active ? 'page' : undefined}
+          disabled={disabled}
           data-current={active || undefined}
           onClick={onClick}
         >
@@ -139,8 +142,8 @@ export function ProjectRailButton({
         <RepoIconGlyph
           repoIcon={repo.repoIcon}
           color={repo.badgeColor}
-          className="size-5 shrink-0 text-lg"
-          iconClassName="size-5"
+          className="size-6 shrink-0 text-xl"
+          iconClassName="size-6"
         />
       </RailButton>
       <div className="pointer-events-none absolute inset-0">

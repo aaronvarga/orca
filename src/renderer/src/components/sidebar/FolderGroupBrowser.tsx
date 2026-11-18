@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, ChevronRight, Folder, RefreshCw } from 'lucide-react'
 import { useTranslate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
-import { PopoverContent } from '@/components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { RepoIconGlyph } from '@/components/repo/repo-icon'
+import { stopRepoHeaderMenuEvent } from './worktree-list/rows/header-event-guards'
 import { joinPath, basename } from '@/lib/path'
 import type { ProjectGroup } from '../../../../shared/project/groups/project-group-types'
 import type { DirEntry } from '../../../../shared/file-listing/directory-entry'
@@ -56,7 +59,14 @@ export function FolderGroupBrowser({
       .finally(() => setOpening(false))
   }
   return (
-    <PopoverContent side="right" align="start" className="w-80">
+    <PopoverContent
+      side="right"
+      align="start"
+      className="w-80"
+      onPointerDown={stopRepoHeaderMenuEvent}
+      onClick={stopRepoHeaderMenuEvent}
+      onKeyDown={stopRepoHeaderMenuEvent}
+    >
       <div className="p-3">
         <div className="mb-2 flex items-center gap-2">
           {paths.length > 1 ? (
@@ -137,5 +147,43 @@ export function FolderGroupBrowser({
         </div>
       </div>
     </PopoverContent>
+  )
+}
+
+export function FolderGroupBrowserButton({ group }: { group: ProjectGroup }) {
+  const t = useTranslate()
+  const [open, setOpen] = useState(false)
+  const label = t('sidebar.folderGroupBrowse', 'Browse {{name}}', { name: group.name })
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className="size-4"
+              data-repo-header-action=""
+              aria-label={label}
+              onPointerDown={stopRepoHeaderMenuEvent}
+              onClick={stopRepoHeaderMenuEvent}
+              onKeyDown={stopRepoHeaderMenuEvent}
+            >
+              <RepoIconGlyph
+                repoIcon={group.repoIcon}
+                color={group.color ?? undefined}
+                className="size-4"
+                iconClassName="size-3.5"
+              />
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="right" sideOffset={4}>
+          {label}
+        </TooltipContent>
+      </Tooltip>
+      {open ? <FolderGroupBrowser group={group} onOpened={() => setOpen(false)} /> : null}
+    </Popover>
   )
 }

@@ -145,6 +145,11 @@ export function RepoIconGlyph({
 }): React.JSX.Element {
   const imageSrc = repoIcon?.type === 'image' && repoIcon.source !== 'symbol' ? repoIcon.src : null
   const symbolSrc = repoIcon?.type === 'image' && repoIcon.source === 'symbol' ? repoIcon.src : null
+  // shortcut: standard ICNS padding; trim alpha bounds if custom artwork needs a different inset.
+  const paddedAppIcon =
+    repoIcon?.type === 'image' &&
+    repoIcon.source === 'upload' &&
+    /\.icns$/i.test(repoIcon.label ?? '')
   const { background, foreground } = resolveRepoIconColors(color)
   const squareStyle = { backgroundColor: background, color: foreground }
   // Private GHES avatars may require cookies; track failed URLs without hiding later replacement icons.
@@ -152,12 +157,21 @@ export function RepoIconGlyph({
 
   if (imageSrc !== null && failedImageSrc !== imageSrc) {
     return (
-      <span className={cn('inline-flex items-center justify-center overflow-hidden', className)}>
+      <span
+        className={cn(
+          'inline-flex items-center justify-center overflow-hidden rounded-[4px]',
+          className
+        )}
+      >
         <img
           src={imageSrc}
           alt=""
           // Keep in step with MobileRepoIcon's radii.mark.
-          className={cn('size-full rounded-[4px] object-contain', iconClassName)}
+          className={cn(
+            'size-full rounded-[4px] object-contain',
+            paddedAppIcon && 'scale-120',
+            iconClassName
+          )}
           draggable={false}
           onError={() => setFailedImageSrc(imageSrc)}
         />

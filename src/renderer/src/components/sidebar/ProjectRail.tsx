@@ -4,7 +4,10 @@ import {
   selectDetectedWorktreesByRepo
 } from '@/store/workspaces/catalog/workspace-record-fields'
 import { ProjectVisibilityMenu } from './ProjectVisibilityMenu'
-import { Fragment } from 'react'
+import { toggleAgentDashboardFromShortcut } from '@/hooks/ipc-events/agent-dashboard-command'
+import { Fragment, Suspense } from 'react'
+import { lazyWithRetry } from '@/app-shell/startup/lazy-with-retry'
+import { resolveLeftSidebarStyleVariables } from '@/app-shell/appearance/left-sidebar-appearance'
 import { ProjectRailButton, RailButton } from './ProjectRailButton'
 import { FolderGroupRailButton } from './FolderGroupRailButton'
 import { getProjectRailStatus, type ProjectRailSession } from './project-rail-status'
@@ -18,6 +21,7 @@ import {
   Search,
   Settings,
   Grid2X2,
+  LayoutDashboard,
   HardDrive
 } from 'lucide-react'
 import { useAppStore } from '@/store'
@@ -41,6 +45,8 @@ import { useProjectGroupDialogs } from './worktree-list/rows/use-project-group-d
 import { SidebarWorktreeListDialogs } from './worktree-list/rows/ProjectGroupDialogs'
 import { AddProjectMenu } from './project-admission/menu/AddProjectMenu'
 
+const AgentDashboardSidebarHost = lazyWithRetry(() => import('./AgentDashboardSidebarHost'))
+
 export default function ProjectRail({ reserveTitlebar = false }: { reserveTitlebar?: boolean }) {
   const t = useTranslate()
   const rows = useProjectRailRows()
@@ -62,6 +68,8 @@ export default function ProjectRail({ reserveTitlebar = false }: { reserveTitleb
   const repos = useAppStore((s) => s.repos)
   const projectGroups = useAppStore((s) => s.projectGroups)
   const settings = useAppStore((s) => s.settings)
+  const dashboardOpen = useAppStore((s) => s.agentDashboardDrawerOpen)
+  const statusBarVisible = useAppStore((s) => s.statusBarVisible)
   const defaults = useAppStore((s) => s.worktreeVisibilityDefaultsByHost)
   const repoMap = useRepoMap()
   const dialogs = useProjectGroupDialogs({ repos, repoMap, projectGroups })
@@ -105,6 +113,16 @@ export default function ProjectRail({ reserveTitlebar = false }: { reserveTitleb
   }
   return (
     <>
+      {settings?.experimentalAgentDashboardPopout === true && dashboardOpen ? (
+        <Suspense fallback={null}>
+          <AgentDashboardSidebarHost
+            workspaceBoardOpen={false}
+            closeWorkspaceBoard={() => {}}
+            statusBarVisible={statusBarVisible}
+            leftSidebarStyle={resolveLeftSidebarStyleVariables(settings)}
+          />
+        </Suspense>
+      ) : null}
       <nav
         aria-label={t('commandCenter.projects', 'Projects')}
         className="flex min-h-0 shrink-0 flex-col items-center gap-1 border-r border-sidebar-border bg-worktree-sidebar text-sidebar-foreground"
@@ -117,6 +135,20 @@ export default function ProjectRail({ reserveTitlebar = false }: { reserveTitleb
         >
           <Grid2X2 className="size-4" />
         </RailButton>
+        {settings?.experimentalAgentDashboardPopout === true ? (
+          <RailButton
+            label={t('dashboard.sidebar.dashboardLabel', 'Agent Dashboard')}
+            active={dashboardOpen}
+            disabled={activeView === 'settings'}
+            onClick={() =>
+              toggleAgentDashboardFromShortcut(useAppStore.getState(), () => {
+                void window.api.dashboard.openPopout()
+              })
+            }
+          >
+            <LayoutDashboard className="size-4" />
+          </RailButton>
+        ) : null}
         <RailButton
           label={t('commandCenter.search', 'Search')}
           onClick={() => state.openModal('worktree-palette')}
@@ -125,7 +157,7 @@ export default function ProjectRail({ reserveTitlebar = false }: { reserveTitleb
         </RailButton>
         <div className="scrollbar-sleek min-h-0 w-full flex-1 overflow-x-hidden overflow-y-auto py-1">
           <div
-            className="flex flex-col items-center gap-3"
+            className="flex flex-col items-center gap-1"
             style={{ width: PROJECT_RAIL_WIDTH - 1 }}
           >
             {rows.map((row) => {

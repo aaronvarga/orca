@@ -17,7 +17,8 @@ import {
   NEW_CARD_STYLE_STATUS_LANE_EXTRA_PULLBACK,
   FLUSH_CARD_MIN_CONTENT_INSET,
   WORKTREE_CARD_SURFACE_MARGIN,
-  LINEAGE_CHILDREN_INLINE_OFFSET
+  LINEAGE_CHILDREN_INLINE_OFFSET,
+  SIDEBAR_TREE_INDENT
 } from '../rows/indentation'
 
 export type LineageRowFrame = {
@@ -104,7 +105,7 @@ export function buildLineageRowProjection(
                   groupDepth: row.groupDepth
                 })
             }
-      frame.left = geometry.surfaceInset
+      frame.left = geometry.surfaceInset + (groupBy === 'repo' ? SIDEBAR_TREE_INDENT : 0)
       frame.contentIndent = Math.max(0, geometry.cardContentIndent)
       if (parent !== null) {
         const ancestor = frames[parent]
