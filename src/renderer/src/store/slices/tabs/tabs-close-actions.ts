@@ -175,8 +175,8 @@ export function createTabsCloseActions(
             const nextGroupsByWorktree = replaceRecordEntries(current.groupsByWorktree, [
               [worktreeId, nextGroups]
             ])
-            // Unwinding a failed create added no tab; preserve the original selection instead of landing on welcome.
-            const shouldDeactivateWorktree =
+            // Unwinding a failed create added no tab; preserve the original selection instead of showing the workspace chooser.
+            const shouldShowWorkspaceLanding =
               !opts?.preserveWorktreeSelection &&
               landsOnEmptiedWorktree(current, worktreeId, nextTabs.length)
             return {
@@ -190,8 +190,10 @@ export function createTabsCloseActions(
                 : {}),
               ...structuredAttention,
               // Why: closing the last tab can leave the worktree selected but render-empty, so write the landing-state fallback directly.
-              ...(shouldDeactivateWorktree ? emptiedWorktreeLandingPatch(current, worktreeId) : {}),
-              ...(!shouldDeactivateWorktree && ownsGlobalSelection(current, worktreeId)
+              ...(shouldShowWorkspaceLanding
+                ? emptiedWorktreeLandingPatch(current, worktreeId)
+                : {}),
+              ...(!shouldShowWorkspaceLanding && ownsGlobalSelection(current, worktreeId)
                 ? buildActiveSurfacePatch(
                     {
                       ...current,

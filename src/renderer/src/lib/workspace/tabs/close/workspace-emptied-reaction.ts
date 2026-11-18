@@ -4,13 +4,14 @@ import { armFloatingPanelReclaimIntent } from '@/components/floating-terminal/fo
 import { isFloatingWorkspacePanelFocused } from '@/components/floating-terminal/workspace/floating-workspace-terminal-actions'
 import { selectFloatingVisibleTabCount } from '@/store/workspaces/floating/floating-workspace-panel-selector'
 import { hasSplitLandingGroup } from '@/store/slices/tabs/split-landing-groups'
+import { showWorkspaceSessionChooser } from '@/lib/workspace/activation/workspace-session-chooser'
 
 /** Capture panel ownership before prompts/removal blur it; run the captured reaction only after the close lands. */
 export function captureWorkspaceEmptiedReaction(
   worktreeId: string,
   options?: { floatingPanelGuestOwned?: boolean }
 ): () => void {
-  // Emptying the floating panel retains keyboard ownership; emptying a worktree leaves that worktree.
+  // Emptying the floating panel retains keyboard ownership; workspaces show their chooser.
   if (worktreeId === FLOATING_TERMINAL_WORKTREE_ID) {
     const panelOwned =
       options?.floatingPanelGuestOwned === true || isFloatingWorkspacePanelFocused()
@@ -20,19 +21,18 @@ export function captureWorkspaceEmptiedReaction(
       }
     }
   }
-  return () => leaveWorktreeIfEmpty(worktreeId)
+  return () => showChooserIfEmpty(worktreeId)
 }
 
-function leaveWorktreeIfEmpty(worktreeId: string): void {
+function showChooserIfEmpty(worktreeId: string): void {
   const state = useAppStore.getState()
   if (state.activeWorktreeId !== worktreeId) {
     return
   }
-  // Why: split-group closes bypass legacy Terminal.tsx; deselect the emptied worktree here or the window goes blank instead of landing.
   if (
     state.reconcileWorktreeTabModel(worktreeId).renderableTabCount === 0 &&
     !hasSplitLandingGroup(state, worktreeId)
   ) {
-    state.setActiveWorktree(null)
+    showWorkspaceSessionChooser(worktreeId)
   }
 }

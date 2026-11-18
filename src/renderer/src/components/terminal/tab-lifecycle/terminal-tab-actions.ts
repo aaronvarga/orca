@@ -24,7 +24,7 @@ import {
   shouldConfirmRunningTerminalClose
 } from './running-terminal-close-guard'
 import { closeLocalTerminalTabState } from './close-local-terminal-tab-state'
-import { runAsAutomaticDeselection } from '@/store/workspaces/selection/active-worktree-deselection-intent'
+import { showWorkspaceSessionChooser } from '@/lib/workspace/activation/workspace-session-chooser'
 import { hasSplitLandingGroup } from '@/store/slices/tabs/split-landing-groups'
 import { getTerminalIncarnationHandle } from './terminal-close-incarnation'
 import {
@@ -260,10 +260,8 @@ export function closeTerminalTab(tabId: string, options: CloseTerminalTabOptions
           if (browserTab) {
             current.setActiveBrowserTab(browserTab.id)
             current.setActiveTabType('browser', owningWorktreeId)
-          } else if (options?.reason === 'pty-exit') {
-            runAsAutomaticDeselection(() => current.setActiveWorktree(null))
           } else {
-            current.setActiveWorktree(null)
+            showWorkspaceSessionChooser(owningWorktreeId)
           }
         }
       }

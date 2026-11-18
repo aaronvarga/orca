@@ -2,7 +2,7 @@ import type { AppState } from '../../types'
 import { workspaceEditorFiles } from '../editor/tabs/workspace-editor-files'
 import { hasSplitLandingGroup } from './split-landing-groups'
 
-// Last user-close lands on welcome; failed-create cleanup preserves selection.
+// Last user-close shows the workspace chooser; failed-create cleanup preserves selection.
 type LandingState = Pick<
   AppState,
   | 'activeWorktreeId'
@@ -14,6 +14,7 @@ type LandingState = Pick<
   | 'activeBrowserTabIdByWorktree'
   | 'activeFileIdByWorktree'
   | 'activeTabTypeByWorktree'
+  | 'activeGroupIdByWorktree'
   | 'groupsByWorktree'
   | 'splitLandingGroupIds'
 >
@@ -35,10 +36,12 @@ export function landsOnEmptiedWorktree(
 }
 
 export function emptiedWorktreeLandingPatch(current: LandingState, worktreeId: string) {
+  const groupId =
+    current.activeGroupIdByWorktree[worktreeId] ?? current.groupsByWorktree[worktreeId]?.[0]?.id
   return {
-    activeWorktreeId: null,
-    activeWorkspaceKey: null,
-    activeWorkspaceExecutionHostId: null,
+    ...(groupId
+      ? { splitLandingGroupIds: { ...current.splitLandingGroupIds, [groupId]: worktreeId } }
+      : {}),
     activeTabId: null,
     activeBrowserTabId: null,
     activeFileId: null,
@@ -71,6 +74,7 @@ export function landOnEmptiedWorktree(
   ) {
     return false
   }
+  get().ensureWorktreeRootGroup(worktreeId)
   set((current) => emptiedWorktreeLandingPatch(current, worktreeId))
   return true
 }

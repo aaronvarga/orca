@@ -127,12 +127,20 @@ function closeFocusedSplitLanding(state: TabState): boolean {
   if (group === null) {
     return false
   }
-  // Closing a sole chooser empties the workspace, which then lands like a last-tab close.
+  // Closing the chooser itself leaves the workspace; closing its last tab opens the chooser.
   const whenEmptied = captureWorkspaceEmptiedReaction(group.worktreeId)
   if (!state.closeEmptyGroup(group.worktreeId, group.id)) {
     return false
   }
-  whenEmptied()
+  if (
+    group.worktreeId !== FLOATING_TERMINAL_WORKTREE_ID &&
+    useAppStore.getState().reconcileWorktreeTabModel(group.worktreeId).renderableTabCount === 0 &&
+    !findFocusedSplitLandingGroup(useAppStore.getState(), group.worktreeId)
+  ) {
+    useAppStore.getState().setActiveWorktree(null)
+  } else {
+    whenEmptied()
+  }
   return true
 }
 
