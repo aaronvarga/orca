@@ -68,6 +68,7 @@ export type NativeChatComposerFieldProps = {
   onRetrySkills: () => void
   onChooseMentionFile: (path: string) => void
   onRemoveImageAttachment: (id: string) => void
+  onInsertQuickCommand?: (text: string) => void
   onAttach: () => void
   onDictationToggle: () => void
   onDictationHoldStart: () => void

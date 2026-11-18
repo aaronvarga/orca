@@ -1,3 +1,4 @@
+import { NativeChatComposerQuickCommands } from './NativeChatComposerQuickCommands'
 import { NativeChatComposerDraftNotSavedIcon } from '../../drafts/NativeChatComposerDraftNotSavedIcon'
 import { NativeChatRoomContext } from '../../native-chat-room-context'
 import { memo, useContext } from 'react'
@@ -29,6 +30,8 @@ import type { NativeChatOptionPickerRequest } from '../../session/options/contro
 import type { NativeChatSteerChordPreview } from '../../../../../../shared/native-chat/input/composer/use-native-chat-steer-chord-preview'
 
 export type NativeChatComposerActionsProps = {
+  onInsertQuickCommand?: (text: string) => void
+  terminalTabId?: string
   editSession?: { cancel: () => void }
   attachDisabled: boolean
   dictationDisabled: boolean
@@ -71,6 +74,8 @@ export type NativeChatComposerActionsProps = {
 
 // Memoized: typing re-renders the composer per keystroke, and these controls rarely change with it.
 export const NativeChatComposerActions = memo(function NativeChatComposerActions({
+  onInsertQuickCommand,
+  terminalTabId,
   editSession,
   attachDisabled,
   dictationDisabled,
@@ -197,6 +202,22 @@ export const NativeChatComposerActions = memo(function NativeChatComposerActions
   const left: NativeChatComposerControl[] = [
     { id: 'attach', priority: 6, content: attach },
     ...(roomReplies ? [{ id: 'room-replies', priority: 6, content: roomReplies }] : []),
+    ...(terminalTabId && onInsertQuickCommand && !editSession
+      ? [
+          {
+            id: 'quick-commands',
+            priority: 3,
+            content: (
+              <NativeChatComposerQuickCommands
+                tabId={terminalTabId}
+                onInsert={onInsertQuickCommand}
+                focusComposer={focusComposer}
+                disabled={attachDisabled}
+              />
+            )
+          }
+        ]
+      : []),
     {
       id: 'permissions',
       priority: 5,
@@ -243,6 +264,7 @@ export const NativeChatComposerActions = memo(function NativeChatComposerActions
       id: 'model',
       content: (
         <NativeChatSessionOptionPickers
+          agent={agent}
           surface={sessionOptionsSurface}
           snapshot={sessionOptionsSnapshot}
           isWorking={isWorking}

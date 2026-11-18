@@ -396,6 +396,7 @@ export const NativeChatComposerPane = forwardRef<ComposerHandle, C.NativeChatCom
               onRetrySkills={picker.retrySkills}
               onChooseMentionFile={mentions.chooseMention}
               onRemoveImageAttachment={attachments.removeImageAttachment}
+              onInsertQuickCommand={(text) => localHandle.current?.insertTypedText(text)}
               onAttach={fileDrops.pickAttachments}
               onDictationToggle={dictation.toggleDictation}
               onDictationHoldStart={dictation.startHoldDictation}

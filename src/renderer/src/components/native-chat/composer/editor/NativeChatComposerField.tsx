@@ -63,6 +63,7 @@ export function NativeChatComposerField({
   onRetrySkills,
   onChooseMentionFile,
   onRemoveImageAttachment,
+  onInsertQuickCommand,
   onAttach,
   onDictationToggle,
   onDictationHoldStart,
@@ -313,6 +314,8 @@ export function NativeChatComposerField({
               )}
             >
               <NativeChatComposerActions
+                terminalTabId={positionTarget}
+                onInsertQuickCommand={onInsertQuickCommand}
                 editSession={editSession}
                 attachDisabled={attachDisabled}
                 dictationDisabled={dictationDisabled}

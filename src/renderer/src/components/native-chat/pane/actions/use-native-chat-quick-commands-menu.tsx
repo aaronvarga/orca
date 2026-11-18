@@ -1,3 +1,4 @@
+import { getTerminalQuickCommandBody } from '../../../../../../shared/terminal/quick-commands/terminal-quick-commands'
 import { useEffect, useState } from 'react'
 import { useTerminalQuickCommandHosts } from '@/lib/terminal/quick-commands/use-terminal-quick-command-hosts'
 import { useVisibleTerminalQuickCommandHosts } from '@/lib/terminal/quick-commands/use-visible-terminal-quick-command-hosts'
@@ -8,7 +9,10 @@ import type { ExecutionHostId } from '../../../../../../shared/execution-host/ex
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../../shared/workspace/identity/floating-workspace-id'
 import type { TerminalQuickCommand } from '../../../../../../shared/terminal/quick-commands/terminal-quick-command-types'
 import { runQuickCommandInNewTab } from '@/lib/terminal/quick-commands/run-quick-command-in-new-tab'
-import { TerminalQuickCommandsSubmenu } from '../../../terminal-pane/quick-commands/TerminalQuickCommandsSubmenu'
+import {
+  TerminalQuickCommandsMenuItems,
+  TerminalQuickCommandsSubmenu
+} from '../../../terminal-pane/quick-commands/TerminalQuickCommandsSubmenu'
 import { TerminalQuickCommandEditorDialog } from '../../../terminal-pane/quick-commands/TerminalQuickCommandEditorDialog'
 import { createTerminalQuickCommandDraft } from '../../../terminal-quick-commands/TerminalQuickCommandDialog'
 
@@ -19,12 +23,20 @@ type QuickCommandPane = { worktreeId: string; groupId: string }
 // state; menu data is read by components that live with the open menu content.
 export function useNativeChatQuickCommandsMenu(
   pane: QuickCommandPane | undefined,
-  close: () => void
+  close: () => void,
+  submenu = true,
+  onInsert?: (text: string) => void
 ) {
   const [editor, setEditor] = useState<QuickCommandEditor | null>(null)
   return {
     menu: pane ? (
-      <NativeChatQuickCommandsMenuItems pane={pane} onAdd={setEditor} onClose={close} />
+      <NativeChatQuickCommandsMenuItems
+        pane={pane}
+        onAdd={setEditor}
+        onClose={close}
+        submenu={submenu}
+        onInsert={onInsert}
+      />
     ) : null,
     dialog: editor ? (
       <TerminalQuickCommandEditorDialog
@@ -42,11 +54,15 @@ export function useNativeChatQuickCommandsMenu(
 function NativeChatQuickCommandsMenuItems({
   pane,
   onAdd,
-  onClose
+  onClose,
+  submenu,
+  onInsert
 }: {
   pane: QuickCommandPane
   onAdd: (editor: QuickCommandEditor) => void
   onClose: () => void
+  submenu: boolean
+  onInsert?: (text: string) => void
 }): React.JSX.Element | null {
   const { worktreeId, groupId } = pane
   const candidate =
@@ -64,21 +80,25 @@ function NativeChatQuickCommandsMenuItems({
   if (!repoId) {
     return null
   }
+  const Menu = submenu ? TerminalQuickCommandsSubmenu : TerminalQuickCommandsMenuItems
   return (
-    <TerminalQuickCommandsSubmenu
+    <Menu
       hosts={visibleHosts}
       hostLoadFailed={remoteHostLoadFailed}
       hostOwnershipPending={remoteHostPending}
       repoLabel={repo?.displayName || repo?.path || null}
-      // Chat menus run every command in a new tab, which runs it even without Enter.
       showInsertHint={false}
       onAdd={(hostId) =>
         onAdd({ hostId, command: createTerminalQuickCommandDraft({ type: 'repo', repoId }) })
       }
       onClose={onClose}
-      onRun={(command, historyId) =>
-        runQuickCommandInNewTab({ command, historyId, worktreeId, groupId })
-      }
+      onRun={(command, historyId) => {
+        if (onInsert) {
+          onInsert(getTerminalQuickCommandBody(command))
+        } else {
+          runQuickCommandInNewTab({ command, historyId, worktreeId, groupId })
+        }
+      }}
     />
   )
 }

@@ -1,3 +1,4 @@
+import { AgentTypeIcon } from '@/components/agent/icons/agent-type-icon'
 import { memo, useEffect, useRef, useState } from 'react'
 import { ChevronDown, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,7 @@ import { NativeChatSessionOptionRows } from './NativeChatSessionOptionRows'
 import { NativeChatSessionOptionWriteGroup } from './NativeChatSessionOptionWriteGroup'
 
 export type NativeChatSessionOptionPickersProps = {
+  agent?: string
   surface: SessionOptionsSurface | null
   snapshot: SessionOptionDescriptor[]
   isWorking: boolean
@@ -79,7 +81,12 @@ function pillAccessibleName(title: string, value: string, t: Translate = transla
       })
 }
 
-function PickerTrigger(props: {
+function PickerTrigger({
+  agent,
+  triggerRef,
+  ...props
+}: {
+  agent?: string
   modelLabel: string
   /** The options' values, shown after the model; empty when there are none to show. */
   optionsLabel: string
@@ -97,7 +104,7 @@ function PickerTrigger(props: {
       <TooltipTrigger asChild>
         <PopoverTrigger asChild>
           <Button
-            ref={props.triggerRef}
+            ref={triggerRef}
             type="button"
             variant="ghost"
             size="xs"
@@ -119,12 +126,15 @@ function PickerTrigger(props: {
               props.onKeyDown(event)
             }}
           >
+            {agent ? <AgentTypeIcon agentType={agent} className="size-3.5 shrink-0" /> : null}
             <span data-composer-label className="flex min-w-0 items-center gap-1">
               <span className="truncate text-chat-foreground">{props.modelLabel}</span>
               {props.optionsLabel ? <span className="shrink-0">{props.optionsLabel}</span> : null}
               <ChevronDown className="size-3" />
             </span>
-            <SlidersHorizontal data-composer-compact-icon className="hidden size-3.5" />
+            {!agent ? (
+              <SlidersHorizontal data-composer-compact-icon className="hidden size-3.5" />
+            ) : null}
           </Button>
         </PopoverTrigger>
       </TooltipTrigger>
@@ -147,6 +157,7 @@ function PickerTrigger(props: {
 }
 
 function SessionOptionPopover(props: {
+  agent?: string
   demandModelCatalog?: () => void
   cliUpdate?: SessionOptionsCliUpdate
   model: SessionOptionDescriptor
@@ -243,6 +254,7 @@ function SessionOptionPopover(props: {
   return (
     <Popover open={open} onOpenChange={(next) => setOpen(next && canOpen)}>
       <PickerTrigger
+        agent={props.agent}
         modelLabel={modelLabel}
         optionsLabel={optionsLabel}
         tooltipLabel={tooltipLabel}
@@ -345,6 +357,7 @@ function SessionOptionPopover(props: {
 }
 
 function NativeChatSessionOptionPickersInner({
+  agent,
   surface,
   snapshot,
   isWorking,
@@ -379,6 +392,7 @@ function NativeChatSessionOptionPickersInner({
   return (
     <div className="flex min-w-0 items-center text-chat-foreground-faint">
       <SessionOptionPopover
+        agent={agent}
         demandModelCatalog={surface.demandModelCatalog}
         cliUpdate={surface.cliUpdate}
         model={model}
