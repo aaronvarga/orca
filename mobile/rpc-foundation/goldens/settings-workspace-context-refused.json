@@ -252,13 +252,6 @@
         }
       }
     },
-    "9523a5ec7949": {
-      "providers": ["github", "jira"],
-      "settings": {
-        "$rpc": "null"
-      },
-      "trust": {}
-    },
     "9cf8484d8b20": {
       "name": "linear.status#1",
       "ordinal": 2,
@@ -297,6 +290,13 @@
       "name": "jira.status#1",
       "ordinal": 8,
       "json": "{\"id\":\"frame-3\",\"deviceToken\":\"recording-device\",\"method\":\"jira.status\"}"
+    },
+    "a9cbf640a1a4": {
+      "providers": ["github", "jira", "azure-devops"],
+      "settings": {
+        "$rpc": "null"
+      },
+      "trust": {}
     },
     "ab92af857792": {
       "name": "linear.status#1",
@@ -402,7 +402,7 @@
           "settlements": {
             "mount": "eb79a9b3682a"
           },
-          "state": "9523a5ec7949",
+          "state": "a9cbf640a1a4",
           "effects": []
         }
       }

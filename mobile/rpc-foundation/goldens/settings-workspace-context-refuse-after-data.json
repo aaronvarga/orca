@@ -605,6 +605,17 @@
       "ordinal": 6,
       "json": "{\"id\":\"frame-1\",\"deviceToken\":\"recording-device\",\"method\":\"preflight.check\"}"
     },
+    "cd09d71d2606": {
+      "providers": ["github", "jira", "azure-devops"],
+      "settings": {
+        "defaultTuiAgent": "codex",
+        "disabledTuiAgents": ["claude"],
+        "hostSettingOverrides": {},
+        "prBotAuthorOverrides": ["bot-user"],
+        "visibleTaskProviders": ["github", "linear"]
+      },
+      "trust": {}
+    },
     "d13ca77439fc": {
       "name": "settings.get#1",
       "ordinal": 4,
@@ -644,17 +655,6 @@
           }
         }
       }
-    },
-    "e5fc4ab0cac2": {
-      "providers": ["github", "jira"],
-      "settings": {
-        "defaultTuiAgent": "codex",
-        "disabledTuiAgents": ["claude"],
-        "hostSettingOverrides": {},
-        "prBotAuthorOverrides": ["bot-user"],
-        "visibleTaskProviders": ["github", "linear"]
-      },
-      "trust": {}
     },
     "eb79a9b3682a": {
       "status": "fulfilled",
@@ -846,7 +846,7 @@
             "blur": "eb79a9b3682a",
             "revisit": "eb79a9b3682a"
           },
-          "state": "e5fc4ab0cac2",
+          "state": "cd09d71d2606",
           "effects": []
         }
       }
