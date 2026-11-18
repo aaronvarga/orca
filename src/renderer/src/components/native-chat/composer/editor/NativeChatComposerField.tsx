@@ -1,3 +1,4 @@
+import { PromptBar } from '../../beautiful-ui/PromptBar'
 import { NativeChatPromptEditor } from './NativeChatPromptEditor'
 import { notifyNativeChatComposerState } from '../focus/native-chat-composer-mount'
 import type { NativeChatComposerInput } from './native-chat-composer-input'
@@ -185,74 +186,8 @@ export function NativeChatComposerField({
   // A launch prompt sits in a popover, so it takes the app's surface instead of the chat's.
   const launch = launchPrompt !== undefined
 
-  return (
-    <div
-      data-composer-field={launch ? undefined : ''}
-      className={launch ? undefined : '@container/composer-field shrink-0 bg-chat-pane'}
-    >
-      <div className={launch ? undefined : 'native-chat-composer-gutter pt-2 pb-4'}>
-        <div
-          className={cn('relative w-full', !launch && 'mx-auto max-w-(--chat-content-max-width)')}
-        >
-          {autocomplete.mode === 'slash' ? (
-            <NativeChatPickerMenu
-              autocomplete={autocomplete}
-              activeIndex={activeSuggestion}
-              listboxId={pickerListboxId}
-              onChoose={onChoosePickerItem}
-              onRetry={onRetrySkills}
-            />
-          ) : null}
-          {autocomplete.mode === 'mention' ? (
-            <NativeChatMentionMenu
-              mention={mentionFiles}
-              activeIndex={activeSuggestion}
-              listboxId={pickerListboxId}
-              onChoose={onChooseMentionFile}
-            />
-          ) : null}
-          <NativeChatComposerNotices
-            notices={notices.map((notice) =>
-              // A dismissed row takes its focused × with it; the message box gets focus back.
-              notice.onDismiss
-                ? {
-                    ...notice,
-                    onDismiss: () => {
-                      notice.onDismiss?.()
-                      textareaRef.current?.focus()
-                    }
-                  }
-                : notice
-            )}
-            className="mb-1.5"
-          />
-          <div
-            className={cn(
-              // Use a constant container border so focus changes cannot flash it.
-              'group/composer rounded-xl border p-1.5 shadow-xs',
-              !launch && 'native-chat-composer-card',
-              launch
-                ? 'border-foreground/10 bg-background dark:bg-foreground/[0.04]'
-                : 'border-chat-composer-border bg-chat-composer-surface',
-              // Contain caret-blink repaint to the composer; keep 4px slack around overhanging attachment buttons, while menus use portals.
-              '[contain:paint]',
-              glowing && 'native-chat-composer-glow'
-            )}
-          >
-            {imageAttachments.length > 0 ? (
-              <div className="mb-2 flex flex-wrap gap-2 px-1 pt-1.5">
-                {imageAttachments.map((attachment, index) => (
-                  <NativeChatImageAttachmentPreview
-                    key={attachment.id}
-                    attachment={attachment}
-                    hostEnvironmentId={attachmentEnvironmentId}
-                    number={numberImages ? index + 1 : undefined}
-                    onRemove={onRemoveImageAttachment}
-                  />
-                ))}
-              </div>
-            ) : null}
-            <NativeChatPromptEditor
+  const editor = (
+<NativeChatPromptEditor
               key={draftScopeKey}
               scopeKey={draftScopeKey}
               positionTarget={positionTarget}
@@ -302,6 +237,64 @@ export function NativeChatComposerField({
                 '[&[contenteditable=false]]:cursor-not-allowed [&[contenteditable=false]]:opacity-50'
               )}
             />
+  )
+
+  return (
+    <div
+      data-composer-field={launch ? undefined : ''}
+      className={launch ? undefined : '@container/composer-field shrink-0 bg-chat-pane'}
+    >
+      <div className={launch ? undefined : 'native-chat-composer-gutter pt-2 pb-4'}>
+        <div
+          className={cn('relative w-full', !launch && 'mx-auto max-w-(--chat-content-max-width)')}
+        >
+          {autocomplete.mode === 'slash' ? (
+            <NativeChatPickerMenu
+              autocomplete={autocomplete}
+              activeIndex={activeSuggestion}
+              listboxId={pickerListboxId}
+              onChoose={onChoosePickerItem}
+              onRetry={onRetrySkills}
+            />
+          ) : null}
+          {autocomplete.mode === 'mention' ? (
+            <NativeChatMentionMenu
+              mention={mentionFiles}
+              activeIndex={activeSuggestion}
+              listboxId={pickerListboxId}
+              onChoose={onChooseMentionFile}
+            />
+          ) : null}
+          <NativeChatComposerNotices
+            notices={notices.map((notice) =>
+              // A dismissed row takes its focused × with it; the message box gets focus back.
+              notice.onDismiss
+                ? {
+                    ...notice,
+                    onDismiss: () => {
+                      notice.onDismiss?.()
+                      textareaRef.current?.focus()
+                    }
+                  }
+                : notice
+            )}
+            className="mb-1.5"
+          />
+          <PromptBar expanded launch={launch} glowing={glowing}>
+            {imageAttachments.length > 0 ? (
+              <div className="mb-2 flex flex-wrap gap-2 px-1 pt-1.5">
+                {imageAttachments.map((attachment, index) => (
+                  <NativeChatImageAttachmentPreview
+                    key={attachment.id}
+                    attachment={attachment}
+                    hostEnvironmentId={attachmentEnvironmentId}
+                    number={numberImages ? index + 1 : undefined}
+                    onRemove={onRemoveImageAttachment}
+                  />
+                ))}
+              </div>
+            ) : null}
+            {launch ? editor : null}
             <div
               className={cn(
                 'flex flex-wrap items-center gap-2 pt-0.5',
@@ -314,6 +307,8 @@ export function NativeChatComposerField({
               )}
             >
               <NativeChatComposerActions
+                input={launch ? undefined : editor}
+                inputExpanded
                 terminalTabId={positionTarget}
                 onInsertQuickCommand={onInsertQuickCommand}
                 editSession={editSession}
@@ -346,7 +341,7 @@ export function NativeChatComposerField({
                 {...(agent ? { agent } : {})}
               />
             </div>
-          </div>
+          </PromptBar>
           {workspaceFooter}
         </div>
       </div>

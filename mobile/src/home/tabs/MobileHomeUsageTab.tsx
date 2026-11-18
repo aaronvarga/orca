@@ -257,11 +257,7 @@ function UsageCard(props: {
       >
         <View style={styles.head}>
           <View style={styles.tile}>
-            {props.provider === 'claude' ? (
-              <ClaudeIcon size={16} />
-            ) : (
-              <OpenAIIcon size={16} color={colors.textPrimary} />
-            )}
+            {props.provider === 'claude' ? <ClaudeIcon size={16} /> : <OpenAIIcon size={16} />}
           </View>
           <View style={styles.headText}>
             <Text style={styles.cardTitle} numberOfLines={1}>

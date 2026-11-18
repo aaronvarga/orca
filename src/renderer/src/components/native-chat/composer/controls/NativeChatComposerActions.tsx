@@ -1,7 +1,7 @@
 import { NativeChatComposerQuickCommands } from './NativeChatComposerQuickCommands'
 import { NativeChatComposerDraftNotSavedIcon } from '../../drafts/NativeChatComposerDraftNotSavedIcon'
 import { NativeChatRoomContext } from '../../native-chat-room-context'
-import { memo, useContext } from 'react'
+import { memo, useContext, type ReactNode } from 'react'
 import { ArrowUp, CornerDownRight, ListEnd, Save, Square } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -30,6 +30,8 @@ import type { NativeChatOptionPickerRequest } from '../../session/options/contro
 import type { NativeChatSteerChordPreview } from '../../../../../../shared/native-chat/input/composer/use-native-chat-steer-chord-preview'
 
 export type NativeChatComposerActionsProps = {
+  input?: ReactNode
+  inputExpanded?: boolean
   onInsertQuickCommand?: (text: string) => void
   terminalTabId?: string
   editSession?: { cancel: () => void }
@@ -72,8 +74,9 @@ export type NativeChatComposerActionsProps = {
   launchPrompt?: boolean
 }
 
-// Memoized: typing re-renders the composer per keystroke, and these controls rarely change with it.
 export const NativeChatComposerActions = memo(function NativeChatComposerActions({
+  input,
+  inputExpanded,
   onInsertQuickCommand,
   terminalTabId,
   editSession,
@@ -302,6 +305,8 @@ export const NativeChatComposerActions = memo(function NativeChatComposerActions
   ]
   return (
     <NativeChatComposerToolbar
+      input={input}
+      inputExpanded={inputExpanded}
       left={left}
       focusComposer={focusComposer}
       right={right}

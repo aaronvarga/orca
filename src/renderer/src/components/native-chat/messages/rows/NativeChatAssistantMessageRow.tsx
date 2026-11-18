@@ -1,3 +1,4 @@
+import { StreamingText } from '../../beautiful-ui/StreamingText'
 import { useContext } from 'react'
 import { cn } from '@/lib/class-names'
 import { quietBotAnswer } from '../../../../../../shared/bot-quiet-result'
@@ -91,13 +92,14 @@ export function NativeChatAssistantMessageRow({
     isRootAgentJournalItem(message)
 
   return (
-    <div
+    <StreamingText
       ref={rowRef}
+      agentName={!isSystem && !continuesTurn && (words || hasImages) ? props.agentName : undefined}
       // The context menu offers Copy message only where the row's controls offer Copy.
       data-native-chat-message-id={showControls && words.length > 0 ? message.id : undefined}
       data-native-chat-message-tone={isSystem ? 'faint' : undefined}
       className={cn(
-        'group relative max-w-full select-text text-sm leading-relaxed text-chat-foreground',
+        'group relative min-w-0 max-w-full select-text text-sm leading-relaxed text-chat-foreground',
         isSystem && 'text-xs text-chat-foreground-faint'
       )}
     >
@@ -149,7 +151,7 @@ export function NativeChatAssistantMessageRow({
           )}
         />
       ) : null}
-    </div>
+    </StreamingText>
   )
 }
 

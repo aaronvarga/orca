@@ -17,7 +17,7 @@ export function NativeChatReasoningBody({
   return (
     <div
       data-native-chat-message-tone="faint"
-      className="scrollbar-sleek mt-1 max-h-80 overflow-y-auto pl-5.5 text-chat-foreground-faint"
+      className="scrollbar-sleek mt-2 ml-3 max-h-80 overflow-y-auto border-l border-border py-1 pl-4 text-chat-foreground-faint"
     >
       <NativeChatMarkdown
         rowKey={rowKey}

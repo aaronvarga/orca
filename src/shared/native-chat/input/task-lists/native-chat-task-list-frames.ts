@@ -1,3 +1,4 @@
+import { createNativeChatClaudeTaskProjection } from './native-chat-claude-task-projection'
 import { normalizeNativeChatTaskList } from './native-chat-task-list'
 import type { NativeChatMessage } from '../../native-chat-types'
 
@@ -7,7 +8,7 @@ const projectedFrames = new WeakMap<NativeChatMessage, NativeChatMessage>()
 export function projectNativeChatTaskListFrames(
   messages: readonly NativeChatMessage[]
 ): NativeChatMessage[] {
-  return messages.map(projectNativeChatTaskListFrame)
+  return createNativeChatClaudeTaskProjection()(messages.map(projectNativeChatTaskListFrame))
 }
 
 export function projectNativeChatTaskListFrame(message: NativeChatMessage): NativeChatMessage {

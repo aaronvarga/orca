@@ -44,8 +44,8 @@ export function NativeChatToolRunCallCounts({
     return null
   }
   return (
-    /* Keep counts outside truncation and on the first summary line so narrow panes cannot hide outcomes. */
-    <span className="flex h-[1lh] shrink-0 items-center">
+    /* Keep outcomes outside truncation and centered with the summary. */
+    <span className="flex shrink-0 items-center">
       <span
         aria-label={marks.map((mark) => mark.label).join(', ')}
         className="shrink-0 font-sans text-xs tabular-nums text-chat-foreground-faint transition-colors group-hover/tool-run:text-chat-foreground"

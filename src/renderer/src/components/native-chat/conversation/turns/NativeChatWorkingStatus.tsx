@@ -1,3 +1,4 @@
+import { LoadingState } from '../../beautiful-ui/LoadingState'
 import type { BotChatIdentity } from '../../../bots/use-bot-chat-identity'
 import { BotAvatarTile } from '../../../bots/BotAvatar'
 import type { ReactNode } from 'react'
@@ -88,7 +89,7 @@ export function NativeChatWorkingStatus({
   ) : null
   // `tabular-nums`: the live clock reflows its own label every second otherwise.
   const className = cn(
-    'flex min-h-8 items-center gap-1 text-sm text-chat-foreground-faint tabular-nums',
+    'flex min-h-8 items-center gap-2 rounded-md px-1.5 text-sm font-medium text-chat-foreground-faint tabular-nums',
     !actions && 'border-b border-border'
   )
   const caret =
@@ -104,6 +105,7 @@ export function NativeChatWorkingStatus({
   const active = workedSeconds == null && !pendingLabel
   const content = (
     <>
+      {active ? <LoadingState /> : null}
       {identity}
       {bot?.showName ? <span className="mr-1 text-chat-foreground">{bot.name}</span> : null}
       <span>{label}</span>

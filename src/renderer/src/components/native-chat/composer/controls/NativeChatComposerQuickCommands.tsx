@@ -27,7 +27,8 @@ export function NativeChatComposerQuickCommands({
 }) {
   const t = useTranslate()
   const [open, setOpen] = useState(false)
-  const focusReturn = useNativeChatPickerFocusReturn(focusComposer)
+  const { triggerRef, notePick, onInteractOutside, onCloseAutoFocus } =
+    useNativeChatPickerFocusReturn(focusComposer)
   const worktreeId = useNativeChatTabOwnerWorktreeId(tabId)
   const groupId = useAppStore((state) =>
     worktreeId
@@ -37,11 +38,11 @@ export function NativeChatComposerQuickCommands({
       : undefined
   )
   const commands = useNativeChatQuickCommandsMenu(
-    worktreeId && groupId ? { worktreeId, groupId } : undefined,
+    worktreeId && groupId ? { worktreeId, groupId, tabId } : undefined,
     () => setOpen(false),
     false,
     (text) => {
-      focusReturn.notePick()
+      notePick()
       onInsert(text)
     }
   )
@@ -56,7 +57,7 @@ export function NativeChatComposerQuickCommands({
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button
-                ref={focusReturn.triggerRef}
+                ref={triggerRef}
                 disabled={disabled}
                 type="button"
                 variant="ghost"
@@ -76,8 +77,8 @@ export function NativeChatComposerQuickCommands({
           side="top"
           align="start"
           className="w-60"
-          onInteractOutside={focusReturn.onInteractOutside}
-          onCloseAutoFocus={focusReturn.onCloseAutoFocus}
+          onInteractOutside={onInteractOutside}
+          onCloseAutoFocus={onCloseAutoFocus}
         >
           {commands.menu}
         </DropdownMenuContent>

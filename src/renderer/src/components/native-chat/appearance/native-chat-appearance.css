@@ -118,8 +118,12 @@
   padding-inline: clamp(
     0px,
     calc((100cqi - var(--composer-atomic-width) - 2px) / 4),
-    calc(var(--spacing) * 1.5)
+    var(--composer-card-inset, calc(var(--spacing) * 1.5))
   );
+}
+
+.native-chat-composer-card[data-expanded='true'] {
+  --composer-card-inset: calc(var(--spacing) * 3.5);
 }
 
 @media (width >= 40rem) {

@@ -18,7 +18,7 @@ import {
   type NativeChatTurnDiffFile
 } from '../../../../../../shared/native-chat/tools/native-chat-turn-diffs'
 
-function TurnDiffFilePatches({ file }: { file: NativeChatTurnDiffFile }): React.JSX.Element {
+export function TurnDiffFilePatches({ file }: { file: NativeChatTurnDiffFile }): React.JSX.Element {
   return (
     <div className="pl-2">
       {file.edits.map((edit) => {

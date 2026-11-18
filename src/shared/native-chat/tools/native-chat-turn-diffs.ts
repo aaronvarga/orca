@@ -48,7 +48,7 @@ export function nativeChatTurnDiffEditFile(
 }
 
 export function nativeChatTurnDiffs(
-  messages: readonly NativeChatMessage[],
+  messages: readonly Pick<NativeChatMessage, 'id' | 'blocks'>[],
   turnKeys: readonly (string | undefined)[],
   subagentSectionsOf?: ReadonlyMap<string, readonly string[]>,
   /** A turn only partly loaded, whose totals would read as the whole turn's. */

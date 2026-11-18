@@ -18,6 +18,7 @@ export type ClaudeMessageEnvelope = {
   uuid: string
   role: 'assistant' | 'user'
   content: unknown[]
+  toolResult?: unknown
   /** Messages API id shared by every frame of one streamed assistant message. */
   messageId: string | null
   parentToolUseId: string | null
@@ -25,7 +26,12 @@ export type ClaudeMessageEnvelope = {
 }
 
 export type ClaudeToolUse = { id: string; name: string; input: unknown }
-export type ClaudeToolResult = { toolUseId: string; output: string; failed: boolean }
+export type ClaudeToolResult = {
+  toolUseId: string
+  output: string
+  failed: boolean
+  structuredOutput?: unknown
+}
 
 export function claudeRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -54,6 +60,7 @@ export function readClaudeMessageEnvelope(
         uuid,
         role,
         content: messageContent(message?.content),
+        toolResult: frame.tool_use_result ?? frame.toolUseResult,
         isInjectedUserTurn,
         messageId: claudeText(message?.id),
         parentToolUseId: claudeText(frame.parent_tool_use_id)
@@ -166,7 +173,10 @@ export function claudeToolResults(envelope: ClaudeMessageEnvelope): ClaudeToolRe
               part.type === 'tool_result'
                 ? resultText(part.content)
                 : claudeToolResultText(part.content),
-            failed: claudeToolResultFailed(part)
+            failed: claudeToolResultFailed(part),
+            ...(envelope.content.length === 1 && envelope.toolResult !== undefined
+              ? { structuredOutput: envelope.toolResult }
+              : {})
           }
         ]
       : []
@@ -192,7 +202,17 @@ export function claudeToolBody(input: {
     input: input.tool.input,
     callId: input.tool.id,
     state: input.result ? (input.result.failed ? 'failed' : 'completed') : 'running',
-    ...(input.result ? { output: journalPayload(input.result.output) } : {})
+    ...(input.result
+      ? {
+          output: journalPayload(
+            !input.result.failed &&
+              ['TaskCreate', 'TaskUpdate', 'TaskGet', 'TaskList'].includes(input.tool.name) &&
+              claudeRecord(input.result.structuredOutput)
+              ? JSON.stringify(input.result.structuredOutput)
+              : input.result.output
+          )
+        }
+      : {})
   }
 }
 

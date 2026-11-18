@@ -74,7 +74,6 @@ import { NativeChatBotHomeScope } from './NativeChatBotHomeScope'
 import type { NativeChatBotKickoffView } from './native-chat-bot-kickoff-view'
 
 const NO_SLOTS: readonly NativeChatTranscriptSlot[] = []
-
 export function NativeChatMessageList({
   ref,
   session,
@@ -204,6 +203,7 @@ export function NativeChatMessageList({
     settledTurns,
     thinking
   })
+  const liveStartedAt = turnStatuses.active?.startedAt ?? workingStartedAt ?? null
   // Only unshown prompts need a waiting tail row; prompt cards explain their own wait.
   const tailRow = transcriptTailRow(turnWorking, awaitingInput)
   const lifecycleWorking = subagentId === null && session.transcriptLifecycle?.state === 'working'
@@ -411,7 +411,7 @@ export function NativeChatMessageList({
                   newRowsMarker={newRows.marker}
                 />
                 {liveLine ? (
-                  <NativeChatTurnActivityLine line={liveLine} />
+                  <NativeChatTurnActivityLine line={liveLine} startedAt={liveStartedAt} />
                 ) : tailRow === 'awaiting-input' ? (
                   <NativeChatAwaitingInputRow subject={null} pending />
                 ) : null}

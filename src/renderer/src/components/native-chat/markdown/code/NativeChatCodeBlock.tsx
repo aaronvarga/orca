@@ -1,3 +1,4 @@
+import { CodeBlock } from '../../beautiful-ui/CodeBlock'
 // @protected-copy: preserve code controls used by approval prompts.
 import React, { useContext } from 'react'
 import { WrapText } from 'lucide-react'
@@ -39,27 +40,21 @@ export function NativeChatCodeBlock({
   ) : null
 
   return (
-    <div
+    <CodeBlock
       data-native-chat-code-block={code ? '' : undefined}
-      className="group/code relative my-3 min-w-0 max-w-full overflow-hidden rounded-lg border border-chat-code-border bg-chat-code-surface"
+      label={language ? getCodeFenceLanguageLabel(language) : undefined}
+      language={language}
+      actions={actions}
+      code={code}
+      wrapped={wrapped}
     >
-      {language ? (
-        <div className="flex h-7.5 items-center justify-between px-3">
-          <span
-            data-code-language={language}
-            className="min-w-0 font-sans text-xs text-chat-foreground-faint"
-          >
-            <span className="truncate">{getCodeFenceLanguageLabel(language)}</span>
-          </span>
-          {code ? <div className="-mr-1 flex items-center gap-0.5">{actions}</div> : null}
-        </div>
-      ) : null}
       <pre
         data-native-chat-code-content
         className={cn(
-          'scrollbar-sleek m-0 max-w-full font-mono text-chat-code text-chat-code-foreground',
-          wrapped ? 'whitespace-pre-wrap [overflow-wrap:anywhere]' : 'overflow-x-auto',
-          language ? 'px-3.5 pt-0.5 pb-3' : 'p-3 pr-16'
+          'm-0 min-w-0 flex-1 px-3.5 py-3 font-mono text-chat-code text-chat-code-foreground',
+          wrapped
+            ? 'whitespace-pre-wrap [overflow-wrap:anywhere]'
+            : 'overflow-x-auto scrollbar-sleek'
         )}
       >
         {language && code && !plain ? (
@@ -70,12 +65,7 @@ export function NativeChatCodeBlock({
           children
         )}
       </pre>
-      {code && !language ? (
-        <div className="absolute right-2 top-2 flex items-center gap-0.5 opacity-100 transition-opacity can-hover:pointer-events-none can-hover:opacity-0 group-hover/code:pointer-events-auto group-hover/code:opacity-100 [[class~='group/code']:has(:focus-visible)_&]:pointer-events-auto [[class~='group/code']:has(:focus-visible)_&]:opacity-100">
-          {actions}
-        </div>
-      ) : null}
-    </div>
+    </CodeBlock>
   )
 }
 

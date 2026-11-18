@@ -152,7 +152,7 @@ async function minifyWebOutput() {
         const targetPath = join(stagingOutput, outputPath)
         const loader = outputPath.endsWith('.css') ? 'css' : 'js'
         const result = await transform(readFileSync(targetPath, 'utf8'), {
-          legalComments: 'none',
+          legalComments: 'inline',
           loader,
           // Vite asset scripts already have short names; keep them stable across asset hash changes.
           minifyIdentifiers: !outputPath.startsWith('assets/'),

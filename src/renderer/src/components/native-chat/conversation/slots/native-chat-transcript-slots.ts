@@ -196,12 +196,12 @@ export function buildNativeChatTranscript(
     const turnKey = turnKeys[index]
     const receipt = receipts.get(message.id)
     const bar = turnKey === undefined ? undefined : bars.get(turnKey)
-    // A turn's bar draws at its first row, so a message folded into it (a steer) carries none.
+    // Settled summaries stay at the first row; the live tail owns activity and its clock.
     const status =
       turnKey === undefined || bar?.index !== index || quiet.turns.has(turnKey)
         ? undefined
         : turnKey === liveTurnKey
-          ? (turnStatuses.active ?? undefined)
+          ? undefined
           : (turnStatuses.completedByTurn[turnKey] ?? undefined)
     const endsTurn = turnKey !== undefined && lastRowByTurn.get(turnKey) === index
     const turnDiff = endsTurn ? turnDiffs.get(turnKey) : undefined

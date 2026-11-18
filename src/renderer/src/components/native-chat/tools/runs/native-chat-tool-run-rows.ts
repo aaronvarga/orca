@@ -81,11 +81,12 @@ export function buildNativeChatToolRunRows({
     pushAsides(asides?.before.get(block))
     const taskList = taskLists.rows.get(block)
     if (taskList) {
-      // Only an update shows its "Full task list" trigger; a first list has no control.
       rows.push({
         kind: 'tasks',
         key: `tasks:${blockIndex}`,
-        focusable: taskList.previous !== undefined,
+        focusable:
+          taskList.previous !== undefined ||
+          taskList.list.tasks.some((task) => !!task.activeForm && task.activeForm !== task.content),
         taskList
       })
       continue

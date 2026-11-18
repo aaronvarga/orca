@@ -1,3 +1,4 @@
+import { useNativeChatElapsedSeconds } from '../../conversation/turns/use-native-chat-elapsed-seconds'
 import { useId } from 'react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { translate } from '@/i18n/i18n'
@@ -6,6 +7,7 @@ import type { NativeChatLiveLine } from '../../../../../../shared/native-chat/tr
 import { nativeChatReasoningDisclosureKey } from '../../../../../../shared/native-chat/transcript/row-content/native-chat-reasoning-row'
 import {
   describeNativeChatActiveTurnLabel,
+  formatNativeChatDuration,
   type NativeChatActiveTurnLabel
 } from '../../../../../../shared/native-chat/transcript/turns/native-chat-turn-status'
 import {
@@ -13,7 +15,7 @@ import {
   NativeChatReasoningChevron
 } from './NativeChatReasoningDisclosure'
 import { useNativeChatDisclosure } from '../disclosure/native-chat-disclosure-store'
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
+import { LoadingState } from '../../beautiful-ui/LoadingState'
 
 // Literal keys with literal fallbacks: a dynamic key registers no catalog reference.
 function statusLabel(
@@ -30,13 +32,16 @@ function statusLabel(
   }
 }
 
-/** Keep the clock in the turn bar; this tail shows activity or discloses open reasoning. */
+/** One live tail owns the clock, activity, and open reasoning disclosure. */
 export function NativeChatTurnActivityLine({
-  line
+  line,
+  startedAt = null
 }: {
   line: NativeChatLiveLine
+  startedAt?: number | null
 }): React.JSX.Element {
   const t = useTranslate()
+  const elapsed = useNativeChatElapsedSeconds(startedAt, true)
   const resolved = describeNativeChatActiveTurnLabel(line)
   const label = resolved.source === 'activity' ? resolved.text : statusLabel(resolved.key, t)
   const { reasoning } = line
@@ -52,16 +57,20 @@ export function NativeChatTurnActivityLine({
     <Collapsible open={open} onOpenChange={disclosure.setOpen}>
       {/* Keep one live region so label changes announce; overlay its trigger and place reasoning outside it. */}
       <div
-        className="group/reasoning relative flex min-h-6 items-center gap-1.5 text-sm leading-relaxed text-chat-foreground-faint"
+        className="group/reasoning relative flex min-h-7 w-fit max-w-full items-center gap-2 rounded-md px-1.5 py-1 text-sm font-medium leading-relaxed text-chat-foreground-faint"
         data-native-chat-turn-activity="true"
         data-state={open ? 'open' : 'closed'}
-        aria-live="polite"
-        aria-atomic="true"
       >
-        <LoadingSpinner className="size-4 shrink-0" />
-        <span id={labelId} className="min-w-0 truncate text-chat-foreground">
+        <LoadingState />
+        <span
+          id={labelId}
+          className="min-w-0 truncate text-chat-foreground"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {label}
         </span>
+        <span className="shrink-0 tabular-nums">{formatNativeChatDuration(elapsed)}</span>
         {reasoning ? (
           <>
             <NativeChatReasoningChevron />

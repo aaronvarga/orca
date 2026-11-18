@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NativeChatExpandable } from '../../messages/disclosure/NativeChatExpandable'
+import { ToolChips } from '../../beautiful-ui/ToolChips'
+import { NativeChatFileChangeChips } from '../diffs/NativeChatFileChangeChips'
 import { useNativeChatDisclosure } from '../../messages/disclosure/native-chat-disclosure-store'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/class-names'
@@ -100,7 +101,7 @@ export function NativeChatToolRun({
     disclosureId === undefined
       ? undefined
       : `run:${disclosureId}:${expandSignal}:${revealedDiff?.requestId ?? '-'}`
-  const { open, setOpen } = useNativeChatDisclosure(runKey, revealedDiff ? true : expandSignal)
+  const { open, setOpen } = useNativeChatDisclosure(runKey, expandSignal || !!revealedDiff)
 
   // Share the renderability predicate with slot selection so childless groups cannot create empty margin wrappers.
   const subagentRows = subagentGroups
@@ -116,7 +117,20 @@ export function NativeChatToolRun({
   // Roster/task rows bypass tool-header hiding because they carry durable state beyond the originating turn.
   const standaloneRows = [
     ...subagentRows,
-    ...backgroundTasks.map((task) => <NativeChatBackgroundTaskRun key={task.taskId} block={task} />)
+    ...(backgroundTasks.length > 0
+      ? [
+          <div
+            key="background-tasks"
+            className="overflow-hidden rounded-xl border border-border bg-card shadow-xs"
+          >
+            {backgroundTasks.map((task) => (
+              <div key={task.taskId} className="border-b border-border last:border-b-0">
+                <NativeChatBackgroundTaskRun block={task} />
+              </div>
+            ))}
+          </div>
+        ]
+      : [])
   ]
   const {
     asks,
@@ -173,78 +187,75 @@ export function NativeChatToolRun({
           listsQuestions={false}
         />
       ) : null}
-      {!showsHeader ? null : (
-        <div className="flex items-start gap-1">
-          {/* Keep one header across live/settled states; summary line-height aligns marks and wrapped text. */}
-          <button
-            type="button"
-            onClick={() => setOpen(!open)}
-            className="group/tool-run flex min-h-6 min-w-0 flex-1 items-start gap-1.5 rounded-md py-0.5 text-left text-sm leading-relaxed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-            aria-expanded={open}
-            aria-live="polite"
-            data-native-chat-tool-run-state={live ? 'live' : 'settled'}
-          >
-            {settledHeaderIcon ? (
-              <span className="flex h-[1lh] shrink-0 items-center">
-                <NativeChatToolRunIcon
-                  iconName={settledHeaderIcon}
-                  className="text-chat-foreground-faint"
-                />
-              </span>
-            ) : null}
-            {/* Keep the collapsed header bounded; the tool detail carries the full command. */}
-            <span
-              className={cn(
-                'min-w-0 line-clamp-2 whitespace-normal break-words text-sm leading-relaxed transition-colors',
-                live
-                  ? 'max-w-[72%] shrink-0 animate-pulse text-chat-foreground motion-reduce:animate-none'
-                  : 'min-w-0 text-chat-foreground-faint group-hover/tool-run:text-chat-foreground'
-              )}
-            >
-              {runSentence ?? fallbackLabel}
-            </span>
-            <NativeChatToolRunCallCounts
-              failed={failedCallCount}
-              interrupted={interruptedCallCount}
-            />
-            {/* Mark only stated success after settlement; idle gaps between live calls are not completion. */}
-            {!live && runSucceeded ? (
-              <span className="flex h-[1lh] shrink-0 items-center">
-                <Check aria-hidden className="size-3 shrink-0 text-chat-foreground-faint" />
-              </span>
-            ) : null}
-            {latestCallLabel ? (
-              <span className="flex h-[1lh] min-w-0 items-center">
-                <span className="min-w-0 truncate font-sans text-xs text-chat-foreground-faint">
-                  {latestCallLabel}
+      {showsHeader ? (
+        <ToolChips
+          open={open}
+          onOpenChange={setOpen}
+          live={live}
+          action={<NativeChatBrowserRunPageButton calls={headerBlocks.filter(isToolCallBlock)} />}
+          summary={
+            <>
+              {settledHeaderIcon ? (
+                <span className="flex shrink-0 items-center">
+                  <NativeChatToolRunIcon
+                    iconName={settledHeaderIcon}
+                    className="text-chat-foreground-faint"
+                  />
                 </span>
+              ) : null}
+              {/* Keep the collapsed header bounded; the tool detail carries the full command. */}
+              <span
+                className={cn(
+                  'min-w-0 line-clamp-2 whitespace-normal break-words text-sm leading-relaxed transition-colors',
+                  live
+                    ? 'max-w-[72%] shrink-0 animate-pulse text-chat-foreground motion-reduce:animate-none'
+                    : 'min-w-0 text-chat-foreground-faint group-hover/tool-run:text-chat-foreground'
+                )}
+              >
+                {runSentence ?? fallbackLabel}
               </span>
-            ) : null}
-          </button>
-          <NativeChatBrowserRunPageButton calls={headerBlocks.filter(isToolCallBlock)} />
-        </div>
-      )}
+              <NativeChatToolRunCallCounts
+                failed={failedCallCount}
+                interrupted={interruptedCallCount}
+              />
+              {/* Mark only stated success after settlement; idle gaps between live calls are not completion. */}
+              {!live && runSucceeded ? (
+                <span className="flex shrink-0 items-center">
+                  <Check aria-hidden className="size-3 shrink-0 text-chat-foreground-faint" />
+                </span>
+              ) : null}
+              {latestCallLabel ? (
+                <span className="flex min-w-0 items-center">
+                  <span className="min-w-0 truncate font-sans text-xs text-chat-foreground-faint">
+                    {latestCallLabel}
+                  </span>
+                </span>
+              ) : null}
+            </>
+          }
+        >
+          <NativeChatToolRunMemberList
+            blocks={blocks}
+            headerBlocks={headerBlocks}
+            asides={asides}
+            previousTodoWrite={previousTodoWrite}
+            previousUpdatePlan={previousUpdatePlan}
+            revealedDiff={revealedDiff}
+            onRevealDiff={revealDiff}
+            disclosureId={disclosureId}
+            followKey={blocks.length + asideCount}
+            startsAtEnd={live && !revealedDiff}
+            memoryKey={runKey}
+          />
+          <NativeChatFileChangeChips blocks={blocks} disclosureId={disclosureId} />
+        </ToolChips>
+      ) : null}
       {/* A read's result is the image the agent saw, so it shows without opening the run. */}
       <NativeChatImageAttachments
         blocks={viewedImages}
         runtimeContext={runtimeContext}
         className="mb-0 mt-1"
       />
-      <NativeChatExpandable open={open && showsHeader}>
-        <NativeChatToolRunMemberList
-          blocks={blocks}
-          headerBlocks={headerBlocks}
-          asides={asides}
-          previousTodoWrite={previousTodoWrite}
-          previousUpdatePlan={previousUpdatePlan}
-          revealedDiff={revealedDiff}
-          onRevealDiff={revealDiff}
-          disclosureId={disclosureId}
-          followKey={blocks.length + asideCount}
-          startsAtEnd={live && !revealedDiff}
-          memoryKey={runKey}
-        />
-      </NativeChatExpandable>
     </div>
   )
 }

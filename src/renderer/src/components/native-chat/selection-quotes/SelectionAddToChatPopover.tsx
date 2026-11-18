@@ -134,6 +134,7 @@ export function SelectionAddToChatPopover({
       {request ? (
         <PopoverContent
           ref={contentRef}
+          className="w-auto max-w-[calc(100vw-1rem)]"
           align="start"
           side="top"
           sideOffset={6}

@@ -1,4 +1,5 @@
-import { cn } from '@/lib/class-names'
+import { Check, CircleX } from 'lucide-react'
+import { TaskRow } from '../../beautiful-ui/TaskRows'
 import { useTranslate } from '@/i18n/use-translate'
 import { recomputeOn } from '@/lib/recompute-on'
 import { AgentStateDot } from '@/components/agent/status/AgentStateDot'
@@ -18,28 +19,40 @@ export function NativeChatBackgroundTaskRun({
     nativeChatBackgroundTaskRun(block, sayBackgroundTaskTranslated)
   )
   const Icon = KIND_ICONS[row.kind]
+  const details = row.sentence || row.output || block.error
   return (
-    <div className="min-w-0 py-0.5 font-sans text-sm leading-relaxed text-chat-foreground-faint">
-      <div className="flex min-h-6 min-w-0 items-center gap-1.5">
-        <Icon aria-hidden="true" className="size-3.5 shrink-0 text-chat-foreground-faint" />
-        <AgentStateDot state={row.state} size="sm" title={null} />
-        <span className="min-w-0 truncate text-chat-foreground" title={row.label}>
-          {row.label}
-        </span>
-        <span className="ml-auto shrink-0 font-sans text-xs tabular-nums text-chat-foreground-faint">
-          {row.status}
-        </span>
-      </div>
-      {row.sentence === null ? null : (
-        <p className={cn('mt-0.5 pl-7 text-xs', row.state === 'blocked' && 'text-destructive')}>
-          {row.sentence}
-        </p>
-      )}
-      {row.output === null ? null : (
-        <p className="mt-0.5 truncate pl-7 font-mono text-xs text-chat-foreground-faint">
-          {row.output}
-        </p>
-      )}
-    </div>
+    <TaskRow
+      active={row.state === 'working' || row.state === 'monitoring'}
+      tone={row.state === 'done' ? 'success' : row.state === 'blocked' ? 'error' : 'neutral'}
+      status={row.status}
+      disclosureKey={`background-task:${block.taskId}`}
+      icon={
+        row.state === 'done' ? (
+          <Check aria-hidden className="size-5 text-status-success" />
+        ) : row.state === 'blocked' ? (
+          <CircleX aria-hidden className="size-5 text-destructive" />
+        ) : (
+          <span className="relative flex size-6 items-center justify-center">
+            <Icon aria-hidden className="size-4" />
+            <span className="absolute -bottom-0.5 -right-0.5">
+              <AgentStateDot state={row.state} size="sm" title={null} />
+            </span>
+          </span>
+        )
+      }
+      details={
+        details ? (
+          <div className="space-y-1 whitespace-pre-wrap break-words">
+            {row.sentence ? <p>{row.sentence}</p> : null}
+            {block.error && block.error !== row.sentence ? (
+              <p className="text-destructive">{block.error}</p>
+            ) : null}
+            {row.output ? <p className="break-all font-mono">{row.output}</p> : null}
+          </div>
+        ) : undefined
+      }
+    >
+      {row.label}
+    </TaskRow>
   )
 }

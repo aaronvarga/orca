@@ -1,6 +1,6 @@
-import { Circle, CircleCheck, CircleDot, ChevronRight, ListChecks } from 'lucide-react'
+import { TaskRow as BeautifulTaskRow } from '../../beautiful-ui/TaskRows'
+import { Check, LoaderCircle, ChevronRight, ListChecks } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { cn } from '@/lib/class-names'
 import { translate } from '@/i18n/i18n'
 import { useTranslate, type Translate } from '@/i18n/use-translate'
 import { useNativeChatDisclosure } from '../../messages/disclosure/native-chat-disclosure-store'
@@ -44,40 +44,88 @@ function changeLabel(change: NativeChatTaskChange, t: Translate = translate): st
   }
 }
 
-function TaskRow({ task, label }: { task: NativeChatTask; label?: string }): React.JSX.Element {
+function TaskRow({
+  task,
+  label,
+  index,
+  disclosureKey
+}: {
+  task: NativeChatTask
+  label?: string
+  index: number
+  disclosureKey?: string
+}): React.JSX.Element {
   const t = useTranslate()
-  const Icon =
-    task.status === 'completed' ? CircleCheck : task.status === 'in_progress' ? CircleDot : Circle
   return (
-    <li
-      className={cn(
-        'flex items-start gap-1.5',
-        task.status === 'in_progress' && 'font-medium text-chat-foreground-strong'
-      )}
-    >
-      <Icon aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-      <span className="sr-only">{statusLabel(task, t)}: </span>
-      <span
-        className={cn(
-          'min-w-0 whitespace-pre-wrap break-words',
-          !label && task.status === 'completed' && 'line-through'
-        )}
+    <li className="min-w-0 border-b border-border last:border-b-0">
+      <BeautifulTaskRow
+        icon={
+          task.status === 'completed' ? (
+            <span className="flex size-6 items-center justify-center rounded-full bg-status-success-background text-status-success">
+              <Check aria-hidden className="size-4" />
+            </span>
+          ) : (
+            <span className="relative flex size-6 items-center justify-center text-xs tabular-nums">
+              {task.status === 'in_progress' ? (
+                <LoaderCircle
+                  aria-hidden
+                  className="absolute size-6 animate-spin motion-reduce:animate-none"
+                />
+              ) : null}
+              <span className="text-3xs">{index + 1}</span>
+            </span>
+          )
+        }
+        active={task.status === 'in_progress'}
+        tone={task.status === 'completed' ? 'success' : 'neutral'}
+        status={statusLabel(task, t)}
+        disclosureKey={disclosureKey}
+        details={
+          task.activeForm && task.activeForm !== task.content ? (
+            <p className="whitespace-pre-wrap break-words">
+              {task.status === 'in_progress' ? task.content : task.activeForm}
+            </p>
+          ) : undefined
+        }
       >
         {label ?? nativeChatTaskLabel(task)}
-      </span>
+      </BeautifulTaskRow>
     </li>
   )
 }
 
-function Checklist({ list }: { list: TaskList }): React.JSX.Element {
+function Checklist({
+  list,
+  disclosureKey
+}: {
+  list: TaskList
+  disclosureKey?: string
+}): React.JSX.Element {
   const t = useTranslate()
+  const occurrences = new Map<string, number>()
   return list.tasks.length === 0 ? (
     <p className="text-xs">{t('components.native-chat.taskList.empty', 'No tasks')}</p>
   ) : (
-    <ul aria-label={t('components.native-chat.taskList.title', 'Tasks')} className="space-y-1 py-1">
-      {list.tasks.map((task, index) => (
-        <TaskRow key={`${task.content}:${index}`} task={task} />
-      ))}
+    <ul
+      aria-label={t('components.native-chat.taskList.title', 'Tasks')}
+      className="overflow-hidden rounded-xl border border-border bg-card shadow-xs"
+    >
+      {list.tasks.map((task, index) => {
+        const occurrence = occurrences.get(task.content) ?? 0
+        occurrences.set(task.content, occurrence + 1)
+        return (
+          <TaskRow
+            key={`${task.content}:${occurrence}`}
+            task={task}
+            index={index}
+            disclosureKey={
+              disclosureKey === undefined
+                ? undefined
+                : `${disclosureKey}:${task.content}:${occurrence}`
+            }
+          />
+        )
+      })}
     </ul>
   )
 }
@@ -107,30 +155,37 @@ export function NativeChatTaskList({
   const completed = nativeChatCompletedTaskCount(list)
   if (presentation === 'composer') {
     return (
-      <Collapsible className="rounded-md border border-border bg-muted/30">
-        <CollapsibleTrigger className="group flex w-full items-center gap-1.5 rounded-md px-3 py-2 text-left text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <ListChecks aria-hidden className="size-4 shrink-0" />
-          <span className="flex-1 font-medium">
-            {t('components.native-chat.taskList.title', 'Tasks')}
-          </span>
-          <span
-            className="tabular-nums"
-            aria-label={taskProgressLabel(completed, list.tasks.length, t)}
-          >
-            {completed}/{list.tasks.length}
-          </span>
-          <ChevronRight aria-hidden className="size-3.5 group-data-[state=open]:rotate-90" />
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="max-h-40 overflow-y-auto px-3 pb-2 text-xs text-muted-foreground scrollbar-sleek">
-            <Checklist list={list} />
-            {list.explanation ? (
-              <p className="whitespace-pre-wrap break-words text-xs text-muted-foreground">
-                {list.explanation}
-              </p>
-            ) : null}
-          </div>
-        </CollapsibleContent>
+      <Collapsible asChild defaultOpen>
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="group flex w-full items-center gap-1.5 rounded-md px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            >
+              <ListChecks aria-hidden className="size-4 shrink-0" />
+              <span className="flex-1 font-medium">
+                {t('components.native-chat.taskList.title', 'Tasks')}
+              </span>
+              <span
+                className="tabular-nums"
+                aria-label={taskProgressLabel(completed, list.tasks.length, t)}
+              >
+                {completed}/{list.tasks.length}
+              </span>
+              <ChevronRight aria-hidden className="size-3.5 group-data-[state=open]:rotate-90" />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="max-h-64 overflow-y-auto border-t border-border px-3 py-2 text-sm text-muted-foreground scrollbar-sleek">
+              <Checklist list={list} disclosureKey={disclosureKey} />
+              {list.explanation ? (
+                <p className="whitespace-pre-wrap break-words text-xs text-muted-foreground">
+                  {list.explanation}
+                </p>
+              ) : null}
+            </div>
+          </CollapsibleContent>
+        </div>
       </Collapsible>
     )
   }
@@ -150,11 +205,15 @@ export function NativeChatTaskList({
       {changes ? (
         <>
           {changes.length > 0 ? (
-            <ul className="space-y-1 py-1">
+            <ul className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
               {changes.map((change, index) => (
                 <TaskRow
                   key={`${change.kind}:${index}`}
                   task={change.task}
+                  index={index}
+                  disclosureKey={
+                    disclosureKey === undefined ? undefined : `${disclosureKey}:change:${index}`
+                  }
                   label={changeLabel(change, t)}
                 />
               ))}
@@ -175,12 +234,12 @@ export function NativeChatTaskList({
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent animation="height" data-native-chat-member-detail>
-              <Checklist list={list} />
+              <Checklist list={list} disclosureKey={disclosureKey} />
             </CollapsibleContent>
           </Collapsible>
         </>
       ) : (
-        <Checklist list={list} />
+        <Checklist list={list} disclosureKey={disclosureKey} />
       )}
       {list.explanation ? (
         <p className="whitespace-pre-wrap break-words text-xs text-chat-foreground-faint">

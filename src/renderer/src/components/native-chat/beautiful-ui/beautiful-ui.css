@@ -1,0 +1,20 @@
+[data-beautiful-ui-loader] > span {
+  animation: beautiful-ui-pixel 650ms ease-in-out infinite;
+}
+
+@keyframes beautiful-ui-pixel {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-beautiful-ui-loader] > span {
+    animation: none;
+    opacity: 0.5;
+  }
+}

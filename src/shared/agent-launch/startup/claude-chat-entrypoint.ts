@@ -10,7 +10,10 @@ export function withOrcaClaudeChatEntrypoint(
 ): Record<string, string> {
   return overlayEnvironmentVariables(
     env,
-    { [CLAUDE_ENTRYPOINT_ENV]: ORCA_CLAUDE_CHAT_ENTRYPOINT },
+    {
+      [CLAUDE_ENTRYPOINT_ENV]: ORCA_CLAUDE_CHAT_ENTRYPOINT,
+      CLAUDE_CODE_ENABLE_TODO_TOOLS: env.CLAUDE_CODE_ENABLE_TODO_TOOLS ?? '1'
+    },
     platform
   )
 }

@@ -35,8 +35,8 @@ export function NativeChatQuestionOption({
     // The focus ring goes on the tile, not the row, so a shown preview sits inside it instead of under it.
     <div
       className={cn(
-        'rounded-[10px] border transition-colors has-[>button:focus-visible]:ring-2 has-[>button:focus-visible]:ring-inset has-[>button:focus-visible]:ring-chat-focus-ring',
-        selected ? 'border-primary bg-foreground/8' : 'border-question-option-border'
+        'rounded-lg transition-colors motion-reduce:transition-none has-[>button:focus-visible]:ring-2 has-[>button:focus-visible]:ring-inset has-[>button:focus-visible]:ring-chat-focus-ring',
+        selected ? 'bg-foreground/8' : 'bg-transparent'
       )}
     >
       <button
@@ -64,15 +64,15 @@ export function NativeChatQuestionOption({
         data-native-chat-prompt-card-focus-target={initialFocus || undefined}
         // Focus is the tile's ring, never the selected fill, so the row that opens focused does not read as picked.
         className={cn(
-          'flex w-full items-start gap-3 rounded-[9px] px-3 py-2.5 text-left text-foreground transition-colors focus-visible:outline-none disabled:pointer-events-none',
+          'flex w-full items-start gap-2.5 rounded-lg px-2 py-2 text-left text-foreground transition-colors focus-visible:outline-none disabled:pointer-events-none',
           !selected && 'hover:bg-foreground/5'
         )}
       >
         <span
           className={cn(
-            'flex size-5.5 shrink-0 items-center justify-center rounded-md border text-xs font-medium',
+            'flex size-5 shrink-0 items-center justify-center rounded-full border text-xs font-medium',
             selected
-              ? 'border-primary bg-primary text-primary-foreground'
+              ? 'border-ring bg-accent text-accent-foreground'
               : 'border-question-option-border text-foreground'
           )}
         >
@@ -81,7 +81,7 @@ export function NativeChatQuestionOption({
         <span className="min-w-0">
           <span className="block break-words text-sm font-medium">{label}</span>
           {description ? (
-            <span className="mt-px block whitespace-pre-wrap break-words text-[length:calc(var(--text-sm)*13/14)] leading-snug text-muted-foreground">
+            <span className="mt-px block whitespace-pre-wrap break-words text-xs leading-snug text-muted-foreground">
               {description}
             </span>
           ) : null}

@@ -11,6 +11,8 @@ const badgeVariants = cva(
       variant: {
         default: 'bg-primary text-primary-foreground [a&]:hover:bg-primary/90',
         secondary: 'bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90',
+        taskStatus:
+          'whitespace-normal bg-secondary text-3xs text-secondary-foreground data-[tone=success]:bg-status-success-background data-[tone=success]:text-status-success data-[tone=error]:bg-destructive/10 data-[tone=error]:text-destructive',
         sidebarCount:
           'h-4 min-w-4 border-sidebar-border bg-secondary px-1 py-0 text-3xs leading-none tabular-nums text-secondary-foreground',
         dot: 'bg-background text-foreground border-border shadow-xs dark:bg-secondary dark:border-white/20',

@@ -3,6 +3,7 @@ import { Ellipsis } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useTranslate } from '@/i18n/use-translate'
+import { cn } from '@/lib/class-names'
 import { useNativeChatPickerFocusReturn } from '../focus/native-chat-picker-focus-return'
 
 export type NativeChatComposerControl = {
@@ -16,11 +17,15 @@ export type NativeChatComposerControl = {
 type Layout = { compact: boolean; hidden: string[]; terminal: boolean }
 
 export function NativeChatComposerToolbar({
+  input,
+  inputExpanded = false,
   left,
   right,
   primary,
   focusComposer
 }: {
+  input?: ReactNode
+  inputExpanded?: boolean
   left: NativeChatComposerControl[]
   right: NativeChatComposerControl[]
   primary: ReactNode
@@ -28,6 +33,7 @@ export function NativeChatComposerToolbar({
 }): React.JSX.Element {
   const t = useTranslate()
   const root = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLDivElement>(null)
   const primaryRef = useRef<HTMLDivElement>(null)
   const moreRef = useRef<HTMLDivElement>(null)
   const [layout, setLayout] = useState<Layout>({ compact: false, hidden: [], terminal: false })
@@ -42,12 +48,19 @@ export function NativeChatComposerToolbar({
     }
     const nodes = Array.from(bar.querySelectorAll<HTMLElement>('[data-composer-control]'))
     bar.dataset.terminal = 'false'
+    if (input) {
+      bar.dataset.inputLayout = inputExpanded ? 'expanded' : 'inline'
+    }
     const widths = new Map<string, number>()
     const gap = (element: Element | null): number =>
       element ? Number.parseFloat(getComputedStyle(element).columnGap) || 0 : 0
     const leftGap = gap(bar.firstElementChild)
     const rightGap = gap(bar.lastElementChild)
     const groupGap = gap(bar)
+    const inputWidth =
+      input && !inputExpanded && inputRef.current
+        ? Number.parseFloat(getComputedStyle(inputRef.current).minWidth) || 0
+        : 0
     const primaryWidth = primaryRef.current?.getBoundingClientRect().width ?? 0
     const moreWidth = moreRef.current?.getBoundingClientRect().width ?? 0
     const required = (hidden: string[]): number => {
@@ -59,6 +72,8 @@ export function NativeChatComposerToolbar({
       return (
         [...leading, ...trailing].reduce((sum, item) => sum + (widths.get(item.id) ?? 0), 0) +
         primaryWidth +
+        inputWidth +
+        (inputWidth > 0 ? groupGap : 0) +
         (more ? moreWidth : 0) +
         Math.max(0, leading.length + Number(more) - 1) * leftGap +
         trailing.length * rightGap +
@@ -112,6 +127,9 @@ export function NativeChatComposerToolbar({
       menuControls.current = next.hidden
     }
     bar.dataset.compact = String(next.compact)
+    if (input) {
+      bar.dataset.inputLayout = inputExpanded || next.terminal ? 'expanded' : 'inline'
+    }
     setLayout((previous) =>
       previous.compact === next.compact &&
       previous.hidden.join() === next.hidden.join() &&
@@ -120,7 +138,7 @@ export function NativeChatComposerToolbar({
         : next
     )
   })
-  useLayoutEffect(() => measure(), [open])
+  useLayoutEffect(() => measure(), [open, inputExpanded])
   useLayoutEffect(() => {
     const bar = root.current
     if (!bar) {
@@ -145,7 +163,11 @@ export function NativeChatComposerToolbar({
       }
       measure()
     }
-    const mutations = new MutationObserver(observe)
+    const mutations = new MutationObserver((records) => {
+      if (records.some((record) => !inputRef.current?.contains(record.target))) {
+        observe()
+      }
+    })
     mutations.observe(bar, {
       childList: true,
       subtree: true,
@@ -182,9 +204,17 @@ export function NativeChatComposerToolbar({
       ref={root}
       data-compact={layout.compact}
       data-terminal={layout.terminal}
-      className="group/toolbar flex w-full items-center justify-between gap-2 text-chat-foreground-faint data-[terminal=true]:flex-wrap data-[terminal=true]:justify-end data-[terminal=true]:[&_[data-composer-primary-label]]:hidden data-[terminal=true]:[&_[data-composer-primary-icon]]:block data-[terminal=false]:[&_[data-composer-primary-icon]]:hidden data-[compact=true]:[&_[data-composer-label]]:invisible data-[compact=true]:[&_[data-composer-label]]:absolute data-[compact=true]:[&_[data-composer-label]]:w-max data-[compact=true]:[&_[data-composer-compact-icon]]:block data-[compact=false]:[&_[data-composer-compact-icon]]:hidden"
+      data-input-layout={
+        input ? (inputExpanded || layout.terminal ? 'expanded' : 'inline') : undefined
+      }
+      className="group/toolbar flex w-full items-center justify-between gap-2 data-[input-layout=inline]:grid data-[input-layout=inline]:grid-cols-[auto_minmax(0,1fr)_auto] data-[input-layout=expanded]:grid data-[input-layout=expanded]:grid-cols-[minmax(0,1fr)_auto] text-chat-foreground-faint data-[terminal=true]:flex-wrap data-[terminal=true]:justify-end data-[terminal=true]:[&_[data-composer-primary-label]]:hidden data-[terminal=true]:[&_[data-composer-primary-icon]]:block data-[terminal=false]:[&_[data-composer-primary-icon]]:hidden data-[compact=true]:[&_[data-composer-label]]:invisible data-[compact=true]:[&_[data-composer-label]]:absolute data-[compact=true]:[&_[data-composer-label]]:w-max data-[compact=true]:[&_[data-composer-compact-icon]]:block data-[compact=false]:[&_[data-composer-compact-icon]]:hidden"
     >
-      <div className="flex shrink-0 items-center gap-0.5 group-data-[terminal=true]/toolbar:contents">
+      <div
+        className={cn(
+          'flex shrink-0 items-center gap-0.5 group-data-[input-layout=expanded]/toolbar:col-start-1 group-data-[input-layout=expanded]/toolbar:row-start-2',
+          !input && 'group-data-[terminal=true]/toolbar:contents'
+        )}
+      >
         {left.map(renderControl)}
         <Popover
           open={open}
@@ -234,7 +264,21 @@ export function NativeChatComposerToolbar({
           </PopoverContent>
         </Popover>
       </div>
-      <div className="ml-auto flex shrink-0 items-center gap-1.5 group-data-[terminal=true]/toolbar:contents">
+      {input ? (
+        <div
+          ref={inputRef}
+          data-composer-input
+          className="min-w-24 group-data-[input-layout=expanded]/toolbar:col-span-full group-data-[input-layout=expanded]/toolbar:row-start-1 group-data-[input-layout=expanded]/toolbar:min-w-0"
+        >
+          {input}
+        </div>
+      ) : null}
+      <div
+        className={cn(
+          'ml-auto flex shrink-0 items-center gap-1.5',
+          !input && 'group-data-[terminal=true]/toolbar:contents'
+        )}
+      >
         {right.map(renderControl)}
         <div ref={primaryRef} className="inline-flex shrink-0">
           {primary}
