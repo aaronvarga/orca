@@ -121,6 +121,7 @@ export function normalizeTerminalQuickCommands(input: unknown): TerminalQuickCom
 
     const base = {
       id,
+      ...(typeof record.newSession === 'boolean' ? { newSession: record.newSession } : {}),
       label: label.slice(0, MAX_QUICK_COMMAND_LABEL_LENGTH),
       scope: normalizeTerminalQuickCommandScope(record.scope)
     }
@@ -181,20 +182,37 @@ function isNormalizedTerminalQuickCommand(value: unknown, expected: TerminalQuic
   if (
     command.id !== expected.id ||
     command.label !== expected.label ||
+    command.newSession !== expected.newSession ||
     !isNormalizedTerminalQuickCommandScope(command.scope, expected.scope ?? { type: 'global' })
   ) {
     return false
   }
   if (isTerminalAgentQuickCommand(expected)) {
     return (
-      hasExactKeys(command, ['id', 'label', 'action', 'agent', 'prompt', 'scope']) &&
+      hasExactKeys(command, [
+        'id',
+        'label',
+        'action',
+        'agent',
+        'prompt',
+        'scope',
+        ...(expected.newSession === undefined ? [] : ['newSession'])
+      ]) &&
       command.action === 'agent-prompt' &&
       command.agent === expected.agent &&
       command.prompt === expected.prompt
     )
   }
   return (
-    hasExactKeys(command, ['id', 'label', 'action', 'command', 'appendEnter', 'scope']) &&
+    hasExactKeys(command, [
+      'id',
+      'label',
+      'action',
+      'command',
+      'appendEnter',
+      'scope',
+      ...(expected.newSession === undefined ? [] : ['newSession'])
+    ]) &&
     command.action === 'terminal-command' &&
     command.command === expected.command &&
     command.appendEnter === expected.appendEnter
@@ -232,6 +250,23 @@ export function applyTerminalQuickCommandMutation(
     return [...commands, mutation.command]
   }
   return commands.map((command, index) => (index === existingIndex ? mutation.command : command))
+}
+
+/** Older hosts can acknowledge a save while silently dropping an unknown setting. */
+export function assertTerminalQuickCommandSessionChoiceSaved(
+  commands: readonly TerminalQuickCommand[] | undefined,
+  mutation: TerminalQuickCommandMutation
+): void {
+  if (
+    mutation.type === 'upsert' &&
+    mutation.command.newSession !== undefined &&
+    commands?.find((command) => command.id === mutation.command.id)?.newSession !==
+      mutation.command.newSession
+  ) {
+    throw new Error(
+      'The session choice was not saved. Restart or update Orca on the command host, then save again.'
+    )
+  }
 }
 
 export function buildTerminalQuickCommandInput(command: TerminalCommandQuickCommand): string {

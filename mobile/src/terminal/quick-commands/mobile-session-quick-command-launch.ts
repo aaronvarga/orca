@@ -5,6 +5,7 @@ import { translate } from '../../i18n/mobile-i18n'
 import type { TerminalQuickCommand } from '../../../../src/shared/terminal/quick-commands/terminal-quick-command-types'
 import type { MobileNewTabAgentOption } from '../../session/agent-launch/mobile-new-tab-agent-options'
 import type { MobileSessionAttachmentsModel } from '../../files/attachments/use-mobile-session-attachments'
+import { getTerminalQuickCommandBody } from '../../../../src/shared/terminal/quick-commands/terminal-quick-commands'
 
 export function launchMobileSessionQuickCommand(
   scope: Pick<
@@ -15,6 +16,7 @@ export function launchMobileSessionQuickCommand(
     | 'creatingBrowser'
     | 'creatingMarkdown'
     | 'showToast'
+    | 'nativeChatController'
   >,
   createTerminal: (
     agent?: MobileNewTabAgentOption['agent'],
@@ -22,6 +24,27 @@ export function launchMobileSessionQuickCommand(
   ) => Promise<unknown>,
   command: TerminalQuickCommand
 ): boolean {
+  if (command.newSession === false) {
+    const chat = scope.nativeChatController
+    if (
+      chat.showNativeChat &&
+      chat.chatDraftKey &&
+      !chat.nativeChatQuestion &&
+      !chat.nativeChatPermission &&
+      !chat.nativeChatAsk
+    ) {
+      chat.setChatComposerText((current) => current + getTerminalQuickCommandBody(command))
+      return true
+    }
+    scope.showToast(
+      translate(
+        'session.quickCommandLaunch.inputUnavailable',
+        'Open a chat that accepts input to insert this quick command.'
+      ),
+      1800
+    )
+    return false
+  }
   if (
     !scope.client ||
     scope.connState !== 'connected' ||

@@ -28,6 +28,7 @@ import {
 import { themedStyleSheet } from '../../theme/themed-styles'
 import { useMobileTranslation } from '../../i18n/use-mobile-translation'
 import { getUiIntlLocale } from '../../i18n/ui-intl-locale'
+import { QuickCommandSessionSwitch } from './QuickCommandSessionSwitch'
 import { MobileSwitch } from '../../components/controls/MobileSwitch'
 
 type Props = {
@@ -128,7 +129,12 @@ export function QuickCommandEditorForm({
         <ActionToggle value={draft.action} onChange={(action) => onChange({ action })} />
       </View>
 
-      {isAgent ? (
+      <QuickCommandSessionSwitch
+        newSession={draft.newSession !== false}
+        onChange={(newSession) => onChange({ newSession })}
+      />
+
+      {isAgent && draft.newSession !== false ? (
         <View style={styles.field}>
           <Text style={styles.label}>{t('session.quickCommandEditorForm.agent', 'Agent')}</Text>
           <Pressable
@@ -234,7 +240,7 @@ export function QuickCommandEditorForm({
 
         {advancedOpen ? (
           <View style={styles.advancedBody}>
-            {!isAgent ? (
+            {!isAgent && draft.newSession !== false ? (
               <View style={styles.switchRow}>
                 <View style={styles.switchText}>
                   <Text style={styles.switchTitle}>

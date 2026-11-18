@@ -23842,6 +23842,13 @@
         "filesStayLine": "Its files stay on {{host}}.",
         "removing": "Removing…"
       }
+    },
+    "quickCommands": {
+      "inputUnavailable": "Open a session that accepts input to insert this quick command.",
+      "insertCurrent": "Insert text into the current session without sending it.",
+      "insertNamed": "Insert {{label}}",
+      "newSession": "New session",
+      "startNew": "Start a new session for this quick command."
     }
   },
   "dashboardPopout": {

@@ -27,6 +27,7 @@ export const TerminalQuickCommandUpdateItem = z.union([
       action: z.literal('terminal-command').optional(),
       command: z.string().max(MAX_QUICK_COMMAND_TERMINAL_TEXT_LENGTH),
       appendEnter: z.boolean(),
+      newSession: z.boolean().optional(),
       scope: TerminalQuickCommandScopeUpdate.optional()
     })
     .strict(),
@@ -40,6 +41,7 @@ export const TerminalQuickCommandUpdateItem = z.union([
       }),
       // Bounded where every save lands (main's settings update), with the reason in its refusal.
       prompt: z.string(),
+      newSession: z.boolean().optional(),
       scope: TerminalQuickCommandScopeUpdate.optional()
     })
     .strict()

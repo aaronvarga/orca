@@ -7,7 +7,8 @@ import { isLegacyReadableTerminalQuickCommand } from '../../../../../shared/term
 import {
   LEGACY_MAX_QUICK_COMMANDS,
   TERMINAL_QUICK_COMMAND_LARGE_LISTS_RUNTIME_CAPABILITY,
-  TERMINAL_QUICK_COMMAND_LONG_PROMPTS_RUNTIME_CAPABILITY
+  TERMINAL_QUICK_COMMAND_LONG_PROMPTS_RUNTIME_CAPABILITY,
+  TERMINAL_QUICK_COMMAND_SESSION_TARGET_RUNTIME_CAPABILITY
 } from '../../../../../shared/terminal/quick-commands/terminal-quick-command-capabilities'
 import { InvalidArgumentError, type RpcContext } from '../../core'
 
@@ -20,11 +21,16 @@ export function projectTerminalQuickCommandsForClient(
   if (ctx.clientKind === undefined) {
     return commands
   }
+  const targeted = ctx.clientCapabilities?.includes(
+    TERMINAL_QUICK_COMMAND_SESSION_TARGET_RUNTIME_CAPABILITY
+  )
+    ? commands
+    : commands.filter((command) => command.newSession === undefined)
   const readable = ctx.clientCapabilities?.includes(
     TERMINAL_QUICK_COMMAND_LONG_PROMPTS_RUNTIME_CAPABILITY
   )
-    ? commands
-    : commands.filter(isLegacyReadableTerminalQuickCommand)
+    ? targeted
+    : targeted.filter(isLegacyReadableTerminalQuickCommand)
   return ctx.clientCapabilities?.includes(TERMINAL_QUICK_COMMAND_LARGE_LISTS_RUNTIME_CAPABILITY)
     ? readable
     : readable.slice(0, LEGACY_MAX_QUICK_COMMANDS)

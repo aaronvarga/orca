@@ -73,7 +73,7 @@ export function TabBarQuickCommandItem({
       onClick={onRun}
       className="group/qc mx-1 my-0.5 flex cursor-pointer items-center gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground"
     >
-      {isTerminalAgentQuickCommand(command) ? (
+      {isTerminalAgentQuickCommand(command) && command.newSession !== false ? (
         <span className="shrink-0 text-muted-foreground">
           <AgentIcon agent={command.agent} size={12} />
         </span>
@@ -94,9 +94,9 @@ export function TabBarQuickCommandItem({
           ) : null}
         </span>
         <span className="block truncate font-mono text-[11px] text-muted-foreground">
-          {isTerminalAgentQuickCommand(command)
+          {isTerminalAgentQuickCommand(command) && command.newSession !== false
             ? `${getAgentLabel(command.agent)}: ${command.prompt}`
-            : command.command}
+            : body}
         </span>
       </span>
       <span

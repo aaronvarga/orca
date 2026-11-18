@@ -23,6 +23,7 @@ export type QuickCommandDraft = {
   agent: TuiAgent | null
   prompt: string
   scope: TerminalQuickCommandScope
+  newSession?: boolean
 }
 
 export function createEmptyQuickCommandDraft(scope: TerminalQuickCommandScope): QuickCommandDraft {
@@ -34,7 +35,8 @@ export function createEmptyQuickCommandDraft(scope: TerminalQuickCommandScope): 
     appendEnter: true,
     agent: null,
     prompt: '',
-    scope
+    scope,
+    newSession: false
   }
 }
 
@@ -52,7 +54,8 @@ export function quickCommandToDraft(command: TerminalQuickCommand): QuickCommand
       appendEnter: true,
       agent: command.agent,
       prompt: command.prompt,
-      scope
+      scope,
+      ...(command.newSession === undefined ? {} : { newSession: command.newSession })
     }
   }
   return {
@@ -63,7 +66,8 @@ export function quickCommandToDraft(command: TerminalQuickCommand): QuickCommand
     appendEnter: command.appendEnter !== false,
     agent: null,
     prompt: '',
-    scope
+    scope,
+    ...(command.newSession === undefined ? {} : { newSession: command.newSession })
   }
 }
 
@@ -88,8 +92,8 @@ export function isQuickCommandDraftValid(
   }
   if (draft.action === 'agent-prompt') {
     return Boolean(
-      draft.agent &&
-      supportsTerminalAgentQuickCommand(draft.agent) &&
+      (draft.newSession === false ||
+        (draft.agent && supportsTerminalAgentQuickCommand(draft.agent))) &&
       draft.prompt.trim().length > 0 &&
       !isQuickCommandDraftPromptTooLong(draft, agentPromptMaxLength)
     )
@@ -110,14 +114,15 @@ export function draftToQuickCommand(
     draft.id ??
     `quick-command-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
   const label = draft.label.trim().slice(0, MAX_QUICK_COMMAND_LABEL_LENGTH)
-  if (draft.action === 'agent-prompt' && draft.agent) {
+  if (draft.action === 'agent-prompt') {
     return {
       id,
       label,
       action: 'agent-prompt',
-      agent: draft.agent,
+      agent: draft.agent ?? 'claude',
       prompt: draft.prompt.trimEnd(),
-      scope: draft.scope
+      scope: draft.scope,
+      ...(draft.newSession === undefined ? {} : { newSession: draft.newSession })
     }
   }
   return {
@@ -126,6 +131,7 @@ export function draftToQuickCommand(
     action: 'terminal-command',
     command: draft.command.trimEnd().slice(0, MAX_QUICK_COMMAND_TERMINAL_TEXT_LENGTH),
     appendEnter: draft.appendEnter,
-    scope: draft.scope
+    scope: draft.scope,
+    ...(draft.newSession === undefined ? {} : { newSession: draft.newSession })
   }
 }

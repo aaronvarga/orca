@@ -13,7 +13,7 @@ import {
 } from '../../../../../shared/terminal/quick-commands/terminal-quick-commands'
 import { getRepoIdFromWorktreeId } from '../../../../../shared/worktree/id'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../shared/workspace/identity/floating-workspace-id'
-import { runQuickCommandInNewTab } from '@/lib/terminal/quick-commands/run-quick-command-in-new-tab'
+import { runQuickCommand } from '@/lib/terminal/quick-commands/run-quick-command'
 import type { TerminalQuickCommand } from '../../../../../shared/terminal/quick-commands/terminal-quick-command-types'
 import { useConfirmationDialog } from '@/components/dismiss/confirmation/confirmation-dialog-context'
 import { useTranslate } from '@/i18n/use-translate'
@@ -143,7 +143,7 @@ export function TabBarQuickCommandsButton({
   }
 
   const handleRun = (entry: HostedTerminalQuickCommand): void => {
-    runQuickCommandInNewTab({
+    runQuickCommand({
       command: entry.command,
       worktreeId,
       groupId,

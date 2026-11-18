@@ -35,6 +35,7 @@ export type PasteTerminalTextDetail = {
   tabId: string
   paneId?: number
   text: string
+  onResult?: (inserted: boolean) => void
 }
 
 export type SplitTerminalPaneDetail = {

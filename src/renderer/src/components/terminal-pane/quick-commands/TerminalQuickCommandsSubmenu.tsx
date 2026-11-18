@@ -69,7 +69,7 @@ export function TerminalQuickCommandsMenuItems({
       key={`${hostId}:${command.id}`}
       onSelect={() => onRun(command, getHostedTerminalQuickCommandKey(hostId, command.id))}
     >
-      {isTerminalAgentQuickCommand(command) ? (
+      {isTerminalAgentQuickCommand(command) && command.newSession !== false ? (
         <span className="flex size-3.5 shrink-0 items-center justify-center text-muted-foreground">
           <AgentIcon agent={command.agent} size={14} />
         </span>
@@ -81,7 +81,9 @@ export function TerminalQuickCommandsMenuItems({
         />
       )}
       <span className="min-w-0 flex-1 truncate">{command.label}</span>
-      {showInsertHint && !isTerminalAgentQuickCommand(command) && !command.appendEnter ? (
+      {showInsertHint &&
+      (command.newSession === false ||
+        (!isTerminalAgentQuickCommand(command) && !command.appendEnter)) ? (
         <DropdownMenuShortcut className="shrink-0">
           {t('auto.components.terminal.pane.TerminalContextMenu.c2f0b72b8d', 'Insert')}
         </DropdownMenuShortcut>

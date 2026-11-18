@@ -4,6 +4,7 @@ import type { AppState } from '../../types'
 import type { TerminalQuickCommand } from '../../../../../shared/terminal/quick-commands/terminal-quick-command-types'
 import {
   applyTerminalQuickCommandMutation,
+  assertTerminalQuickCommandSessionChoiceSaved,
   parseNormalizedTerminalQuickCommands,
   type TerminalQuickCommandMutation
 } from '../../../../../shared/terminal/quick-commands/terminal-quick-commands'
@@ -74,7 +75,9 @@ async function mutateLocalCommands(
   try {
     const current = get().settings?.terminalQuickCommands ?? []
     const next = applyTerminalQuickCommandMutation(current, mutation)
-    await get().updateSettingsOrThrow({ terminalQuickCommands: next })
+    await get().updateSettingsOrThrow({ terminalQuickCommands: next }, (settings) => {
+      assertTerminalQuickCommandSessionChoiceSaved(settings.terminalQuickCommands, mutation)
+    })
     return true
   } catch (error) {
     // Why: main refuses an unstorable list with its own sentence; drop Electron's IPC wrapper.
@@ -114,6 +117,7 @@ async function mutateRemoteCommands(
         { timeoutMs: 15_000 }
       )
       const commands = readCommands(result)
+      assertTerminalQuickCommandSessionChoiceSaved(commands, mutation)
       if (getRuntimeEnvironmentConnectionGeneration(environmentId) !== connectionGeneration) {
         return
       }

@@ -32,6 +32,9 @@ function getScopeLabel(
 }
 
 function getRunModeLabel(command: TerminalQuickCommand, t: Translate = translate): string {
+  if (command.newSession === false) {
+    return t('auto.components.settings.QuickCommandsPane.9fcfc29519', 'Insert')
+  }
   if (isTerminalAgentQuickCommand(command)) {
     return t('auto.components.settings.QuickCommandsPane.4ccc63da87', 'Agent')
   }
@@ -91,13 +94,13 @@ function QuickCommandRow({
           </Badge>
         </div>
         <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-          {isTerminalAgentQuickCommand(command) ? (
+          {isTerminalAgentQuickCommand(command) && command.newSession !== false ? (
             <span className="shrink-0">
               <AgentIcon agent={command.agent} size={12} />
             </span>
           ) : null}
           <span className={cn('truncate', isTerminalAgentQuickCommand(command) ? '' : 'font-mono')}>
-            {isTerminalAgentQuickCommand(command)
+            {isTerminalAgentQuickCommand(command) && command.newSession !== false
               ? `${getAgentLabel(command.agent)}: ${body}`
               : body ||
                 t('auto.components.settings.QuickCommandsPane.0252ddd578', 'No command text')}

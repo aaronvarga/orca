@@ -3,6 +3,7 @@ import type { TerminalQuickCommand } from '../../../../../shared/terminal/quick-
 import { isTerminalAgentQuickCommand } from '../../../../../shared/terminal/quick-commands/terminal-quick-commands'
 import { sendTerminalQuickCommandToPane } from './terminal-quick-command-dispatch'
 import { runQuickCommandInNewTab } from '@/lib/terminal/quick-commands/run-quick-command-in-new-tab'
+import { runQuickCommand } from '@/lib/terminal/quick-commands/run-quick-command'
 import type { UseTerminalPaneContextMenuDeps } from '../context-menu/terminal-pane-context-menu-types'
 
 export function createTerminalPaneMenuQuickCommand({
@@ -16,6 +17,17 @@ export function createTerminalPaneMenuQuickCommand({
   'paneTransportsRef' | 'tabId' | 'worktreeId' | 'groupId'
 > & { resolveMenuPane: () => ManagedPane | null }) {
   const onQuickCommand = (command: TerminalQuickCommand, historyId: string): void => {
+    if (command.newSession !== undefined) {
+      runQuickCommand({
+        command,
+        worktreeId,
+        groupId,
+        historyId,
+        tabId,
+        paneId: command.newSession === false ? resolveMenuPane()?.id : undefined
+      })
+      return
+    }
     if (isTerminalAgentQuickCommand(command)) {
       runQuickCommandInNewTab({ command, worktreeId, groupId, historyId })
       return

@@ -33,6 +33,9 @@ export type MobileQuickCommandLaunch = {
 export function buildMobileQuickCommandLaunch(
   command: TerminalQuickCommand
 ): MobileQuickCommandLaunch | null {
+  if (command.newSession === false) {
+    return null
+  }
   if (isTerminalAgentQuickCommand(command)) {
     if (!command.prompt.trim() || !supportsTerminalAgentQuickCommand(command.agent)) {
       return null
@@ -64,10 +67,10 @@ export function getQuickCommandAgentLabel(agent: TuiAgent): string {
 }
 
 export function getQuickCommandPreview(command: TerminalQuickCommand): string {
-  if (isTerminalAgentQuickCommand(command)) {
+  if (isTerminalAgentQuickCommand(command) && command.newSession !== false) {
     return `${getQuickCommandAgentLabel(command.agent)}: ${command.prompt}`
   }
-  return command.command
+  return isTerminalAgentQuickCommand(command) ? command.prompt : command.command
 }
 
 export function getQuickCommandDisplayPreview(command: TerminalQuickCommand): string {

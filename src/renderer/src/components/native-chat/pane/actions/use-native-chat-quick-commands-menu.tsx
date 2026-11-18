@@ -8,7 +8,7 @@ import { getRepoIdFromWorktreeId } from '../../../../../../shared/worktree/id'
 import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../../shared/workspace/identity/floating-workspace-id'
 import type { TerminalQuickCommand } from '../../../../../../shared/terminal/quick-commands/terminal-quick-command-types'
-import { runQuickCommandInNewTab } from '@/lib/terminal/quick-commands/run-quick-command-in-new-tab'
+import { runQuickCommand } from '@/lib/terminal/quick-commands/run-quick-command'
 import {
   TerminalQuickCommandsMenuItems,
   TerminalQuickCommandsSubmenu
@@ -17,7 +17,7 @@ import { TerminalQuickCommandEditorDialog } from '../../../terminal-pane/quick-c
 import { createTerminalQuickCommandDraft } from '../../../terminal-quick-commands/TerminalQuickCommandDialog'
 
 type QuickCommandEditor = { hostId: ExecutionHostId; command: TerminalQuickCommand }
-type QuickCommandPane = { worktreeId: string; groupId: string }
+type QuickCommandPane = { worktreeId: string; groupId: string; tabId?: string }
 
 // Why: every retained chat mounts this hook, so it holds only the inert editor
 // state; menu data is read by components that live with the open menu content.
@@ -93,10 +93,10 @@ function NativeChatQuickCommandsMenuItems({
       }
       onClose={onClose}
       onRun={(command, historyId) => {
-        if (onInsert) {
+        if (onInsert && command.newSession !== true) {
           onInsert(getTerminalQuickCommandBody(command))
         } else {
-          runQuickCommandInNewTab({ command, historyId, worktreeId, groupId })
+          runQuickCommand({ command, historyId, worktreeId, groupId, tabId: pane.tabId })
         }
       }}
     />

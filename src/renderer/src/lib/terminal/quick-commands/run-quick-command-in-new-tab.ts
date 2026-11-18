@@ -49,6 +49,9 @@ export function runQuickCommandInNewTab({
   groupId,
   historyId = command.id
 }: RunQuickCommandInNewTabArgs): { tabId: string } | null {
+  if (command.newSession === false) {
+    return null
+  }
   const targetGroupId = groupId ?? undefined
   if (isTerminalAgentQuickCommand(command)) {
     if (!command.prompt.trim() || !supportsTerminalAgentQuickCommand(command.agent)) {

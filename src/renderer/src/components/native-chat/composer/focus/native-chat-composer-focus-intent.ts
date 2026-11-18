@@ -30,6 +30,10 @@ type PendingComposerFocusRequest = {
 let pendingFocusRequest: PendingComposerFocusRequest | null = null
 let focusRequestGeneration = 0
 
+export function nativeChatComposerRootForTab(tabId: string): HTMLElement | null {
+  return revealedComposerReclaims.get(tabId)?.root ?? null
+}
+
 export type NativeChatComposerFocusIntent = {
   request: (tabId: string, text?: ComposerFocusText) => void
   cancel: () => void

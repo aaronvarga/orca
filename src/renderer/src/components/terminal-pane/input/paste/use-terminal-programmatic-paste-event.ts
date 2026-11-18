@@ -16,12 +16,19 @@ export function useTerminalProgrammaticPasteEvent({
   useEffect(() => {
     const onPasteText = (event: Event): void => {
       const detail = (event as CustomEvent<PasteTerminalTextDetail | undefined>).detail
+      if (detail?.tabId !== tabId) {
+        return
+      }
+      event.preventDefault()
       void handleTerminalProgrammaticTextPaste({
         detail,
         tabId,
         getManager: () => managerRef.current,
         getPaneTransports: () => paneTransportsRef.current
-      })
+      }).then(
+        (inserted) => detail.onResult?.(inserted),
+        () => detail.onResult?.(false)
+      )
     }
     window.addEventListener(PASTE_TERMINAL_TEXT_EVENT, onPasteText)
     return () => window.removeEventListener(PASTE_TERMINAL_TEXT_EVENT, onPasteText)

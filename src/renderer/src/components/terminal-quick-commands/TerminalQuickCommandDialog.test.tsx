@@ -2,7 +2,7 @@
 
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { fireEvent, getByRole } from '@testing-library/react'
+import { fireEvent, getByRole, queryByRole } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { TerminalQuickCommand } from '../../../../shared/terminal/quick-commands/terminal-quick-command-types'
@@ -236,12 +236,45 @@ describe('TerminalQuickCommandDialog animation structure', () => {
       fireEvent.click(getByRole(document.body, 'radio', { name: 'Agent Prompt' }))
     )
     await act(async () => fireEvent.click(getByRole(document.body, 'button', { name: /^Save/ })))
-    expect(onSave).toHaveBeenCalledExactlyOnceWith({
+    expect(onSave).toHaveBeenCalledWith({
       id: 'qc-picker',
       label: 'Review',
       action: 'agent-prompt',
       agent: 'codex',
+      newSession: true,
       prompt: 'Review @src\n/goal careful',
+      scope: { type: 'global' }
+    })
+  })
+
+  it('saves current-session insertion without requiring an agent selection and retains the choice across action switches', async () => {
+    const onSave = vi.fn(() => true)
+    await renderDialog(
+      {
+        id: 'insert',
+        label: 'Review',
+        action: 'agent-prompt',
+        agent: 'claude',
+        prompt: 'Review the current workspace',
+        newSession: false
+      },
+      { onSave }
+    )
+    expect(queryByRole(document.body, 'button', { name: 'Select agent' })).toBeNull()
+    await act(async () =>
+      fireEvent.click(getByRole(document.body, 'radio', { name: 'Terminal Command' }))
+    )
+    await act(async () =>
+      fireEvent.click(getByRole(document.body, 'radio', { name: 'Agent Prompt' }))
+    )
+    await act(async () => fireEvent.click(getByRole(document.body, 'button', { name: /^Save/ })))
+    expect(onSave).toHaveBeenCalledWith({
+      id: 'insert',
+      label: 'Review',
+      action: 'agent-prompt',
+      agent: 'claude',
+      prompt: 'Review the current workspace',
+      newSession: false,
       scope: { type: 'global' }
     })
   })

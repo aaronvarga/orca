@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import type {
   TerminalQuickCommand,
   TerminalQuickCommandScope
@@ -21,6 +21,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { getAgentCatalog } from '@/lib/agent-catalog/agent-catalog'
 import {
   getScreenSubmitShortcutLabel,
@@ -65,6 +66,7 @@ export function createTerminalQuickCommandDraft(
     label: '',
     command: '',
     appendEnter: true,
+    newSession: false,
     scope
   }
 }
@@ -80,6 +82,7 @@ export function TerminalQuickCommandDialog({
   onSave
 }: TerminalQuickCommandDialogProps): React.JSX.Element {
   const t = useTranslate()
+  const newSessionId = useId()
   const fallbackAgent: TuiAgent =
     getAgentCatalog().find((entry) => supportsTerminalAgentQuickCommand(entry.id))?.id ?? 'claude'
   const [draft, setDraft] = useState<TerminalQuickCommand>(command)
@@ -159,6 +162,7 @@ export function TerminalQuickCommandDialog({
       ? {
           id: draft.id,
           label: draft.label.trim(),
+          newSession: draft.newSession ?? true,
           action: 'agent-prompt',
           agent: draft.agent,
           prompt: draft.prompt.trimEnd(),
@@ -167,6 +171,7 @@ export function TerminalQuickCommandDialog({
       : {
           id: draft.id,
           label: draft.label.trim(),
+          newSession: draft.newSession ?? true,
           action: 'terminal-command',
           command: draft.command.trimEnd(),
           appendEnter: draft.appendEnter,
@@ -279,6 +284,30 @@ export function TerminalQuickCommandDialog({
                 />
               </div>
             </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                id={newSessionId}
+                checked={draft.newSession !== false}
+                onCheckedChange={(newSession) =>
+                  setDraft((current) => ({ ...current, newSession }))
+                }
+              />
+              <Label htmlFor={newSessionId}>
+                {t('components.quickCommands.newSession', 'New session')}
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {draft.newSession === false
+                ? t(
+                    'components.quickCommands.insertCurrent',
+                    'Insert text into the current session without sending it.'
+                  )
+                : t(
+                    'components.quickCommands.startNew',
+                    'Start a new session for this quick command.'
+                  )}
+            </p>
 
             <TerminalQuickCommandContentSection
               disabled={saving}

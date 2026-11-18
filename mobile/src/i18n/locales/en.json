@@ -2412,7 +2412,10 @@
       "scope": "Scope",
       "globalScope": "Global",
       "projectScope": "Project",
-      "addQuickCommand": "Add Quick Command"
+      "addQuickCommand": "Add Quick Command",
+      "newSession": "New session",
+      "startNew": "Start a new session for this quick command.",
+      "insertCurrent": "Insert into the current chat without sending."
     },
     "quickCommandRow": {
       "copyFailed": "Couldn't copy",
@@ -2606,7 +2609,8 @@
     "quickCommandLaunch": {
       "editBeforeRunning": "Edit this quick command before running it",
       "defaultLabel": "Quick command",
-      "runFailed": "Couldn't run {{label}}"
+      "runFailed": "Couldn't run {{label}}",
+      "inputUnavailable": "Open a chat that accepts input to insert this quick command."
     },
     "routeHelpers": {
       "connecting": "Connecting",

@@ -100,6 +100,7 @@ export function TerminalQuickCommandContentSection({
   toggleAppendEnter
 }: TerminalQuickCommandContentSectionProps): React.JSX.Element {
   const t = useTranslate()
+  const showAgent = isAgentAction && draft.newSession !== false
   const intlLocale = useIntlLocale()
   useUiLanguageRevision()
   const unsupportedLabel = t(
@@ -156,17 +157,16 @@ export function TerminalQuickCommandContentSection({
       <div
         className={cn(
           'grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out',
-          isAgentAction ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          showAgent ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
         )}
-        aria-hidden={!isAgentAction}
+        aria-hidden={!showAgent}
+        inert={!showAgent}
       >
         <div className="min-h-0">
           <div
             className={cn(
               'space-y-2 px-1 pt-1 pb-1 transition-[opacity,transform] duration-150 ease-out',
-              isAgentAction
-                ? 'translate-y-0 opacity-100 delay-200'
-                : '-translate-y-1 opacity-0 delay-0'
+              showAgent ? 'translate-y-0 opacity-100 delay-200' : '-translate-y-1 opacity-0 delay-0'
             )}
           >
             <Label>
@@ -184,7 +184,7 @@ export function TerminalQuickCommandContentSection({
                 'Choose agent'
               )}
               setupDisabled
-              disabled={disabled || !isAgentAction}
+              disabled={disabled || !showAgent}
               onPick={selectAgent}
             />
           </div>
@@ -255,7 +255,7 @@ export function TerminalQuickCommandContentSection({
         />
 
         <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/50 px-3 py-2">
-          {!isTerminalAgentQuickCommand(draft) ? (
+          {!isTerminalAgentQuickCommand(draft) && draft.newSession !== false ? (
             <TerminalQuickCommandAppendEnterSwitch
               appendEnter={draft.appendEnter}
               onToggle={toggleAppendEnter}

@@ -64,6 +64,7 @@ export function switchTerminalQuickCommandDialogAction(
   const base = {
     id: draft.id,
     label: draft.label,
+    newSession: draft.newSession,
     scope: getTerminalQuickCommandScope(draft)
   }
 

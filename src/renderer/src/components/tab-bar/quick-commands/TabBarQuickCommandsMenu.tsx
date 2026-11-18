@@ -252,20 +252,24 @@ export function TabBarQuickCommandsMenu({
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={6}>
           {mostRecent
-            ? isTerminalAgentQuickCommand(mostRecent.command)
-              ? t(
-                  'auto.components.tab.bar.TabBarQuickCommandsButton.77ac113df0',
-                  'Start {{value0}}: {{value1}}',
-                  {
-                    value0: getAgentLabel(mostRecent.command.agent),
-                    value1: getTerminalQuickCommandBody(mostRecent.command)
-                  }
-                )
-              : t(
-                  'auto.components.tab.bar.TabBarQuickCommandsButton.37e1bb90ce',
-                  'Run: {{value0}}',
-                  { value0: getTerminalQuickCommandBody(mostRecent.command) }
-                )
+            ? mostRecent.command.newSession === false
+              ? t('components.quickCommands.insertNamed', 'Insert {{label}}', {
+                  label: mostRecent.command.label
+                })
+              : isTerminalAgentQuickCommand(mostRecent.command)
+                ? t(
+                    'auto.components.tab.bar.TabBarQuickCommandsButton.77ac113df0',
+                    'Start {{value0}}: {{value1}}',
+                    {
+                      value0: getAgentLabel(mostRecent.command.agent),
+                      value1: getTerminalQuickCommandBody(mostRecent.command)
+                    }
+                  )
+                : t(
+                    'auto.components.tab.bar.TabBarQuickCommandsButton.37e1bb90ce',
+                    'Run: {{value0}}',
+                    { value0: getTerminalQuickCommandBody(mostRecent.command) }
+                  )
             : t(
                 'auto.components.tab.bar.TabBarQuickCommandsButton.85482c57bc',
                 'Run quick command'

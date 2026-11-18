@@ -15,6 +15,8 @@ export type TerminalQuickCommandBase = {
   id: string
   label: string
   scope?: TerminalQuickCommandScope
+  /** False inserts into the current input without submitting; omitted preserves legacy entry-point behavior. */
+  newSession?: boolean
 }
 
 export type TerminalCommandQuickCommand = TerminalQuickCommandBase & {
