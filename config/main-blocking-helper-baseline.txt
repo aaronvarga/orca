@@ -402,7 +402,7 @@
 2 src/main/crash-reporting/reports/crash-feedback-diagnostic-bundle.ts
 1 src/main/crash-reporting/reports/crash-report-store.ts
 4 src/main/credentials/encrypted-api-key-file-store.ts
-7 src/main/credentials/integration-credential-file.ts
+6 src/main/credentials/integration-credential-file.ts
 1 src/main/credentials/integration-state-file-cache.ts
 2 src/main/credentials/integration-token-file-cache.ts
 1 src/main/cursor-accounts/status.ts

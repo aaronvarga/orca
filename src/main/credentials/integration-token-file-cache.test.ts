@@ -3,7 +3,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setSecretStore } from '../../shared/secure-storage/secret-store'
-import { createIntegrationTokenFileCache } from './integration-token-file-cache'
+import {
+  createIntegrationTokenFileCache,
+  createAsyncIntegrationTokenFileCache
+} from './integration-token-file-cache'
 
 let directory = ''
 const decrypt = vi.fn((value: Buffer) => value.toString('utf-8'))
@@ -79,4 +82,21 @@ describe('integration token file cache', () => {
     cache.clear()
     expect(cache.read('site', false)).toBeNull()
   })
+})
+
+it('refreshes async credentials after replacement and clears stale decryption failures on status', async () => {
+  const cache = createAsyncIntegrationTokenFileCache({ service: 'Jira', filePath })
+  writeFileSync(filePath('site'), Buffer.from([0xff, 0xfe]))
+  decrypt.mockImplementation(() => {
+    throw new Error('Keychain access denied')
+  })
+  await expect(cache.read('site')).rejects.toThrow('Could not decrypt')
+  expect(await cache.error('site')).toContain('Could not decrypt')
+  writeFileSync(filePath('site'), 'replacement-token')
+  expect(await cache.has('site')).toBe(true)
+  expect(await cache.error('site')).toBeUndefined()
+  decrypt.mockImplementation((value) => value.toString('utf8'))
+  expect(await cache.read('site')).toBe('replacement-token')
+  writeFileSync(filePath('site'), 'rotated-token')
+  expect(await cache.read('site')).toBe('rotated-token')
 })

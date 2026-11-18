@@ -1,4 +1,6 @@
 import { readFileSync } from 'node:fs'
+import { readFile, stat } from 'node:fs/promises'
+import { fileStatSignature } from '../filesystem/file-stat-signature'
 import type { IntegrationCredentialService } from '../../shared/secure-storage/integration-credential-errors'
 import {
   CredentialDecryptionError,
@@ -71,6 +73,66 @@ export function createIntegrationTokenFileCache(args: {
     },
     clear(): void {
       entries.clear()
+    }
+  }
+}
+
+export function createAsyncIntegrationTokenFileCache(args: {
+  service: IntegrationCredentialService
+  filePath: (id: string) => string
+}) {
+  type Entry = TokenFileState & { stamp: string | null; pending?: Promise<string | null> }
+  const entries = new Map<string, Entry>()
+  const stateFor = async (id: string): Promise<Entry> => {
+    const path = args.filePath(id)
+    const info = await stat(path, { bigint: true }).catch(() => null)
+    const stamp = info ? `${path}:${fileStatSignature(info)}` : null
+    let state = entries.get(id)
+    if (!state || state.stamp !== stamp) {
+      state = { stamp, present: info !== null && info.size > 0n }
+    }
+    entries.delete(id)
+    entries.set(id, state)
+    while (entries.size > MAX_CREDENTIAL_ENTRIES) {
+      entries.delete(entries.keys().next().value!)
+    }
+    return state
+  }
+  return {
+    async has(id: string): Promise<boolean> {
+      return (await stateFor(id)).present
+    },
+    async error(id: string): Promise<string | undefined> {
+      return (await stateFor(id)).error
+    },
+    async read(id: string): Promise<string | null> {
+      const state = await stateFor(id)
+      if (state.token !== undefined) {
+        return state.token
+      }
+      if (!state.present) {
+        return null
+      }
+      state.pending ??= (async () => {
+        try {
+          const token = readStoredCredentialToken(args.service, await readFile(args.filePath(id)))
+          state.token = token ?? undefined
+          state.error = undefined
+          return token
+        } catch (error) {
+          if (error instanceof CredentialDecryptionError) {
+            state.error = error.message
+            throw error
+          }
+          return null
+        } finally {
+          delete state.pending
+        }
+      })()
+      return state.pending
+    },
+    forget(id: string): void {
+      entries.delete(id)
     }
   }
 }

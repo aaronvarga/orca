@@ -32,14 +32,20 @@ export function writeEncryptedCredential(
   path: string,
   value: string
 ): void {
+  writeCredentialFileAtomic(path, encodeStoredCredentialToken(service, value))
+}
+
+export function encodeStoredCredentialToken(
+  service: IntegrationCredentialService,
+  value: string
+): Buffer {
   if (getSecretStore().isEncryptionAvailable()) {
-    writeCredentialFileAtomic(path, getSecretStore().encryptString(value))
-    return
+    return getSecretStore().encryptString(value)
   }
   console.warn(
     `[${service.toLowerCase()}] secret encryption unavailable — storing credential in plaintext`
   )
-  writeCredentialFileAtomic(path, Buffer.from(value, 'utf-8'))
+  return Buffer.from(value, 'utf-8')
 }
 
 // Stage and fsync before rename so failed writes cannot truncate the saved credential (STA-3941).

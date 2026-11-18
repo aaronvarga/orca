@@ -8,6 +8,7 @@ export type WorkerThreadRole =
   | 'orca-codex-history-disk-usage'
   | 'orca-codex-project-trust'
   | 'orca-command-path-directory'
+  | 'orca-credential-file-write'
   | 'orca-environment-store'
   | 'orca-foreign-sqlite-reader'
   | 'orca-google-pdf-text'

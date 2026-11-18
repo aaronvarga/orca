@@ -8,12 +8,10 @@ import type {
   AzureDevOpsConnection,
   AzureDevOpsStatus
 } from '../../shared/azure-devops/boards-types'
-import {
-  writeEncryptedCredential,
-  writeCredentialFileAtomic
-} from '../credentials/integration-credential-file'
-import { createIntegrationTokenFileCache } from '../credentials/integration-token-file-cache'
-import { readCredentialFileProtection } from '../credentials/credential-file-protection'
+import { encodeStoredCredentialToken } from '../credentials/integration-credential-file'
+import { writeCredentialFile } from '../credentials/credential-file-write'
+import { createAsyncIntegrationTokenFileCache } from '../credentials/integration-token-file-cache'
+import { classifyUnenvelopedCredential } from '../../shared/secure-storage/secret-at-rest-protection'
 
 const connectionSchema = z.object({
   id: z.string().uuid(),
@@ -25,7 +23,10 @@ const connectionSchema = z.object({
 const directory = () => join(homedir(), '.orca', 'azure-devops')
 const registryPath = () => join(directory(), 'connections.json')
 const tokenPath = (id: string) => join(directory(), `${Buffer.from(id).toString('base64url')}.enc`)
-const tokens = createIntegrationTokenFileCache({ service: 'Azure DevOps', filePath: tokenPath })
+const tokens = createAsyncIntegrationTokenFileCache({
+  service: 'Azure DevOps',
+  filePath: tokenPath
+})
 let environmentSnapshot: {
   token: string
   authorizationKey: string
@@ -93,23 +94,30 @@ export async function savedAzureDevOpsConnections(): Promise<AzureDevOpsConnecti
 
 export async function azureDevOpsConnectionStatus(): Promise<AzureDevOpsStatus> {
   const connections = await azureDevOpsConnections()
+  const states = await Promise.all(
+    connections.map(async (entry) => {
+      if (entry.externallyManaged) {
+        return { protection: null, error: undefined }
+      }
+      const path = tokenPath(entry.revision)
+      const raw = await readFile(path).catch(() => null)
+      const present = await tokens.has(entry.revision)
+      return {
+        protection: raw?.length ? classifyUnenvelopedCredential(raw) : null,
+        error:
+          (await tokens.error(entry.revision)) ??
+          (!present
+            ? 'Saved Azure DevOps credential is unavailable. Reconnect this organization.'
+            : undefined)
+      }
+    })
+  )
   return {
     connections,
-    credentialProtection: connections.some(
-      (entry) => readCredentialFileProtection(tokenPath(entry.revision)) === 'plaintext'
-    )
+    credentialProtection: states.some((state) => state.protection === 'plaintext')
       ? 'plaintext'
       : null,
-    credentialError: connections
-      .map((entry) =>
-        entry.externallyManaged
-          ? undefined
-          : (tokens.error(entry.revision) ??
-            (!tokens.has(entry.revision)
-              ? 'Saved Azure DevOps credential is unavailable. Reconnect this organization.'
-              : undefined))
-      )
-      .find(Boolean)
+    credentialError: states.map((state) => state.error).find(Boolean)
   }
 }
 
@@ -123,7 +131,7 @@ function invalidateReads(id: string, revision?: string): void {
 
 async function writeRegistry(connections: AzureDevOpsConnection[]): Promise<void> {
   await mkdir(directory(), { recursive: true, mode: 0o700 })
-  writeCredentialFileAtomic(registryPath(), Buffer.from(JSON.stringify(connections)))
+  await writeCredentialFile(registryPath(), Buffer.from(JSON.stringify(connections)))
 }
 
 let mutations: Promise<unknown> = Promise.resolve()
@@ -145,7 +153,10 @@ export async function publishAzureDevOpsConnection(
     const previous = connections.find((entry) => entry.baseUrl === input.baseUrl)
     const connection = { ...input, id: previous?.id ?? randomUUID(), revision: randomUUID() }
     await mkdir(directory(), { recursive: true, mode: 0o700 })
-    writeEncryptedCredential('Azure DevOps', tokenPath(connection.revision), token)
+    await writeCredentialFile(
+      tokenPath(connection.revision),
+      encodeStoredCredentialToken('Azure DevOps', token)
+    )
     try {
       await writeRegistry([
         ...connections.filter((entry) => entry.id !== connection.id),
@@ -196,7 +207,7 @@ export async function savedAzureDevOpsToken(connection: AzureDevOpsConnection): 
     }
     return environmentSnapshot.token
   }
-  const token = tokens.read(connection.revision)
+  const token = await tokens.read(connection.revision)
   if (!token) {
     throw new Error('Azure DevOps credential is unavailable. Reconnect in Settings.')
   }

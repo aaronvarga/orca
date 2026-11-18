@@ -1,3 +1,4 @@
+import '../credentials/credential-file-write.test-fixture'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import type * as Os from 'node:os'

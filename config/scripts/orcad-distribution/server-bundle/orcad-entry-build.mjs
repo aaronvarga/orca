@@ -23,6 +23,7 @@ export const ORCAD_CHILD_ENTRY_POINTS = {
   watcher: 'src/main/ipc/filesystem/watcher-process/parcel-watcher-process-entry.ts',
   daemon: 'src/main/daemon/daemon-entry.ts',
   writer: 'src/main/persistence/profile-state/writer/profile-state-writer-worker-entry.ts',
+  credentialWriter: 'src/main/credentials/credential-file-write-worker-entry.ts',
   backup: 'src/main/persistence/profile-state/backup/profile-state-backup-worker-entry.ts',
   sessionSearch: 'src/main/ai-vault-search/worker/session-search-worker-entry.ts',
   foreignSqliteReader: 'src/main/foreign-sqlite-readers/foreign-sqlite-reader-entry.ts',
