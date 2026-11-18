@@ -110,7 +110,7 @@ export function CommandCenterView({
   }
   const columns = commandCenterColumns(presentation, filtered.length, size.width)
   const layoutGroups: [string, CommandCenterTile[]][] =
-    presentation.layout === 'auto-columns' ? [['all', [...groups.values()].flat()]] : [...groups]
+    presentation.layout === 'manual' ? [...groups] : [['all', [...groups.values()].flat()]]
   const rows =
     presentation.layout === 'auto-columns'
       ? 1
@@ -118,13 +118,7 @@ export function CommandCenterView({
         ? presentation.rows
         : Math.max(
             1,
-            Math.min(
-              [...groups.values()].reduce(
-                (total, group) => total + Math.ceil(group.length / columns),
-                0
-              ),
-              Math.floor((size.height + 12) / 232)
-            )
+            Math.min(Math.ceil(filtered.length / columns), Math.floor((size.height + 12) / 232))
           )
   const tileHeight = Math.max(220, Math.floor((size.height - (rows - 1) * 12) / rows))
   const hosts = [...new Map(sessions.map((s) => [s.ownerId, s.hostLabel])).entries()]
@@ -201,7 +195,7 @@ export function CommandCenterView({
                 key={key}
                 className="min-w-0"
                 aria-label={
-                  presentation.groupByProject && presentation.layout !== 'auto-columns'
+                  presentation.groupByProject && presentation.layout === 'manual'
                     ? (group[0].repo?.displayName ?? group[0].projectName)
                     : undefined
                 }

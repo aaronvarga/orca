@@ -188,6 +188,23 @@ export const balancedColumns = defineFixture({
   render: () => <Preview width={1440} height={900} columns balanced />
 })
 
+export const twoProjectsShortWindow = defineFixture({
+  width: 1180,
+  render: () => <Preview width={1180} height={380} balanced />,
+  interact: async (frame) => {
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    )
+    const tiles = Array.from(
+      frame.querySelectorAll<HTMLElement>('section[aria-label] > header')
+    ).map((header) => header.parentElement!.getBoundingClientRect())
+    const bottom = frame.getBoundingClientRect().bottom
+    if (tiles.length !== 2 || tiles.some((tile) => tile.bottom > bottom)) {
+      throw new Error('Both project sessions must fit in the automatic grid')
+    }
+  }
+})
+
 export const mixedChatAndTerminal = defineFixture({
   width: 1440,
   render: () => <Preview width={1440} height={900} includeChat />

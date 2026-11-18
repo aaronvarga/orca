@@ -1,5 +1,6 @@
 import type { ManagedPane } from '../pane-manager-types'
 import { isManagedPaneDisplayNone } from './pane-display-visibility'
+import { readFitClientSize } from './pane-fit-client-size'
 import {
   flushDeferredPaneMetricOptions,
   hasDeferredPaneMetricOptions
@@ -8,7 +9,7 @@ import {
 const MIN_PANE_FIT_WIDTH_PX = 48
 const MIN_PANE_FIT_HEIGHT_PX = 24
 const MIN_PANE_FIT_COLS = 8
-const MIN_PANE_FIT_ROWS = 4
+const MIN_PANE_FIT_ROWS = 1
 
 export function getProposedPaneDimensions(
   pane: ManagedPane
@@ -25,7 +26,10 @@ function hasPaneFitPixelBox(pane: ManagedPane): boolean {
   if (typeof measure !== 'function') {
     return true
   }
-  const rect = measure.call(pane.container)
+  const rect = readFitClientSize(pane)
+  if (!rect) {
+    return false
+  }
   return rect.width >= MIN_PANE_FIT_WIDTH_PX && rect.height >= MIN_PANE_FIT_HEIGHT_PX
 }
 
