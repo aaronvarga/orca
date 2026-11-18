@@ -27,6 +27,7 @@ import {
 
 export type SettingsInteractionModel = Pick<
   SettingsStoreModel,
+  | 'rememberSettingsScrollNode'
   | 'closeSettingsPage'
   | 'confirm'
   | 'hasUnsavedBranchPromptChanges'
@@ -54,6 +55,7 @@ function isFullyVisibleIn(target: HTMLElement, container: HTMLElement): boolean 
 
 export function useSettingsInteractionController(model: SettingsInteractionModel) {
   const {
+    rememberSettingsScrollNode,
     closeSettingsPage,
     confirm,
     hasUnsavedBranchPromptChanges,
@@ -131,16 +133,20 @@ export function useSettingsInteractionController(model: SettingsInteractionModel
     [setSettingsSearchQuery]
   )
 
-  const setContentScrollNode = useCallback((node: HTMLDivElement | null): void => {
-    contentScrollRef.current = node
-    setContentScrollElement(node)
-    if (node !== null) {
-      return
-    }
-    // Cancel pending subsection jumps so stale frames cannot run after close.
-    cancelPendingSettingsSubsectionScrollFrame(pendingSubsectionScrollFrameRef)
-    cancelPendingSettingsDeepLinkTargetWatch(pendingScrollTargetWatchRef)
-  }, [])
+  const setContentScrollNode = useCallback(
+    (node: HTMLDivElement | null): void => {
+      rememberSettingsScrollNode(node)
+      contentScrollRef.current = node
+      setContentScrollElement(node)
+      if (node !== null) {
+        return
+      }
+      // Cancel pending subsection jumps so stale frames cannot run after close.
+      cancelPendingSettingsSubsectionScrollFrame(pendingSubsectionScrollFrameRef)
+      cancelPendingSettingsDeepLinkTargetWatch(pendingScrollTargetWatchRef)
+    },
+    [rememberSettingsScrollNode]
+  )
 
   useEffect(() => {
     // StrictMode replays mount effects; font requests may still commit while mounted.

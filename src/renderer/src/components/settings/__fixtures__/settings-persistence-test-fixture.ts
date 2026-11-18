@@ -87,6 +87,7 @@ export function settingsModel(): SettingsPersistenceModel {
     showDesktopOnlySettings: true,
     sourceControlAiPromptDiscardSignal: 0,
     closeSettingsPage: vi.fn(),
+    rememberSettingsScrollNode: vi.fn(),
     confirm: vi.fn(async () => false),
     hasUnsavedBranchPromptChanges: false,
     hasUnsavedChatPromptChanges: false,

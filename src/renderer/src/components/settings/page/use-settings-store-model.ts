@@ -1,5 +1,6 @@
 import { useSupportedGroupHookSettings } from '@/components/settings/repository/hooks/use-supported-group-hook-settings'
 import type { GeneralSubPage } from '../general/general-sub-pages'
+import { useSettingsLocation } from '../navigation/use-settings-location'
 import { useCallback, useMemo, useState } from 'react'
 import type { OrcaHooks } from '../../../../../shared/workspace-setup/orca-yaml-hook-types'
 import type { ProjectHostSetup } from '../../../../../shared/project/project-types'
@@ -157,10 +158,15 @@ export function useSettingsStoreModel() {
     () => fontSuggestions.filter((font) => font !== DEFAULT_APP_FONT_FAMILY),
     [fontSuggestions]
   )
-  const [activeSectionId, setActiveSectionId] = useState('general')
-  const [generalSubPage, setGeneralSubPage] = useState<GeneralSubPage | null>(null)
+  const {
+    activeSectionId,
+    setActiveSectionId,
+    generalSubPage,
+    setGeneralSubPage,
+    rememberSettingsScrollNode
+  } = useSettingsLocation()
   const [mountedSectionIds, setMountedSectionIds] = useState<Set<string>>(
-    getInitialMountedSectionIds
+    () => new Set([...getInitialMountedSectionIds(), activeSectionId])
   )
   const [pendingNavRequestTick, setPendingNavRequestTick] = useState(0)
   const [highlightedSettingsTarget, setHighlightedSettingsTarget] = useState<{ id: string } | null>(
@@ -207,6 +213,7 @@ export function useSettingsStoreModel() {
   )
 
   return {
+    rememberSettingsScrollNode,
     hookSettingsGroups,
     generalSubPage,
     setGeneralSubPage,
