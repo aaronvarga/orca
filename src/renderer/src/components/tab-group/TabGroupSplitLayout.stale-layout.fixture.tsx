@@ -5,6 +5,7 @@ import { defineFixture } from '../../component-fixtures/component-fixture'
 import { useAppStore } from '@/store/index'
 import { ConfirmationDialogProvider } from '../dismiss/confirmation/confirmation-dialog'
 import TabGroupSplitLayout from './TabGroupSplitLayout'
+import { RightSidebarToggle } from '@/app-shell/TitlebarMainStrip'
 
 const WT = 'preview-repo::/preview/repo/feature'
 const GONE_GROUP = 'group-that-no-longer-exists'
@@ -15,6 +16,9 @@ function Workspace(): React.JSX.Element {
     <ConfirmationDialogProvider>
       <div className="relative flex h-[320px] border border-border bg-background">
         {layout ? <TabGroupSplitLayout layout={layout} worktreeId={WT} isWorktreeActive /> : null}
+        <div className="absolute right-0 top-0 flex h-9 items-center">
+          <RightSidebarToggle />
+        </div>
       </div>
     </ConfirmationDialogProvider>
   )
@@ -60,4 +64,23 @@ export const newTabAfterStaleLayout = defineFixture({
     useAppStore.getState().createUnifiedTab(WT, 'editor', { label: 'Notes' })
   },
   render: () => <Workspace />
+})
+
+export const headerAlignment = defineFixture({
+  ...newTabAfterStaleLayout,
+  interact: (frame) => {
+    const command = frame
+      .querySelector('[aria-label="Add quick command"] svg')
+      ?.getBoundingClientRect()
+    const pane = frame
+      .querySelector('[aria-label="Toggle right sidebar"] svg')
+      ?.getBoundingClientRect()
+    if (
+      !command ||
+      !pane ||
+      Math.abs(command.y + command.height / 2 - pane.y - pane.height / 2) > 0.1
+    ) {
+      throw new Error('Command and pane icons must have the same vertical center')
+    }
+  }
 })

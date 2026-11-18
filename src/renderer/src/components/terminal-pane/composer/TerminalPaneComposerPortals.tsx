@@ -13,13 +13,18 @@ import { recordTerminalUserInputForLeaf } from '../input/terminal-input-activity
 import { TerminalPaneComposer } from './TerminalPaneComposer'
 import { sendTerminalComposerText } from './terminal-composer-send'
 
-function PaneComposer({
-  pane,
-  controller
-}: {
-  pane: ManagedPane
-  controller: TerminalPaneController
-}) {
+type ComposerController = Pick<
+  TerminalPaneController,
+  | 'worktreeId'
+  | 'tabId'
+  | 'paneTransportsRef'
+  | 'managerRef'
+  | 'managedPanes'
+  | 'effectiveChatViewMode'
+  | 'chatPane'
+>
+
+function PaneComposer({ pane, controller }: { pane: ManagedPane; controller: ComposerController }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const { worktreeId, tabId, paneTransportsRef, managerRef } = controller
   useLayoutEffect(() => {
@@ -103,11 +108,7 @@ function PaneComposer({
   )
 }
 
-export function TerminalPaneComposerPortals({
-  controller
-}: {
-  controller: TerminalPaneController
-}) {
+export function TerminalPaneComposerPortals({ controller }: { controller: ComposerController }) {
   return (
     <>
       {controller.managedPanes.map((pane) =>

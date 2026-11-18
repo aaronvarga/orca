@@ -364,17 +364,36 @@
   pointer-events: auto;
 }
 
-.pane-title-bar[data-chromeless] .pane-title-split-trigger,
-.pane-title-bar[data-chromeless] .pane-title-close {
+.pane-title-split-trigger,
+.pane-title-close {
   position: relative;
-  width: 18px;
-  min-width: 18px;
+  width: var(--orca-pane-title-height);
+  min-width: var(--orca-pane-title-height);
   height: var(--orca-pane-title-height);
   padding: 0;
 }
 
-.pane-title-bar[data-chromeless] .pane-title-close {
-  margin-left: -1px;
+.pane-title-actions .pane-title-close {
+  margin-left: 0;
+}
+
+.pane-title-split-trigger > svg,
+.pane-title-close > svg {
+  width: calc(var(--spacing) * 3.5);
+  height: calc(var(--spacing) * 3.5);
+  stroke-width: 2;
+  opacity: 0.2;
+  transition: opacity 120ms ease;
+}
+
+:where(.pane-title-actions:is(:hover, :focus-within)) .pane-title-split-trigger > svg,
+:where(.pane-title-actions:is(:hover, :focus-within)) .pane-title-close > svg {
+  opacity: 0.55;
+}
+
+.pane-title-split-trigger:is(:hover, :focus-visible, [data-state='open']) > svg,
+.pane-title-close:is(:hover, :focus-visible) > svg {
+  opacity: 1;
 }
 
 .pane-title-bar[data-chromeless] .pane-title-split-trigger::before,
@@ -414,7 +433,9 @@
 .pane-title-split-trigger {
   color: var(--orca-pane-title-button-fg, rgb(255 255 255 / 0.3));
   opacity: 0;
-  transition: opacity 120ms ease;
+  transition:
+    opacity 120ms ease,
+    color 120ms ease;
 }
 
 .pane-title-bar[data-chromeless] .pane-title-split-trigger svg,
@@ -422,7 +443,6 @@
   /* Why: chromeless controls overlap row-one terminal text; the rounded backing
      clears text inside open glyphs without adding one shared toolbar fill. */
   position: relative;
-  stroke-width: 2.75px;
 }
 
 .pane-title-bar[data-active-pane] .pane-title-split-trigger,
@@ -446,10 +466,13 @@
 }
 
 .pane-title-close:hover,
+.pane-title-close:focus-visible,
 .pane-title-close:active,
 .pane-title-close[data-state='delayed-open'],
 .pane-title-close[data-state='instant-open'],
 .pane-title-split-trigger:hover,
+.pane-title-split-trigger:focus-visible,
+.pane-title-split-trigger[data-state='open'],
 .pane-title-split-trigger:active,
 .pane-title-split-trigger[data-state='delayed-open'],
 .pane-title-split-trigger[data-state='instant-open'] {

@@ -1,14 +1,14 @@
 import type { TabGroup, Tab } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
 import { useRef } from 'react'
 import {
-  Columns2,
   PanelLeftClose,
-  Rows2,
+  PanelRightClose,
+  PanelBottomClose,
   Copy,
   Move,
   Maximize2,
   Minimize2,
-  Grid2X2,
+  LayoutGrid,
   X,
   type LucideIcon
 } from 'lucide-react'
@@ -74,10 +74,14 @@ export function WorkspacePaneToolbar({
     },
     {
       label: t('paneToolbar.splitRight', 'Split Right'),
-      Icon: Columns2,
+      Icon: PanelRightClose,
       run: () => split('right')
     },
-    { label: t('paneToolbar.splitDown', 'Split Down'), Icon: Rows2, run: () => split('down') },
+    {
+      label: t('paneToolbar.splitDown', 'Split Down'),
+      Icon: PanelBottomClose,
+      run: () => split('down')
+    },
     {
       label: presentation?.floating
         ? t('paneToolbar.dock', 'Dock Pane')
@@ -94,7 +98,7 @@ export function WorkspacePaneToolbar({
     },
     {
       label: t('paneToolbar.equalize', 'Equalize Splits'),
-      Icon: Grid2X2,
+      Icon: LayoutGrid,
       run: () => {
         equalizeWorkspacePanes(worktreeId)
         onEqualize?.()
@@ -160,7 +164,7 @@ export function WorkspacePaneToolbar({
                         drag.current = null
                       }}
                     >
-                      <Move className="size-3.5" />
+                      <Move className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
@@ -198,7 +202,7 @@ export function WorkspacePaneToolbar({
                   run()
                 }}
               >
-                <Icon className="size-3.5" />
+                <Icon className="size-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">{label}</TooltipContent>

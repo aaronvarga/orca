@@ -251,7 +251,7 @@ export default function TabGroupPanel({
 
   // Why: actions hide before the tab bar's floor is reached; min-w-0 + clipping is only a backstop so reserved spacers stay clear.
   const actionChromeClassName = cn(
-    'flex min-w-0 items-center gap-0.5 overflow-hidden pl-1.5 pr-0.5 transition-opacity duration-150',
+    'flex h-7 min-w-0 self-start items-center gap-0.5 overflow-hidden pl-1.5 pr-0.5 transition-opacity duration-150',
     !isFocused && 'opacity-50 hover:opacity-100 focus-within:opacity-100'
   )
   return (

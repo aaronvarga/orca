@@ -6,6 +6,10 @@ import { useAppStore } from '@/store'
 import { defineFixture } from '../../../component-fixtures/component-fixture'
 import { WorkspacePaneToolbar } from './WorkspacePaneToolbar'
 import { usePanePresentationStyle } from './use-workspace-pane-presentation'
+import { MessageSquarePlus, SquareTerminal } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { NativeChatSettingsButton } from '@/components/native-chat/appearance/NativeChatSettingsButton'
+import { useDocumentDarkTheme } from '@/hooks/use-document-dark-theme'
 
 const groups = [
   { id: 'left', worktreeId: 'toolbar-workspace', activeTabId: 'chat', tabOrder: ['chat'] },
@@ -39,6 +43,7 @@ function Pane({ groupId, visible }: { groupId: string; visible: boolean }) {
   )
 }
 function Session({ groupId, visible }: { groupId: string; visible: boolean }) {
+  const dark = useDocumentDarkTheme()
   return (
     <RetainedPaneHost worktreeId="toolbar-workspace" groupId={groupId} isVisible={visible}>
       <section
@@ -49,13 +54,24 @@ function Session({ groupId, visible }: { groupId: string; visible: boolean }) {
         <header
           className="pane-title-bar flex h-8 shrink-0 justify-end bg-muted"
           data-active-pane
+          data-chromeless
+          data-pane-title-surface={dark ? 'dark' : 'light'}
           style={{ position: 'relative' }}
         >
-          <WorkspacePaneToolbar
-            worktreeId="toolbar-workspace"
-            groupId={groupId}
-            onClose={() => useAppStore.getState().closeEmptyGroup('toolbar-workspace', groupId)}
-          />
+          <div className="pane-title-actions flex items-center gap-0">
+            <Button variant="pane-title" size="icon-xs" aria-label="Hand off to another agent">
+              <MessageSquarePlus className="size-3.5" />
+            </Button>
+            <Button variant="pane-title" size="icon-xs" aria-label="Show terminal">
+              <SquareTerminal className="size-3" />
+            </Button>
+            <WorkspacePaneToolbar
+              worktreeId="toolbar-workspace"
+              groupId={groupId}
+              onClose={() => useAppStore.getState().closeEmptyGroup('toolbar-workspace', groupId)}
+            />
+            <NativeChatSettingsButton />
+          </div>
         </header>
         <article className="p-4 text-sm">
           {groupId === 'left'
@@ -169,4 +185,9 @@ export const floating = defineFixture({
       throw new Error('Floating session disappeared after hiding its workspace')
     }
   }
+})
+
+export const focused = defineFixture({
+  ...desktop,
+  interact: (frame) => frame.querySelector<HTMLButtonElement>('[aria-label="Split Right"]')?.focus()
 })
