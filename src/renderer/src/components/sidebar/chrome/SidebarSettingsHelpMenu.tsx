@@ -1,4 +1,5 @@
 import { DiscordIcon } from '../../icons/DiscordIcon'
+import { SettingsUpdateIcon, useSettingsUpdateAction } from '../SettingsUpdateIcon'
 import React, { useState } from 'react'
 import {
   BookOpen,
@@ -11,8 +12,7 @@ import {
   RefreshCw,
   RotateCw,
   School,
-  ScrollText,
-  Settings
+  ScrollText
 } from 'lucide-react'
 import { toast } from 'sonner'
 import logo from '../../../../../../resources/logo.svg'
@@ -91,6 +91,7 @@ function ExternalMenuItem({
 export function SidebarSettingsHelpMenu(): React.JSX.Element {
   const t = useTranslate()
   const openModal = useAppStore((s) => s.openModal)
+  const settingsUpdate = useSettingsUpdateAction()
   const openSettingsPage = useAppStore((s) => s.openSettingsPage)
   const openSettingsTarget = useAppStore((s) => s.openSettingsTarget)
   const updateStatus = useAppStore((s) => s.updateStatus)
@@ -185,18 +186,15 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
               variant="ghost"
               size="icon-xs"
               type="button"
-              aria-label={t(
-                'auto.components.sidebar.SidebarSettingsHelpMenu.a428c25998',
-                'Settings'
-              )}
+              aria-label={settingsUpdate.label}
               className="text-muted-foreground"
-              onClick={openSettingsPage}
+              onClick={settingsUpdate.open}
             >
-              <Settings className="size-3.5" />
+              <SettingsUpdateIcon available={settingsUpdate.available} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top" sideOffset={4} className="flex items-center gap-1.5">
-            {t('auto.components.sidebar.SidebarSettingsHelpMenu.a428c25998', 'Settings')}
+            {settingsUpdate.label}
             {settingsShortcut.keys.length > 0 ? (
               <ShortcutKeyCombo
                 keys={settingsShortcut.keys}

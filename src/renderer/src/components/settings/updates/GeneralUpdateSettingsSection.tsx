@@ -1,3 +1,4 @@
+import { ForkReleaseUpdateSetting } from './ForkReleaseUpdateSetting'
 import { getUpdateInstallBlockGuidance } from '../../maintenance/update-card/update-install-block-guidance'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
@@ -302,6 +303,7 @@ export function GeneralUpdateSettingsSection({
       {isWebClientLocation() ? null : <AutomaticUpdatesSetting />}
       <UpdateDelaySetting />
       {channelSwitcherRevealed ? <ReleaseChannelSection /> : null}
+      <ForkReleaseUpdateSetting />
       <GeneralRemoteServerUpdates />
       {children}
     </SettingsGroup>

@@ -1,3 +1,4 @@
+import { registerForkReleaseHandlers } from './fork-release-updates'
 import { app, ipcMain } from 'electron'
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron'
 import type {
@@ -144,6 +145,7 @@ export function scheduleMainWindowAutoUpdaterSetup(
 }
 
 export function registerUpdaterHandlers(_store: Store): void {
+  registerForkReleaseHandlers()
   ipcMain.removeHandler('updater:getStatus')
   ipcMain.removeHandler('updater:getVersion')
   ipcMain.removeHandler('updater:check')

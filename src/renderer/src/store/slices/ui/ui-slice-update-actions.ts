@@ -11,6 +11,8 @@ import {
 } from '../../../../../shared/browser/extensions/browser-extension-side-panel-types'
 export function createUiUpdateActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
   return {
+    forkReleaseStatus: null,
+    setForkReleaseStatus: (status) => set({ forkReleaseStatus: status }),
     updateStatus: { state: 'idle' },
     setUpdateStatus: (status) => {
       const { updateStatus: previousStatus, updateUserInitiatedCycle } = get()

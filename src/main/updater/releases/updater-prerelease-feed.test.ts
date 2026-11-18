@@ -95,6 +95,20 @@ describe('fetchNewerReleaseTagsWithReadiness update delay', () => {
     installNetRequestFetchAdapter(netRequestMock, netFetchMock)
   })
 
+  it('offers a source release without installers while keeping binary checks gated', async () => {
+    netFetchMock.mockImplementation(async (url: string) =>
+      url.endsWith('/releases/latest')
+        ? {
+            status: 302,
+            headers: { get: () => 'https://github.com/stablyai/orca/releases/tag/v1.4.215' }
+          }
+        : { status: 404, ok: false, text: async () => '' }
+    )
+    const { fetchLatestStableReleaseTag } = await import('./updater-prerelease-feed')
+    expect(await fetchLatestStableReleaseTag({ requirePlatformManifest: false })).toBe('v1.4.215')
+    expect(await fetchLatestStableReleaseTag()).toBeNull()
+  })
+
   it('offers the newest release past the delay and reports the newer one it holds', async () => {
     respondWithAtom(['v1.4.3', 'v1.4.2', 'v1.4.1'], [], [], [], {
       'v1.4.3': daysAgo(1),

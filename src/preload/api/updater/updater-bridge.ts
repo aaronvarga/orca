@@ -1,3 +1,4 @@
+import type { ForkReleaseStatus } from '../../../shared/updater/fork-release-status'
 import { ipcRenderer } from 'electron'
 import type { UpdateStatus } from '../../../shared/updater/update-status-types'
 import { prepareAndInvokeUpdaterInstall } from '../../renderer/restart/renderer-restart-wiring'
@@ -5,6 +6,14 @@ import { awaitBeforeUnloadCheckpoint, updaterQuitAbortRelay } from '../../render
 import type { PreloadApi } from '../../api-types'
 
 export const updaterApi = {
+  getForkReleaseStatus: () => ipcRenderer.invoke('updater:getForkReleaseStatus').catch(() => null),
+  checkForkRelease: () => ipcRenderer.invoke('updater:checkForkRelease'),
+  onForkReleaseStatus: (callback) => {
+    const listener = (_event: Electron.IpcRendererEvent, status: ForkReleaseStatus) =>
+      callback(status)
+    ipcRenderer.on('updater:forkReleaseStatus', listener)
+    return () => ipcRenderer.removeListener('updater:forkReleaseStatus', listener)
+  },
   getStatus: () => ipcRenderer.invoke('updater:getStatus'),
   getVersion: () => ipcRenderer.invoke('updater:getVersion'),
   check: (options) => ipcRenderer.invoke('updater:check', options),

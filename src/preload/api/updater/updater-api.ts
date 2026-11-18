@@ -1,3 +1,4 @@
+import type { ForkReleaseStatus } from '../../../shared/updater/fork-release-status'
 import type {
   LinuxPackageInstallInstructions,
   ReleaseBuildListResult,
@@ -7,6 +8,9 @@ import type {
 import type { ReleaseChannel } from '../../../shared/updater/release-channel'
 
 export type UpdaterApi = {
+  getForkReleaseStatus?: () => Promise<ForkReleaseStatus | null>
+  checkForkRelease?: () => Promise<ForkReleaseStatus>
+  onForkReleaseStatus?: (callback: (status: ForkReleaseStatus) => void) => () => void
   getVersion: () => Promise<string>
   getStatus: () => Promise<UpdateStatus>
   check: (options?: UpdateCheckOptions) => Promise<void>

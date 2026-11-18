@@ -1,3 +1,4 @@
+import { SettingsUpdateIcon, useSettingsUpdateAction } from './SettingsUpdateIcon'
 import {
   selectWorktreesByRepo,
   selectFolderWorkspaces,
@@ -19,7 +20,6 @@ import {
   FolderPlus,
   MoreHorizontal,
   Search,
-  Settings,
   Grid2X2,
   LayoutDashboard,
   HardDrive
@@ -51,6 +51,7 @@ const AgentDashboardSidebarHost = lazyWithRetry(
 
 export default function ProjectRail({ reserveTitlebar = false }: { reserveTitlebar?: boolean }) {
   const t = useTranslate()
+  const settingsUpdate = useSettingsUpdateAction()
   const rows = useProjectRailRows()
   const separators = useAppStore((s) => s.projectRailSeparators) ?? []
   const activeView = useAppStore((s) => s.activeView)
@@ -215,11 +216,11 @@ export default function ProjectRail({ reserveTitlebar = false }: { reserveTitleb
             </Button>
           </AddProjectMenu>
           <RailButton
-            label={t('commandCenter.settings', 'Settings')}
+            label={settingsUpdate.label}
             active={activeView === 'settings'}
-            onClick={state.openSettingsPage}
+            onClick={settingsUpdate.open}
           >
-            <Settings className="size-4" />
+            <SettingsUpdateIcon available={settingsUpdate.available} />
           </RailButton>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

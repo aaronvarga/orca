@@ -36,6 +36,24 @@ function applyUpdaterStatus(status: UpdateStatus): void {
 
 /** Installs updater listeners in their historical snapshot-before-push order. */
 export function registerUpdaterStatusIpcBridge(unsubs: (() => void)[]): void {
+  let receivedForkStatus = false
+  let disposed = false
+  const unsubscribeFork = window.api.updater.onForkReleaseStatus?.((status) => {
+    receivedForkStatus = true
+    useAppStore.getState().setForkReleaseStatus(status)
+  })
+  unsubs.push(() => {
+    disposed = true
+    unsubscribeFork?.()
+  })
+  void window.api.updater
+    .getForkReleaseStatus?.()
+    .then((status) => {
+      if (!disposed && !receivedForkStatus) {
+        useAppStore.getState().setForkReleaseStatus(status)
+      }
+    })
+    .catch(console.error)
   // Current behavior intentionally permits the initial snapshot to overwrite an earlier push.
   window.api.updater.getStatus().then(applyUpdaterStatus)
 
