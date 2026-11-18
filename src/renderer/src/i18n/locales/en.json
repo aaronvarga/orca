@@ -7523,7 +7523,6 @@
           "cdc87f897e": "Docs",
           "e565171a7c": "Keyboard Shortcuts",
           "4cf5b868d7": "Send Feedback",
-          "a428c25998": "Settings",
           "2991a0106c": "Help",
           "4e8f5710d3": "Couldn't restart Orca.",
           "5161eef55d": "Restarting Orca…",
@@ -29745,5 +29744,22 @@
       "indices": "Indices",
       "math": "Math"
     }
+  },
+  "forkUpdates": {
+    "title": "Fork updates",
+    "keywords": {
+      "upstream": "upstream",
+      "release": "release",
+      "rebase": "rebase"
+    },
+    "description": "Checks stablyai/orca at startup and hourly. Open Codex to rebase your local fork while preserving your changes and running sessions.",
+    "available": "Upstream {{tag}} available · this build {{version}}",
+    "checking": "Checking upstream…",
+    "failed": "Upstream check unavailable.",
+    "current": "No newer stable upstream release · this build {{version}}",
+    "check": "Check upstream",
+    "opening": "Opening Codex…",
+    "rebase": "Rebase fork in Codex",
+    "settingsAvailable": "Settings — upstream update {{tag}} available"
   }
 }

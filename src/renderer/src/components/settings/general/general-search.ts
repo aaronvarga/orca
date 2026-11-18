@@ -187,7 +187,11 @@ export const getGeneralUpdateSearchEntries = createLocalizedCatalog(() => [
   ...(isWebClientLocation() ? [] : [getAutomaticUpdatesSettingCopy()]),
   {
     title: translate('forkUpdates.title', 'Fork updates'),
-    keywords: ['upstream', 'release', 'rebase']
+    keywords: [
+      ...translateSearchKeyword('forkUpdates.keywords.upstream', 'upstream'),
+      ...translateSearchKeyword('forkUpdates.keywords.release', 'release'),
+      ...translateSearchKeyword('forkUpdates.keywords.rebase', 'rebase')
+    ]
   },
   {
     title: translate('auto.components.settings.general.search.0504f69ba0', 'Check for updates'),
