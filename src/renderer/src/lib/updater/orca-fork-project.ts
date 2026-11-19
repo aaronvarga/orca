@@ -9,9 +9,7 @@ export function findOrcaForkProject(repos: readonly Repo[]): Repo | null {
     const identity = repo.gitRemoteIdentity?.canonicalKey.toLowerCase()
     return (
       identity === 'github.com/aaronvarga/orca' ||
-      (!!identity &&
-        identity !== 'github.com/stablyai/orca' &&
-        repo.upstream?.host === 'github.com' &&
+      (repo.upstream?.host === 'github.com' &&
         repo.upstream.owner.toLowerCase() === 'stablyai' &&
         repo.upstream.repo.toLowerCase() === 'orca')
     )

@@ -28,3 +28,16 @@ it('refuses ambiguous checkouts and the upstream repository itself', () => {
   }
   expect(findOrcaForkProject([upstream])).toBeNull()
 })
+
+it('recognizes a fork whose provider grouping uses its upstream remote', () => {
+  const groupedByUpstream: Repo = {
+    ...fork,
+    gitRemoteIdentity: {
+      canonicalKey: 'github.com/stablyai/orca',
+      remoteName: 'upstream',
+      remoteUrl: 'https://github.com/stablyai/orca.git'
+    },
+    upstream: { host: 'github.com', owner: 'stablyai', repo: 'orca' }
+  }
+  expect(findOrcaForkProject([groupedByUpstream])?.id).toBe('fork')
+})
