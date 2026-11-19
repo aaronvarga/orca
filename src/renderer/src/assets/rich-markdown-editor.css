@@ -495,7 +495,11 @@
 .rich-markdown-editor {
   min-height: 100%;
   padding: 24px 32px 96px;
-  font-size: calc(14px + (var(--editor-font-zoom-level, 0) * 1px));
+  font-size: clamp(
+    8px,
+    calc(var(--markdown-font-size, 14px) + (var(--editor-font-zoom-level, 0) * 1px)),
+    32px
+  );
   line-height: 1.7;
   outline: none;
 }
@@ -533,25 +537,29 @@
 }
 
 .rich-markdown-editor h1 {
-  font-size: 1.85em;
+  color: var(--markdown-heading-1);
+  font-size: 1.5em;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 .rich-markdown-editor h2 {
-  font-size: 1.4em;
+  color: var(--markdown-heading-2);
+  font-size: 1.25em;
 }
 
 .rich-markdown-editor h3 {
-  font-size: 1.15em;
+  color: var(--markdown-heading-3);
+  font-size: 1.125em;
 }
 
 .rich-markdown-editor h4 {
+  color: var(--markdown-heading-4);
   font-size: 1em;
 }
 
 .rich-markdown-editor h5 {
-  color: var(--muted-foreground);
+  color: var(--markdown-heading-5);
   font-size: 0.92em;
 }
 
@@ -743,7 +751,8 @@
 
 .rich-markdown-editor details.orca-details[data-orca-toggle='heading-1'] > summary,
 .rich-markdown-editor .orca-details[data-type='details'][data-orca-toggle='heading-1'] summary {
-  font-size: 1.85em;
+  color: var(--markdown-heading-1);
+  font-size: 1.5em;
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.3;
@@ -753,10 +762,11 @@
   height: 2.405em;
 }
 
-/* Heading toggle sizes mirror the plain h2–h5 scales (1.4 / 1.15 / 1 / 0.92em). */
+/* Heading toggle sizes mirror the plain h2–h5 scales (1.25 / 1.125 / 1 / 0.92em). */
 .rich-markdown-editor details.orca-details[data-orca-toggle='heading-2'] > summary,
 .rich-markdown-editor .orca-details[data-type='details'][data-orca-toggle='heading-2'] summary {
-  font-size: 1.4em;
+  color: var(--markdown-heading-2);
+  font-size: 1.25em;
   line-height: 1.3;
 }
 
@@ -766,20 +776,22 @@
 
 .rich-markdown-editor details.orca-details[data-orca-toggle='heading-3'] > summary,
 .rich-markdown-editor .orca-details[data-type='details'][data-orca-toggle='heading-3'] summary {
-  font-size: 1.15em;
+  color: var(--markdown-heading-3);
+  font-size: 1.125em;
   line-height: 1.3;
 }
 
 .rich-markdown-editor details.orca-details[data-orca-toggle='heading-4'] > summary,
 .rich-markdown-editor .orca-details[data-type='details'][data-orca-toggle='heading-4'] summary {
+  color: var(--markdown-heading-4);
   font-size: 1em;
   line-height: 1.3;
 }
 
 .rich-markdown-editor details.orca-details[data-orca-toggle='heading-5'] > summary,
 .rich-markdown-editor .orca-details[data-type='details'][data-orca-toggle='heading-5'] summary {
+  color: var(--markdown-heading-5);
   font-size: 0.92em;
-  color: var(--muted-foreground);
   line-height: 1.3;
 }
 
@@ -936,6 +948,10 @@
 
 .rich-markdown-editor .rich-markdown-table-control-active {
   background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
+}
+
+.rich-markdown-editor :not(pre) > code {
+  color: var(--markdown-heading-1);
 }
 
 .rich-markdown-editor code {

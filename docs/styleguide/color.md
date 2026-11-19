@@ -26,6 +26,10 @@ The `sidebar` family (`--sidebar`, `--sidebar-foreground`, `--sidebar-primary`, 
 
 `editor-surface` is its own token (not just `background`) because Monaco and the markdown editor have a slightly darker surface in dark mode to match common editor conventions; reach for it whenever you're rendering an editor pane.
 
+## Markdown document colors
+
+Built-in Markdown editing and preview use `--markdown-heading-1` through `--markdown-heading-5` for headings and collapsible headings; inline code uses the first color. These tokens live in `main.css` for both modes, derive from the app theme’s `--text-link` accent when present, and fall back to a readable document palette. Body text and surfaces continue to use the app foreground and editor surface.
+
 ## Git decoration colors
 
 For diff status, file-tree decorations, and the changes view, use the `--git-decoration-*` tokens: `added`, `modified`, `deleted`, `renamed`, `untracked`, `copied`, `ignored`. The palette mirrors the conventions users already know from other editors, so they aren't surprised.

@@ -1,3 +1,4 @@
+import { resolveMarkdownFontSize } from '../../../../../../shared/editor/markdown/markdown-font-size'
 import { useDiffCommentView } from '../../../diff-comments/use-diff-comment-owner'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createConnectionIdForFileSelector } from '@/lib/workspace/ownership/connection-owner-resolution'
@@ -59,6 +60,9 @@ export function useMarkdownPreviewSourceFoundation({
   const activateMarkdownLink = useAppStore((s) => s.activateMarkdownLink)
   const openMarkdownPreview = useAppStore((s) => s.openMarkdownPreview)
   const setMarkdownViewMode = useAppStore((s) => s.setMarkdownViewMode)
+  const frontmatterDefaultVisible = useAppStore(
+    (s) => s.settings?.markdownFrontmatterDefaultVisible ?? true
+  )
   const frontmatterVisibleByFile = useAppStore((s) => s.markdownFrontmatterVisible)
   const addDiffComment = useAppStore((s) => s.addDiffComment)
   const deleteDiffComment = useAppStore((s) => s.deleteDiffComment)
@@ -156,7 +160,10 @@ export function useMarkdownPreviewSourceFoundation({
     ]
   )
   const editorFontZoomLevel = useAppStore((s) => s.editorFontZoomLevel)
-  const editorFontSize = computeEditorFontSize(14, editorFontZoomLevel)
+  const markdownFontSize = useAppStore((state) =>
+    resolveMarkdownFontSize(state.settings?.markdownFontSize)
+  )
+  const editorFontSize = computeEditorFontSize(markdownFontSize, editorFontZoomLevel)
   const isDark = useDocumentDarkTheme()
 
   const renderedContent = usePreserveSectionDuringExternalEdit(content, bodyRef)
@@ -195,6 +202,7 @@ export function useMarkdownPreviewSourceFoundation({
     openMarkdownPreview,
     setMarkdownViewMode,
     frontmatterVisibleByFile,
+    frontmatterDefaultVisible,
     addDiffComment,
     deleteDiffComment,
     updateDiffComment,

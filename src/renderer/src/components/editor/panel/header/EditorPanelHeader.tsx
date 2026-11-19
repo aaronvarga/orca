@@ -1,3 +1,5 @@
+import { MarkdownFontSizeControls } from '../../markdown/appearance/MarkdownFontSizeControls'
+import type { ActivePluginCustomEditor } from '@/store/plugins/file-editors/plugin-custom-editors'
 import { useMemo } from 'react'
 import { ArrowDown, ArrowUp, Columns2, Eye, FileText, ListTree, Rows2 } from 'lucide-react'
 import { useAppStore } from '@/store/index'
@@ -37,6 +39,7 @@ type EditorPanelHeaderProps = {
   isNotebook: boolean
   isSvg?: boolean
   /** Titles of the file's plugin editors, by toggle value; empty when none apply. */
+  customEditor?: ActivePluginCustomEditor | null
   customEditorTitles?: Readonly<Record<CustomEditorToggleValue, string>>
   hasEditorToggle: boolean
   availableEditorToggleModes: readonly EditorToggleValue[]
@@ -73,6 +76,7 @@ export function EditorPanelHeader({
   isCsv,
   isNotebook,
   isSvg = false,
+  customEditor,
   customEditorTitles = NO_CUSTOM_EDITOR_TITLES,
   hasEditorToggle,
   availableEditorToggleModes,
@@ -148,6 +152,9 @@ export function EditorPanelHeader({
         onCopyPath={onCopyPath}
         onOpenMarkdownPreview={onOpenMarkdownPreview}
       />
+      {isMarkdown && !isDiffSurface && effectiveToggleValue !== 'source' ? (
+        <MarkdownFontSizeControls customEditor={customEditor} />
+      ) : null}
       {canOpenPreview && (
         <TooltipProvider>
           <Tooltip>

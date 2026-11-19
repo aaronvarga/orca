@@ -351,6 +351,31 @@
   --git-graph-lane-4: #40b0a6;
   --git-graph-lane-5: #b66dff;
   --annotation-highlight: #f59e0b;
+  --markdown-heading-1: color-mix(
+    in srgb,
+    var(--text-link, var(--callout-important)) 80%,
+    var(--foreground)
+  );
+  --markdown-heading-2: color-mix(
+    in srgb,
+    var(--text-link, var(--callout-note)) 80%,
+    var(--foreground)
+  );
+  --markdown-heading-3: color-mix(
+    in srgb,
+    var(--text-link, var(--color-emerald-700)) 80%,
+    var(--foreground)
+  );
+  --markdown-heading-4: color-mix(
+    in srgb,
+    var(--text-link, var(--color-amber-700)) 80%,
+    var(--foreground)
+  );
+  --markdown-heading-5: color-mix(
+    in srgb,
+    var(--text-link, var(--color-cyan-700)) 80%,
+    var(--foreground)
+  );
   --markdown-search-match: #facc15;
   --markdown-search-match-active: #fb923c;
   /* Split dividers must clear 3:1 against --card even before hover; --border is too faint. */
@@ -482,6 +507,31 @@
   --git-graph-lane-4: #40b0a6;
   --git-graph-lane-5: #b66dff;
   --annotation-highlight: #fbbf24;
+  --markdown-heading-1: color-mix(
+    in srgb,
+    var(--text-link, var(--callout-important)) 80%,
+    var(--foreground)
+  );
+  --markdown-heading-2: color-mix(
+    in srgb,
+    var(--text-link, var(--callout-note)) 80%,
+    var(--foreground)
+  );
+  --markdown-heading-3: color-mix(
+    in srgb,
+    var(--text-link, var(--color-emerald-300)) 80%,
+    var(--foreground)
+  );
+  --markdown-heading-4: color-mix(
+    in srgb,
+    var(--text-link, var(--color-amber-300)) 80%,
+    var(--foreground)
+  );
+  --markdown-heading-5: color-mix(
+    in srgb,
+    var(--text-link, var(--color-cyan-300)) 80%,
+    var(--foreground)
+  );
   --markdown-search-match: #facc15;
   --markdown-search-match-active: #fb923c;
   /* Brighter than terminal defaults so the always-visible line clears 3:1 on `--card`. */

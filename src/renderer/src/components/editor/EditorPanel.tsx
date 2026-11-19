@@ -70,6 +70,10 @@ function EditorPanelInner({
     selectEditorPanelGitBranchEntries(s, activeWorktreeId)
   )
   const markdownViewMode = useAppStore((s) => s.markdownViewMode)
+  const markdownOutlineDefault = useAppStore((s) => s.settings?.markdownOutlineVisible ?? false)
+  const markdownFrontmatterDefault = useAppStore(
+    (s) => s.settings?.markdownFrontmatterDefaultVisible ?? true
+  )
   const markdownDefaultViewMode = useAppStore((s) => s.settings?.markdownDefaultViewMode)
   const setMarkdownViewMode = useAppStore((s) => s.setMarkdownViewMode)
   const markdownRichModeSizeOverridden = useAppStore(
@@ -293,11 +297,10 @@ function EditorPanelInner({
     activeDocumentContent &&
     extractFrontMatter(activeDocumentContent)
   )
-  // The map stores only per-file hide overrides; frontmatter is visible by default.
   const isMarkdownFrontmatterVisible =
-    markdownFrontmatterVisible[markdownDocumentStateFileId] ?? true
+    markdownFrontmatterVisible[markdownDocumentStateFileId] ?? markdownFrontmatterDefault
   const isMarkdownTableOfContentsVisible =
-    markdownTableOfContentsVisible[markdownDocumentStateFileId] ?? false
+    markdownTableOfContentsVisible[markdownDocumentStateFileId] ?? markdownOutlineDefault
   const artifactContentType = editorArtifactContentType(activeFile.filePath, model.isMarkdown)
   const createActiveArtifactRequest =
     activeDocumentContent === null || artifactContentType === null

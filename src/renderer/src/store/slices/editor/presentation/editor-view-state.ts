@@ -36,7 +36,10 @@ export function createEditorViewState(set: EditorSet, get: EditorGet): EditorVie
       })),
     setMarkdownDefaultViewMode: (mode) => {
       set((s) => ({ markdownViewMode: markdownViewModesForNewDefault(s, mode) }))
-      void get().updateSettings({ markdownDefaultViewMode: mode })
+      void get().updateSettings({
+        markdownDefaultViewMode: mode,
+        markdownDefaultCustomEditor: 'source'
+      })
     },
     markdownRichModeSizeOverride: {},
     setMarkdownRichModeSizeOverride: (fileId, enabled) =>
@@ -69,37 +72,19 @@ export function createEditorViewState(set: EditorSet, get: EditorGet): EditorVie
         return { editorViewMode: { ...s.editorViewMode, [fileId]: mode } }
       }),
     markdownFrontmatterVisible: {},
-    setMarkdownFrontmatterVisible: (fileId, visible) =>
-      set((s) => {
-        // Why: don't persist the default value; delete instead so the map carries only overrides and hydration round-trips cleanly.
-        if (visible) {
-          if (!(fileId in s.markdownFrontmatterVisible)) {
-            return s
-          }
-          const next = { ...s.markdownFrontmatterVisible }
-          delete next[fileId]
-          return { markdownFrontmatterVisible: next }
-        }
-        return { markdownFrontmatterVisible: { ...s.markdownFrontmatterVisible, [fileId]: false } }
-      }),
+    setMarkdownFrontmatterVisible: (fileId, visible) => {
+      set((s) => ({
+        markdownFrontmatterVisible: { ...s.markdownFrontmatterVisible, [fileId]: visible }
+      }))
+      void get().updateSettings({ markdownFrontmatterDefaultVisible: visible })
+    },
     markdownTableOfContentsVisible: {},
-    setMarkdownTableOfContentsVisible: (fileId, visible) =>
-      set((s) => {
-        if (!visible) {
-          if (!(fileId in s.markdownTableOfContentsVisible)) {
-            return s
-          }
-          const next = { ...s.markdownTableOfContentsVisible }
-          delete next[fileId]
-          return { markdownTableOfContentsVisible: next }
-        }
-        return {
-          markdownTableOfContentsVisible: {
-            ...s.markdownTableOfContentsVisible,
-            [fileId]: true
-          }
-        }
-      }),
+    setMarkdownTableOfContentsVisible: (fileId, visible) => {
+      set((s) => ({
+        markdownTableOfContentsVisible: { ...s.markdownTableOfContentsVisible, [fileId]: visible }
+      }))
+      void get().updateSettings({ markdownOutlineVisible: visible })
+    },
     markdownTocPanelWidth: 240,
     setMarkdownTocPanelWidth: (width) =>
       set((s) => ({

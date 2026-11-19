@@ -36,7 +36,10 @@ export function MarkdownTableOfContentsPanel({
   onNavigate
 }: MarkdownTableOfContentsPanelProps): React.JSX.Element {
   const t = useTranslate()
-  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set())
+  const outlineLevel = useAppStore((s) => s.settings?.markdownOutlineLevel ?? 5)
+  const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() =>
+    collapseMarkdownTocToLevel(items, outlineLevel)
+  )
   const markdownTocPanelWidth = useAppStore((s) => s.markdownTocPanelWidth)
   const setMarkdownTocPanelWidth = useAppStore((s) => s.setMarkdownTocPanelWidth)
   const [layoutWidth, setLayoutWidth] = useState<number | null>(null)
@@ -58,7 +61,11 @@ export function MarkdownTableOfContentsPanel({
   const [prevItems, setPrevItems] = useState(items)
   if (prevItems !== items) {
     setPrevItems(items)
-    setCollapsedIds((current) => pruneMarkdownTocCollapsedIds(current, items))
+    setCollapsedIds((current) =>
+      prevItems.length === 0
+        ? collapseMarkdownTocToLevel(items, outlineLevel)
+        : pruneMarkdownTocCollapsedIds(current, items)
+    )
   }
 
   useEffect(() => {
@@ -80,6 +87,7 @@ export function MarkdownTableOfContentsPanel({
 
   const collapseToLevel = (level: MarkdownTocLevel): void => {
     setCollapsedIds(collapseMarkdownTocToLevel(items, level))
+    void useAppStore.getState().updateSettings({ markdownOutlineLevel: level })
   }
 
   const toggleCollapsed = (id: string): void => {

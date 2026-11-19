@@ -1,4 +1,13 @@
 {
+  "markdown": {
+    "fontSize": {
+      "label": "Markdown text size",
+      "decrease": "Decrease Markdown text size",
+      "increase": "Increase Markdown text size",
+      "saveFailed": "Could not save Markdown text size.",
+      "value": "{{size}} px"
+    }
+  },
   "workspaceTabs": {
     "arrange": "Arrange open tabs",
     "arrangeFailed": "Could not arrange open tabs on this host."

@@ -1,3 +1,5 @@
+import { useAppStore } from '@/store'
+import { detectLanguage } from '../../../../../shared/editor-language/editor-language-detect'
 import type { MarkdownViewMode } from '@/store/slices/editor/types/open-file'
 import {
   resolveCustomEditorChoice,
@@ -64,6 +66,15 @@ export function applyCustomEditorToggle(
   next: Exclude<EditorToggleValue, 'changes'>,
   hasCustomEditors: boolean
 ): MarkdownViewMode | null {
+  const state = useAppStore.getState()
+  const file = state.openFiles.find((entry) => entry.id === fileId)
+  if (file?.mode === 'edit' && detectLanguage(file.filePath) === 'markdown') {
+    if (isCustomEditorToggleValue(next)) {
+      void state.updateSettings({ markdownDefaultCustomEditor: customEditorKeyOfToggle(next) })
+    } else if (next === 'source' || next === 'rich') {
+      state.setMarkdownDefaultViewMode(next)
+    }
+  }
   const { setChoice } = useCustomEditorViewStore.getState()
   if (isCustomEditorToggleValue(next)) {
     setChoice(fileId, customEditorKeyOfToggle(next))

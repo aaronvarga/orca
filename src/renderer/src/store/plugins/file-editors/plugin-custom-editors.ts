@@ -1,3 +1,5 @@
+import { useAppStore } from '@/store'
+import { detectLanguage } from '../../../../../shared/editor-language/editor-language-detect'
 import { useMemo } from 'react'
 import { create } from 'zustand'
 import type {
@@ -87,7 +89,7 @@ type CustomEditorViewState = {
   setChoice: (fileId: string, choice: CustomEditorViewChoice) => void
 }
 
-/** Why session-only: a pick names a plugin that may be gone next launch; defaults then apply. */
+/** Per-file picks override the saved Markdown preference while this renderer is open. */
 export const useCustomEditorViewStore = create<CustomEditorViewState>()((set) => ({
   choices: {},
   setChoice: (fileId, choice) =>
@@ -116,7 +118,13 @@ export function useFileCustomEditors(
   const customEditorChoice = useCustomEditorViewStore((state) =>
     fileId ? state.choices[fileId] : undefined
   )
-  return { customEditors, customEditorChoice }
+  const markdownDefaultChoice = useAppStore((s) => s.settings?.markdownDefaultCustomEditor)
+  return {
+    customEditors,
+    customEditorChoice:
+      customEditorChoice ??
+      (filePath && detectLanguage(filePath) === 'markdown' ? markdownDefaultChoice : undefined)
+  }
 }
 
 /** The plugin editor an editor tab shows its file in, or null for Source and non-edit views. */

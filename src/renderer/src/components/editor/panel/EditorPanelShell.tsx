@@ -107,6 +107,7 @@ export function EditorPanelShell({
           isCsv={model.isCsv}
           isNotebook={model.isNotebook}
           isSvg={model.isSvg}
+          customEditor={model.activeCustomEditor}
           customEditorTitles={model.customEditorTitles}
           hasEditorToggle={model.hasEditorToggle}
           availableEditorToggleModes={model.availableEditorToggleModes}

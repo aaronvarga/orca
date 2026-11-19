@@ -49,6 +49,7 @@ export function useMarkdownPreviewFoundation({
     rootRef,
     renderedContent,
     frontmatterVisibleByFile,
+    frontmatterDefaultVisible,
     sourceWorktree,
     sourceRelativePath,
     markdownComments
@@ -68,8 +69,8 @@ export function useMarkdownPreviewFoundation({
   )
   const toggleableSourceFileId: string | null = sourceFileId ?? null
   const frontmatterVisible = toggleableSourceFileId
-    ? (frontmatterVisibleByFile[toggleableSourceFileId] ?? true)
-    : true
+    ? (frontmatterVisibleByFile[toggleableSourceFileId] ?? frontmatterDefaultVisible)
+    : frontmatterDefaultVisible
   const [activeAnnotationBlockKey, setActiveAnnotationBlockKey] = useState<string | null>(null)
   const activeAnnotationBlockKeyRef = useRef(activeAnnotationBlockKey)
   useEffect(() => {

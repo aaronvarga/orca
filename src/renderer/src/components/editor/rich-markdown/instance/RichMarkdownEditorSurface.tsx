@@ -1,3 +1,5 @@
+import { resolveMarkdownFontSize } from '../../../../../../shared/editor/markdown/markdown-font-size'
+import { useAppStore } from '@/store'
 import type { DiffCommentOwner } from '@/store/slices/diff-comments/diff-comment-owner'
 import type React from 'react'
 import { EditorContent } from '@tiptap/react'
@@ -197,6 +199,16 @@ export function RichMarkdownEditorSurface({
   onNavigateTableOfContentsItem,
   onCloseTableOfContents
 }: RichMarkdownEditorSurfaceProps): React.JSX.Element {
+  const markdownFontSize = useAppStore((state) =>
+    resolveMarkdownFontSize(state.settings?.markdownFontSize)
+  )
+  const editorStyle: React.CSSProperties & {
+    '--editor-font-zoom-level': number
+    '--markdown-font-size': string
+  } = {
+    '--editor-font-zoom-level': editorFontZoomLevel,
+    '--markdown-font-size': `${markdownFontSize}px`
+  }
   return (
     <div className="rich-markdown-editor-layout">
       {showTableOfContents ? (
@@ -212,7 +224,7 @@ export function RichMarkdownEditorSurface({
         className={`rich-markdown-editor-shell ${
           reviewRailExpanded ? 'has-rich-markdown-review-notes' : ''
         }`.trim()}
-        style={{ '--editor-font-zoom-level': editorFontZoomLevel } as React.CSSProperties}
+        style={editorStyle}
       >
         <RichMarkdownToolbar
           editor={editor}
