@@ -1,6 +1,6 @@
-import { getIntlLocale } from '@/i18n/i18n'
+import { installWindowVisibilityInterval } from '@/lib/window-activity/window-visibility-interval'
 import { useEffect, useState } from 'react'
-import { useTranslate } from '@/i18n/use-translate'
+import { useIntlLocale, useTranslate } from '@/i18n/use-translate'
 import type { NativeChatMilestones } from '../../../../../../shared/native-chat/input/task-lists/native-chat-milestones'
 import { milestoneOverallEta } from '../../../../../../shared/native-chat/input/task-lists/native-chat-milestone-eta'
 
@@ -12,10 +12,10 @@ export function NativeChatMilestoneSummary({
   waitingForInput?: boolean
 }) {
   const t = useTranslate()
+  const locale = useIntlLocale()
   const [now, setNow] = useState(Date.now)
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 60000)
-    return () => clearInterval(timer)
+    return installWindowVisibilityInterval({ run: () => setNow(Date.now()), intervalMs: 60000 })
   }, [])
   const total = milestoneOverallEta(list.tasks)
   const age =
@@ -45,9 +45,7 @@ export function NativeChatMilestoneSummary({
       ) : null}
       <p
         title={
-          list.updatedAt === undefined
-            ? undefined
-            : new Date(list.updatedAt).toLocaleString(getIntlLocale())
+          list.updatedAt === undefined ? undefined : new Date(list.updatedAt).toLocaleString(locale)
         }
       >
         {age === null

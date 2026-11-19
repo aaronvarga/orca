@@ -36,9 +36,8 @@ export function NativeChatMilestoneGeneration({
       setPhase(result.applied ? 'ready' : 'superseded')
     } catch {
       setPhase('failed')
-    } finally {
-      sending.current = false
     }
+    sending.current = false
   }
   const label =
     phase === 'generating'

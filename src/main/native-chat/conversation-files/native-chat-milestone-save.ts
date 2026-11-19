@@ -1,7 +1,8 @@
 import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { AgentSessionJournal } from '../agent-session-journal/journal-store'
-import { writeFileAtomically } from '../../filesystem/atomic-file-publication'
+import { durableWriteTempPath, writeFileDurable } from '../../filesystem/durable-file-write'
+import { observeFilePublication } from '../../filesystem/file-content-observation'
 import { nativeChatScratchFolderFor } from './native-chat-scratch-folder'
 import {
   nativeChatMilestonesMarkdown,
@@ -47,7 +48,8 @@ export function createNativeChatMilestoneSave(stateDirectory: () => string) {
         try {
           if (saved.get(journal) !== markdown) {
             await mkdir(folder, { recursive: true, mode: 0o700 })
-            writeFileAtomically(filePath, markdown, { mode: 0o600 })
+            await writeFileDurable(durableWriteTempPath(filePath), filePath, markdown, 0o600)
+            observeFilePublication(filePath, markdown)
             saved.set(journal, markdown)
           }
           const snapshot = { ...list, filePath }

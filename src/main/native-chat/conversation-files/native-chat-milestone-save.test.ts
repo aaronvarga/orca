@@ -47,7 +47,7 @@ async function task(
       callId: id,
       output: { head: output, truncated: false, byteLength: output.length, digest: 'test' }
     },
-    { fence: 0, turnScope: { kind: 'thread' } }
+    { fence: 0, turnScope: { kind: 'thread' }, observedAt: 1000 }
   )
 }
 
@@ -181,7 +181,7 @@ it('does not resurrect milestones from before a cleared conversation', async () 
       kind: 'status',
       text: 'Cleared',
       presentation: 'context-cleared',
-      contextClear: { operationId: 'clear', afterFence: 0, clearedAt: Date.now() }
+      contextClear: { operationId: 'clear', afterFence: 0, clearedAt: 2000 }
     },
     { fence: 0, turnScope: { kind: 'thread' } }
   )

@@ -1,11 +1,15 @@
 import { realpath, stat } from 'node:fs/promises'
 import { isAbsolute } from 'node:path'
 import type { ProjectHostSetupUpdateArgs } from '../../../shared/project/project-types'
-import { getRepoExecutionHostId } from '../../../shared/execution-host/execution-host'
+import {
+  getRepoExecutionHostId,
+  getRepoRoutingConnectionId
+} from '../../../shared/execution-host/execution-host'
 import { normalizeRuntimePathForComparison } from '../../../shared/file-access/cross-platform-path'
 import { findProjectAtSameRealPath } from './project-realpath-identity'
 import { findProjectHostSetup } from '../../../shared/project/host-setup/project-host-setup-target'
-import { inspectGitRepoForRegistrationAsync } from '../../git/repositories/discovery/repo-detection'
+import { normalizeGitRepoRootForInputPath } from '../../git/repositories/discovery/repo-detection'
+import { gitExecFileAsync } from '../../git/command-runner/git-exec-file'
 import type { Store } from '../../persistence/loading-store/store'
 
 type FolderChangeStore = Pick<Store, 'getRepos'> & {
@@ -29,18 +33,27 @@ export async function validateProjectFolderChange(
   if (!isAbsolute(path) || !(await stat(path).catch(() => null))?.isDirectory()) {
     throw new Error('Choose an existing folder using its full path.')
   }
-  if (repo.connectionId) {
+  if (getRepoRoutingConnectionId(repo)) {
     throw new Error('Change this folder from Orca running on its host.')
   }
   const originalPath = repo.path
   if ((args.updates.kind ?? repo.kind ?? 'git') === 'git') {
-    const info = await inspectGitRepoForRegistrationAsync(path)
+    const rootPath = await gitExecFileAsync(['rev-parse', '--show-toplevel'], { cwd: path })
+      .then(({ stdout }) => normalizeGitRepoRootForInputPath(path, stdout.trim()))
+      .catch(async () => {
+        const bare = await gitExecFileAsync(['rev-parse', '--is-bare-repository'], { cwd: path })
+        return bare.stdout.trim() === 'true' ? path : null
+      })
+      .catch(() => null)
+    if (!rootPath) {
+      throw new Error('Choose the top folder of a Git repository for this Git project.')
+    }
     const roots = await Promise.all(
-      [path, info.rootPath].map(async (value) =>
+      [path, rootPath.trim()].map(async (value) =>
         normalizeRuntimePathForComparison(await realpath(value).catch(() => value))
       )
     )
-    if (!info.isRepo || roots[0] !== roots[1]) {
+    if (roots[0] !== roots[1]) {
       throw new Error('Choose the top folder of a Git repository for this Git project.')
     }
   }

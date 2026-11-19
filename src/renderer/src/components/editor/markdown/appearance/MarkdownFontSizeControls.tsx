@@ -30,9 +30,8 @@ function FontSizeButtons({
       toast.error(t('markdown.fontSize.saveFailed', 'Could not save Markdown text size.'), {
         description: error instanceof Error ? error.message : String(error)
       })
-    } finally {
-      setSaving(false)
     }
+    setSaving(false)
   }
   return (
     <div

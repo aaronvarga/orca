@@ -106,15 +106,14 @@ export function RepositoryFolderSection({
             )
             if (!result) {
               setError(t('settings.projectFolder.failed', 'Could not change the project folder.'))
-              return
+            } else {
+              setDraft(null)
+              await state.fetchWorktrees(repo.id, { executionHostId: getRepoExecutionHostId(repo) })
             }
-            setDraft(null)
-            await state.fetchWorktrees(repo.id, { executionHostId: getRepoExecutionHostId(repo) })
           } catch (cause) {
             setError(cause instanceof Error ? cause.message : String(cause))
-          } finally {
-            setSaving(false)
           }
+          setSaving(false)
         }}
       >
         <div className="flex gap-2">
