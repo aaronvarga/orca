@@ -223,7 +223,8 @@ export type RepoSlice = {
     args: ProjectHostSetupCreateArgs
   ) => Promise<ProjectHostSetupCreateResult | null>
   updateProjectHostSetup: (
-    args: ProjectHostSetupUpdateArgs
+    args: ProjectHostSetupUpdateArgs,
+    options?: { throwOnError?: boolean }
   ) => Promise<ProjectHostSetupUpdateResult | null>
   deleteProjectHostSetup: (
     args: ProjectHostSetupDeleteArgs

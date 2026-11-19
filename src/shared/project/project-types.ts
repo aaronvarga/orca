@@ -133,6 +133,7 @@ export type ProjectHostSetupCreateResult = {
 }
 
 export type ProjectHostSetupUpdateResult = {
+  renamedWorktrees?: { oldWorktreeId: string; newWorktreeId: string }[]
   project: Project
   setup: ProjectHostSetup
   repo?: Repo

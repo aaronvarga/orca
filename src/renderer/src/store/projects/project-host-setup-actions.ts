@@ -138,7 +138,7 @@ export function createProjectHostSetupActions(
       }
     },
 
-    updateProjectHostSetup: async (args) => {
+    updateProjectHostSetup: async (args, options) => {
       try {
         const { target, hostArgs } = await prepareProjectHostSetupMutation(
           get().projectHostSetups,
@@ -155,6 +155,9 @@ export function createProjectHostSetupActions(
                   { timeoutMs: 15_000 }
                 )
               ).result
+        for (const renamed of result.renamedWorktrees ?? []) {
+          get().migrateWorktreeIdentity(renamed.oldWorktreeId, renamed.newWorktreeId)
+        }
         const setup = adoptFromEndpoint(target, {
           kind: 'projectHostSetup',
           row: result.setup
@@ -179,6 +182,9 @@ export function createProjectHostSetupActions(
         }))
         return { ...result, project, repo, setup }
       } catch (err) {
+        if (options?.throwOnError) {
+          throw err
+        }
         console.error('Failed to update project host setup:', err)
         const message = err instanceof Error ? err.message : String(err)
         toast.error(translate('auto.store.slices.repos.c6e022ddfc', 'Failed to add project'), {

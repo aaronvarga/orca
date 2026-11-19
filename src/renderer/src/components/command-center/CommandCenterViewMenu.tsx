@@ -8,7 +8,6 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -17,7 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useTranslate } from '@/i18n/use-translate'
 import type { CommandCenterPresentation } from '../../../../shared/ui-chrome/command-center-presentation'
-import { COMMAND_CENTER_PRESETS } from './command-center-layout'
+import { TabLayoutMenuItems } from './TabLayoutMenuItems'
 
 export function CommandCenterViewMenu({
   presentation,
@@ -37,14 +36,8 @@ export function CommandCenterViewMenu({
   const t = useTranslate()
   const hostRows = useBoundedHostRows(hosts.map(([id, label]) => ({ id, label })))
   const [open, setOpen] = useState(false)
-  const [customOpen, setCustomOpen] = useState(false)
-  const [preview, setPreview] = useState<[number, number]>([1, 1])
   const update = (patch: Partial<CommandCenterPresentation>) =>
     onChange({ ...presentation, ...patch })
-  const selected =
-    presentation.layout === 'manual'
-      ? `${presentation.columns}x${presentation.rows}`
-      : presentation.layout
   const label =
     presentation.layout === 'auto-grid'
       ? t('commandCenter.autoGrid', 'Auto Grid')
@@ -65,72 +58,7 @@ export function CommandCenterViewMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuRadioGroup
-          value={selected}
-          onValueChange={(value) => {
-            if (value === 'auto-grid' || value === 'auto-columns') {
-              update({ layout: value })
-            } else {
-              const [columns, rows] = value.split('x').map(Number)
-              update({ layout: 'manual', columns, rows })
-            }
-          }}
-        >
-          <DropdownMenuRadioItem value="auto-grid">
-            {t('commandCenter.autoGrid', 'Auto Grid')}
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="auto-columns">
-            {t('commandCenter.autoColumns', 'Auto Columns')}
-          </DropdownMenuRadioItem>
-          <DropdownMenuSeparator />
-          {COMMAND_CENTER_PRESETS.map(([columns, rows]) => (
-            <DropdownMenuRadioItem key={`${columns}x${rows}`} value={`${columns}x${rows}`}>
-              {columns} × {rows}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-        <DropdownMenuItem
-          aria-expanded={customOpen}
-          onSelect={(event) => {
-            event.preventDefault()
-            setCustomOpen(!customOpen)
-          }}
-        >
-          {t('commandCenter.customLayout', 'Custom layout…')}
-        </DropdownMenuItem>
-        {customOpen ? (
-          <>
-            <div
-              className="grid grid-cols-10 gap-1 p-2"
-              aria-label={t('commandCenter.customLayout', 'Custom layout…')}
-            >
-              {Array.from({ length: 80 }, (_, index) => {
-                const columns = (index % 10) + 1
-                const rows = Math.floor(index / 10) + 1
-                return (
-                  <div
-                    key={index}
-                    className={`flex size-6 items-center justify-center rounded-md border border-border ${columns <= preview[0] && rows <= preview[1] ? 'bg-accent' : ''}`}
-                  >
-                    <DropdownMenuItem
-                      className="size-5"
-                      aria-label={`${columns} × ${rows}`}
-                      onPointerMove={() => setPreview([columns, rows])}
-                      onFocus={() => setPreview([columns, rows])}
-                      onSelect={() => {
-                        update({ layout: 'manual', columns, rows })
-                        setOpen(false)
-                      }}
-                    />
-                  </div>
-                )
-              })}
-            </div>
-            <div className="px-2 pb-2 text-center text-xs text-muted-foreground">
-              {preview[0]} × {preview[1]}
-            </div>
-          </>
-        ) : null}
+        <TabLayoutMenuItems value={presentation} onChange={update} />
         <DropdownMenuSeparator />
         <DropdownMenuCheckboxItem
           checked={presentation.groupByProject}

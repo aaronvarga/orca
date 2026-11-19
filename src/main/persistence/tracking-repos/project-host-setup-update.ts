@@ -1,7 +1,8 @@
 import type { PersistedState } from '../../../shared/orca-profiles/persisted-state-types'
 import type {
   ProjectHostSetup,
-  ProjectHostSetupUpdateArgs
+  ProjectHostSetupUpdateArgs,
+  ProjectHostSetupUpdateResult
 } from '../../../shared/project/project-types'
 import type { Repo } from '../../../shared/repository/repo-types'
 import type { RepoUpdatePersistenceOperations } from './repo-update-operations'
@@ -9,6 +10,14 @@ import type { RepoUpdatePersistenceOperations } from './repo-update-operations'
 export type ProjectHostSetupUpdateOperations = {
   state: PersistedState
   updateRepo: RepoUpdatePersistenceOperations['updateRepo']
+  repointRepo: (
+    repo: Repo,
+    path: string,
+    kind?: Repo['kind']
+  ) => {
+    repo: Repo
+    renamedWorktrees: NonNullable<ProjectHostSetupUpdateResult['renamedWorktrees']>
+  }
   scheduleSave: () => void
 }
 
@@ -33,11 +42,26 @@ export class ProjectHostSetupPersistenceOperations {
     setup: ProjectHostSetup,
     repo: Repo,
     updates: ProjectHostSetupUpdateArgs['updates']
-  ): { setup: ProjectHostSetup; repo: Repo } | null {
-    if (updates.path !== undefined && updates.path !== repo.path) {
-      throw new Error(
-        'Repo-backed project host setup paths must be changed by re-importing the project.'
-      )
+  ): {
+    setup: ProjectHostSetup
+    repo: Repo
+    renamedWorktrees?: ProjectHostSetupUpdateResult['renamedWorktrees']
+  } | null {
+    if (
+      updates.path !== undefined &&
+      (updates.path !== repo.path || (updates.kind !== undefined && updates.kind !== repo.kind))
+    ) {
+      if (Object.keys(updates).some((key) => key !== 'path' && key !== 'kind')) {
+        throw new Error('Change the project folder separately from other settings.')
+      }
+      const result = this.operations.repointRepo(repo, updates.path, updates.kind)
+      return {
+        ...result,
+        setup:
+          this.state.projectHostSetups.find(
+            (entry) => entry.id === setup.id && entry.hostId === setup.hostId
+          ) ?? setup
+      }
     }
     if (updates.setupState !== undefined && updates.setupState !== 'ready') {
       throw new Error('Repo-backed project host setups cannot be marked unavailable.')

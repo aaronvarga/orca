@@ -1,3 +1,4 @@
+import { WorkspaceTabLayoutMenu } from '../tab-bar/pane-actions/WorkspaceTabLayoutMenu'
 import { usePanePresentationStyle } from './panel/use-workspace-pane-presentation'
 import { Suspense, useCallback, useMemo, useRef } from 'react'
 import { lazyWithRetry as lazy } from '@/app-shell/startup/lazy-with-retry'
@@ -307,9 +308,9 @@ export default function TabGroupPanel({
             {/* Why: the tab-strip container excludes the reserved spacers, so width rules see only the room tabs and actions share. */}
             <div className="@container/tab-strip flex min-w-0 flex-1 items-stretch">
               <div className="min-w-10 flex-1 h-full">{tabBar}</div>
-              {/* Why: overflowing tabs eat all strip whitespace; keep a window-drag handle while the right sidebar header is closed. It goes first in narrow strips: 203 = 40 gap + 163 for the tab floor and every control, so controls never clip behind it. */}
+              {/* Why: overflowing tabs eat all strip whitespace; keep a window-drag handle while the right sidebar header is closed. It goes first in narrow strips: 250 = 40 gap + 210 for the tab floor and every control, so controls never clip behind it. */}
               {reserveRightTitlebarSpace ? (
-                <div className="w-10 min-w-0 @max-[203px]/tab-strip:hidden" />
+                <div className="w-10 min-w-0 @max-[250px]/tab-strip:hidden" />
               ) : null}
               <div
                 className={actionChromeClassName}
@@ -328,6 +329,7 @@ export default function TabGroupPanel({
                     isFocused={isFocused}
                   />
                 </div>
+                <WorkspaceTabLayoutMenu worktreeId={worktreeId} />
                 {hasSplitGroups ? (
                   <div className="contents @max-[114px]/tab-strip:hidden">
                     <TabGroupPaneActionsMenu

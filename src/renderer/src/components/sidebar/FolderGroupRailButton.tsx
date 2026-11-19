@@ -5,7 +5,7 @@ import { FolderGroupBrowser } from './FolderGroupBrowser'
 import { Popover, PopoverAnchor } from '@/components/ui/popover'
 import { openNewTerminalTabInWorkspace } from '@/store/terminals/tabs/creation/terminal-active-workspace-creation'
 import { openProjectCommandCenter } from '@/components/command-center/command-center-navigation'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { RepoIconGlyph } from '@/components/repo/repo-icon'
 import { useAppStore } from '@/store'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
@@ -32,6 +32,22 @@ export function FolderGroupRailButton({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [open, setOpen] = useState(false)
   const [browserOpen, setBrowserOpen] = useState(false)
+  const [browserAutoFocus, setBrowserAutoFocus] = useState(false)
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cancelClose = () => {
+    if (closeTimer.current !== null) {
+      clearTimeout(closeTimer.current)
+      closeTimer.current = null
+    }
+  }
+  useEffect(
+    () => () => {
+      if (closeTimer.current !== null) {
+        clearTimeout(closeTimer.current)
+      }
+    },
+    []
+  )
   const [reason, setReason] = useState<string | null>(null)
   const hostId = getRepoExecutionHostId(projectGroup)
   const active = useAppStore(
@@ -52,90 +68,126 @@ export function FolderGroupRailButton({
     }
   }
   return (
-    <Popover open={browserOpen} onOpenChange={setBrowserOpen}>
-      <PopoverAnchor asChild>
-        <div
-          className="group relative"
-          onContextMenu={(event) => {
-            event.preventDefault()
-            setBrowserOpen(false)
-            setOpen(true)
-          }}
-        >
-          <RailButton
-            buttonRef={buttonRef}
-            label={`${projectGroup.name} · ${hostId}`}
-            active={active}
-            status={status}
-            onClick={() => setBrowserOpen(true)}
+    <div
+      onPointerEnter={(event) => {
+        if (event.pointerType === 'touch' || open) {
+          return
+        }
+        cancelClose()
+        setBrowserAutoFocus(false)
+        setBrowserOpen(true)
+      }}
+      onPointerLeave={(event) => {
+        if (event.pointerType === 'touch' || browserAutoFocus) {
+          return
+        }
+        cancelClose()
+        closeTimer.current = setTimeout(() => setBrowserOpen(false), 180)
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'ArrowRight' && event.target === buttonRef.current) {
+          event.preventDefault()
+          cancelClose()
+          setBrowserAutoFocus(true)
+          setBrowserOpen(true)
+        }
+      }}
+    >
+      <Popover open={browserOpen} onOpenChange={setBrowserOpen}>
+        <PopoverAnchor asChild>
+          <div
+            className="group relative"
+            onContextMenu={(event) => {
+              event.preventDefault()
+              setBrowserOpen(false)
+              setOpen(true)
+            }}
           >
-            <RepoIconGlyph
-              repoIcon={projectGroup.repoIcon}
-              color={projectGroup.color ?? undefined}
-              className="size-6 shrink-0 text-xl"
-              iconClassName="size-6"
-            />
-          </RailButton>
-          <div className="pointer-events-none absolute inset-0">
-            <ProjectGroupHeaderMenu
-              groupId={projectGroup.id}
-              hostId={hostId}
-              label={projectGroup.name}
-              projectGroup={projectGroup}
-              onRename={dialogs.handleRenameProjectGroup}
-              onDelete={dialogs.handleDeleteProjectGroup}
-              onRefreshProjectGroup={dialogs.handleRefreshProjectGroup}
-              hideTrigger
-              onCloseAutoFocus={(event) => {
-                event.preventDefault()
-                if (!document.querySelector('[role="dialog"]')) {
-                  buttonRef.current?.focus({ preventScroll: true })
-                }
+            <RailButton
+              buttonRef={buttonRef}
+              label={`${projectGroup.name} · ${hostId}`}
+              active={active}
+              status={status}
+              tooltipDisabled={browserOpen}
+              onClick={() => {
+                cancelClose()
+                setBrowserOpen(false)
+                activate()
               }}
-              open={open}
-              onOpenChange={setOpen}
-              reason={reason}
             >
-              <ProjectRailSeparatorMenuItem
-                rowKey={JSON.stringify(['folder-group', hostId, projectGroup.id])}
+              <RepoIconGlyph
+                repoIcon={projectGroup.repoIcon}
+                color={projectGroup.color ?? undefined}
+                className="size-6 shrink-0 text-xl"
+                iconClassName="size-6"
               />
-              <DropdownMenuItem onSelect={() => activate(true)}>
-                <FolderOpen className="size-4" />
-                {t('commandCenter.openCheckout', 'Open current checkout')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => {
-                  const error = activateRailProject(projectGroup, false, true)
-                  setReason(error)
-                  if (error) {
-                    setOpen(true)
-                    return
-                  }
-                  const worktreeId = useAppStore.getState().activeWorktreeId
-                  if (worktreeId) {
-                    void openNewTerminalTabInWorkspace(useAppStore.getState, worktreeId).catch(
-                      (error: unknown) => {
-                        setReason(error instanceof Error ? error.message : String(error))
-                        setOpen(true)
-                      }
-                    )
+            </RailButton>
+            <div className="pointer-events-none absolute inset-0">
+              <ProjectGroupHeaderMenu
+                groupId={projectGroup.id}
+                hostId={hostId}
+                label={projectGroup.name}
+                projectGroup={projectGroup}
+                onRename={dialogs.handleRenameProjectGroup}
+                onDelete={dialogs.handleDeleteProjectGroup}
+                onRefreshProjectGroup={dialogs.handleRefreshProjectGroup}
+                hideTrigger
+                onCloseAutoFocus={(event) => {
+                  event.preventDefault()
+                  if (!document.querySelector('[role="dialog"]')) {
+                    buttonRef.current?.focus({ preventScroll: true })
                   }
                 }}
+                open={open}
+                onOpenChange={setOpen}
+                reason={reason}
               >
-                <Plus className="size-4" />
-                {t('commandCenter.newSession', 'New session')}
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => openProjectCommandCenter(projectGroup)}>
-                <Grid2X2 className="size-4" />
-                {t('commandCenter.openProject', 'Open Project Command Center')}
-              </DropdownMenuItem>
-            </ProjectGroupHeaderMenu>
+                <ProjectRailSeparatorMenuItem
+                  rowKey={JSON.stringify(['folder-group', hostId, projectGroup.id])}
+                />
+                <DropdownMenuItem onSelect={() => activate(true)}>
+                  <FolderOpen className="size-4" />
+                  {t('commandCenter.openCheckout', 'Open current checkout')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    const error = activateRailProject(projectGroup, false, true)
+                    setReason(error)
+                    if (error) {
+                      setOpen(true)
+                      return
+                    }
+                    const worktreeId = useAppStore.getState().activeWorktreeId
+                    if (worktreeId) {
+                      void openNewTerminalTabInWorkspace(useAppStore.getState, worktreeId).catch(
+                        (error: unknown) => {
+                          setReason(error instanceof Error ? error.message : String(error))
+                          setOpen(true)
+                        }
+                      )
+                    }
+                  }}
+                >
+                  <Plus className="size-4" />
+                  {t('commandCenter.newSession', 'New session')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => openProjectCommandCenter(projectGroup)}>
+                  <Grid2X2 className="size-4" />
+                  {t('commandCenter.openProject', 'Open Project Command Center')}
+                </DropdownMenuItem>
+              </ProjectGroupHeaderMenu>
+            </div>
           </div>
-        </div>
-      </PopoverAnchor>
-      {browserOpen ? (
-        <FolderGroupBrowser group={projectGroup} onOpened={() => setBrowserOpen(false)} />
-      ) : null}
-    </Popover>
+        </PopoverAnchor>
+        {browserOpen ? (
+          <FolderGroupBrowser
+            key={projectGroup.parentPath}
+            group={projectGroup}
+            autoFocus={browserAutoFocus}
+            onOpened={() => setBrowserOpen(false)}
+          />
+        ) : null}
+      </Popover>
+    </div>
   )
 }

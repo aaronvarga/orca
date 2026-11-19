@@ -64,6 +64,7 @@ export type WindowLayoutCommand =
       isPinned?: boolean
     }
   | { type: 'splitGroup'; tabId: string; besideGroupId: string; direction: GroupSide }
+  | { type: 'arrangeTabs'; columns: number; rows: number }
   | { type: 'setGroupRatios'; ratios: SplitRatioIntent[] }
   | { type: 'closeTabs'; tabIds: [string]; recordClose?: 'user' | 'cleanup' }
   | ({ type: 'renameTab'; tabId: string } & TabTitle)
@@ -202,6 +203,7 @@ function drawnTabHolds(worktreeId: string, command: WindowLayoutCommand): DrawnT
     case 'setTabProps':
     case 'createTerminalTab':
       return [{ workspace: worktreeId, ids: [command.tabId] }]
+    case 'arrangeTabs':
     case 'setGroupRatios':
       return [{ workspace: worktreeId, ids: [], groupLayout: true }]
     // Pane commands hold their drawn tree; records are not frame-drawn. Editor/browser/chat/simulator opens and page changes send before drawing.

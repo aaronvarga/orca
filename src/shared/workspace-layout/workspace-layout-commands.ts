@@ -21,6 +21,7 @@ import {
   openEditorTab
 } from './commands/workspace-layout-content-commands'
 import {
+  arrangeTabs,
   moveTab,
   openInNewGroup,
   setGroupRatios,
@@ -127,6 +128,8 @@ function applyCommand(
       return closeTabs(model, command, context)
     case 'moveTab':
       return moveTab(model, command, context)
+    case 'arrangeTabs':
+      return arrangeTabs(model, command, context)
     case 'splitGroup':
       return splitGroup(model, command, context)
     case 'setGroupRatios':

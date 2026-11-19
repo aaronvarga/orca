@@ -15,6 +15,7 @@ import { serverEditorFileId } from './server-layout-frame-ids'
 export const SERVER_ROUTED_LAYOUT_COMMANDS = [
   'moveTab',
   'splitGroup',
+  'arrangeTabs',
   'setGroupRatios',
   'setPaneRatios',
   'equalizePanes',
@@ -72,7 +73,11 @@ export function serverLayoutApplyFor(
   if (!route) {
     return null
   }
-  if (command.type === 'setGroupRatios' || command.type === 'setDefaultTabsApplied') {
+  if (
+    command.type === 'arrangeTabs' ||
+    command.type === 'setGroupRatios' ||
+    command.type === 'setDefaultTabsApplied'
+  ) {
     // Group ids are the server's own: frames carry them unchanged; the mark names no tab.
     return { route, command }
   }

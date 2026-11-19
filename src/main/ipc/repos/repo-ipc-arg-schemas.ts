@@ -1,3 +1,4 @@
+import { ProjectGroupUpdate } from '../../../shared/rpc-contract/projects/repo-params'
 import { sanitizeRepoIcon } from '../../../shared/repository/appearance/repo-icon'
 import { WorkspaceHookSettingsSchema } from '../../../shared/workspace-setup/hooks/workspace-hook-settings-schema'
 import { z } from 'zod'
@@ -26,6 +27,7 @@ export const ProjectGroupUpdateArgs = z.object({
   groupId: z.string().min(1),
   updates: z.object({
     hookSettings: WorkspaceHookSettingsSchema.optional(),
+    parentPath: ProjectGroupUpdate.shape.updates.shape.parentPath,
     name: z.string().optional(),
     repoIcon: z
       .unknown()

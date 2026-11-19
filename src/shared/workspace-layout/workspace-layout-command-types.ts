@@ -88,6 +88,7 @@ export type LayoutCommand =
       /** Pins or unpins the tab where `index` puts it, in the same step. */
       isPinned?: boolean
     })
+  | (On & { type: 'arrangeTabs'; columns: number; rows: number })
   | (On & { type: 'splitGroup'; tabId: string; besideGroupId: string; direction: GroupSide })
   /** `ratios`, or from a window older than them, `groupLayout`: exactly one. */
   | (On & {

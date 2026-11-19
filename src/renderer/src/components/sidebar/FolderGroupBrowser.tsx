@@ -13,9 +13,11 @@ import { readFolderGroupDirectory, openFolderGroupDirectory } from './folder-gro
 
 export function FolderGroupBrowser({
   group,
+  autoFocus = true,
   onOpened
 }: {
   group: ProjectGroup
+  autoFocus?: boolean
   onOpened: () => void
 }) {
   const t = useTranslate()
@@ -63,6 +65,16 @@ export function FolderGroupBrowser({
       side="right"
       align="start"
       className="w-80"
+      onOpenAutoFocus={(event) => {
+        if (!autoFocus) {
+          event.preventDefault()
+        }
+      }}
+      onCloseAutoFocus={(event) => {
+        if (!autoFocus) {
+          event.preventDefault()
+        }
+      }}
       onPointerDown={stopRepoHeaderMenuEvent}
       onClick={stopRepoHeaderMenuEvent}
       onKeyDown={stopRepoHeaderMenuEvent}
@@ -183,7 +195,9 @@ export function FolderGroupBrowserButton({ group }: { group: ProjectGroup }) {
           {label}
         </TooltipContent>
       </Tooltip>
-      {open ? <FolderGroupBrowser group={group} onOpened={() => setOpen(false)} /> : null}
+      {open ? (
+        <FolderGroupBrowser key={group.parentPath} group={group} onOpened={() => setOpen(false)} />
+      ) : null}
     </Popover>
   )
 }

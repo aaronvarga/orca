@@ -21,7 +21,7 @@ export type WindowLayoutCommand =
   | (LayoutCommand &
       (
         | { tabId: string }
-        | { type: 'setGroupRatios' }
+        | { type: 'setGroupRatios' | 'arrangeTabs' }
         | { type: 'closeTabs'; tabIds: [string] }
         | { browserTabId: string }
         | { type: 'moveTabToWorkspace' }

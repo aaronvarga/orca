@@ -95,6 +95,7 @@ export const ProjectGroupUpdate = z.object({
   groupId: requiredString('Missing group id'),
   updates: z.object({
     hookSettings: WorkspaceHookSettingsSchema.optional(),
+    parentPath: z.string().trim().min(1).nullable().optional(),
     name: OptionalString,
     repoIcon: z
       .unknown()

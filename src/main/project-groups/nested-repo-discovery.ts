@@ -4,7 +4,8 @@ import type {
   NestedRepoCandidate,
   NestedRepoScanResult
 } from '../../shared/project/groups/project-group-types'
-import { isGitRepoAsync } from '../git/repositories/discovery/repo-detection'
+import { inspectGitRepoForRegistrationAsync } from '../git/repositories/discovery/repo-detection'
+import { normalizeRuntimePathForComparison } from '../../shared/file-access/cross-platform-path'
 import { awaitWindowsHostGitEnvironmentReady } from '../git/command-runner/host-routing/windows-host-git-environment'
 import { parseWslUncPath } from '../../shared/file-access/wsl-paths'
 import {
@@ -131,10 +132,18 @@ export async function scanNestedRepos(args: {
     joinPath: join,
     basename,
     hasGitMarker,
-    isSelectedPathGitRepo: async (path: string) =>
-      (await mayNeedGitDiscovery(path, args.signal)) &&
-      !args.signal?.aborted &&
-      ((await isGitRepoAsync(path)) || (await hasGitMarker(path)))
+    isSelectedPathGitRepo: async (path: string) => {
+      if (!(await mayNeedGitDiscovery(path, args.signal)) || args.signal?.aborted) {
+        return false
+      }
+      const info = await inspectGitRepoForRegistrationAsync(path)
+      const [selected, root] = await Promise.all(
+        [path, info.rootPath].map(async (value) =>
+          normalizeRuntimePathForComparison(await realpath(value).catch(() => value))
+        )
+      )
+      return (info.isRepo && selected === root) || (await hasGitMarker(path))
+    }
   }
   const buildResult = (selectedPathKind: NestedRepoScanResult['selectedPathKind']) => ({
     selectedPath: args.path,

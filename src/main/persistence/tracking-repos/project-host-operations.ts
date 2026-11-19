@@ -36,7 +36,11 @@ export type ProjectHostMutationOperations = {
     setup: ProjectHostSetup,
     repo: Repo,
     updates: ProjectHostSetupUpdateArgs['updates']
-  ) => { setup: ProjectHostSetup; repo: Repo } | null
+  ) => {
+    setup: ProjectHostSetup
+    repo: Repo
+    renamedWorktrees?: ProjectHostSetupUpdateResult['renamedWorktrees']
+  } | null
   updateIndependentProjectHostSetup: (
     setup: ProjectHostSetup,
     updates: ProjectHostSetupUpdateArgs['updates']
@@ -99,7 +103,11 @@ export class ProjectHostPersistenceOperations {
     setup: ProjectHostSetup,
     repo: Repo,
     updates: ProjectHostSetupUpdateArgs['updates']
-  ): { setup: ProjectHostSetup; repo: Repo } | null {
+  ): {
+    setup: ProjectHostSetup
+    repo: Repo
+    renamedWorktrees?: ProjectHostSetupUpdateResult['renamedWorktrees']
+  } | null {
     return this.operations.updateRepoBackedProjectHostSetup(setup, repo, updates)
   }
 
@@ -217,7 +225,12 @@ export class ProjectHostPersistenceOperations {
         ? this.state.projects.find((entry) => entry.id === updated.setup.projectId)
         : undefined
       return updated && updatedProject
-        ? { project: updatedProject, setup: updated.setup, repo: updated.repo }
+        ? {
+            project: updatedProject,
+            setup: updated.setup,
+            repo: updated.repo,
+            renamedWorktrees: updated.renamedWorktrees
+          }
         : null
     }
     const updatedSetup = this.updateIndependentProjectHostSetup(setup, args.updates)

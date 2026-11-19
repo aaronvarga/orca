@@ -1,3 +1,4 @@
+import type { ProjectGroup } from '../../../../shared/project/groups/project-group-types'
 import { isWindowsAbsolutePathLike } from '../../../../shared/file-access/cross-platform-path'
 import { useState } from 'react'
 import { useAppStore } from '@/store'
@@ -20,49 +21,69 @@ import {
   type ExecutionHostId
 } from '../../../../shared/execution-host/execution-host'
 
-async function createFolderGroupAtPath(
+async function saveFolderGroupDirectory(
   path: string,
   name: string,
   hostId: ExecutionHostId,
-  t: ReturnType<typeof useTranslate>
+  t: ReturnType<typeof useTranslate>,
+  group?: ProjectGroup
 ): Promise<void> {
   const owner = parseExecutionHostId(hostId)
   let folderPath = path.trim()
   if (owner?.kind === 'runtime') {
     folderPath = (await browseRuntimeServerDirectory(owner.environmentId, folderPath)).resolvedPath
-  } else if (owner?.kind === 'local') {
+  } else if (owner?.kind === 'local' || (group && owner?.kind === 'ssh')) {
     if (!folderPath.startsWith('/') && !isWindowsAbsolutePathLike(folderPath)) {
       throw new Error(
         t('sidebar.folderGroupAbsolutePath', 'Enter an absolute folder path or use Browse.')
       )
     }
-    await window.api.fs.readDir({ dirPath: folderPath })
+    await window.api.fs.readDir({
+      dirPath: folderPath,
+      ...(owner.kind === 'ssh' ? { connectionId: owner.targetId } : {})
+    })
   } else {
     throw new Error(
       t('sidebar.folderGroupUnsupportedHost', 'Reconnect this host to create a folder group.')
     )
   }
-  const group = await useAppStore
+  if (group) {
+    const saved = await useAppStore
+      .getState()
+      .updateProjectGroup(group.id, { parentPath: folderPath }, { hostId })
+    if (!saved) {
+      throw new Error(
+        t(
+          'sidebar.folderGroupRootSaveFailed',
+          "Couldn't save the root folder. Reconnect the group's host or update Orca on that host."
+        )
+      )
+    }
+    return
+  }
+  const created = await useAppStore
     .getState()
     .createProjectGroup(
       name.trim() || basename(folderPath) || t('sidebar.folderGroupDefaultName', 'Folder group'),
       hostId,
       folderPath
     )
-  if (!group) {
+  if (!created) {
     throw new Error(t('sidebar.folderGroupCreateFailed', "Couldn't create the folder group."))
   }
 }
 
-export function CreateFolderGroupDialog({
+export function FolderGroupDirectoryDialog({
   hostId,
+  group,
   onClose
 }: {
   hostId: ExecutionHostId
+  group?: ProjectGroup
   onClose: () => void
 }) {
   const t = useTranslate()
-  const [path, setPath] = useState('')
+  const [path, setPath] = useState(group?.parentPath ?? '')
   const [name, setName] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -70,7 +91,7 @@ export function CreateFolderGroupDialog({
   const create = async () => {
     setPending(true)
     setError(null)
-    await createFolderGroupAtPath(path, name, hostId, t)
+    await saveFolderGroupDirectory(path, name, hostId, t, group)
       .then(onClose)
       .catch((error: unknown) => setError(error instanceof Error ? error.message : String(error)))
       .finally(() => setPending(false))
@@ -86,7 +107,11 @@ export function CreateFolderGroupDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('sidebar.newFolderGroup', 'New folder group')}</DialogTitle>
+          <DialogTitle>
+            {group
+              ? t('sidebar.folderGroupChangeRoot', 'Change root folder')
+              : t('sidebar.newFolderGroup', 'New folder group')}
+          </DialogTitle>
           <DialogDescription>
             {t(
               'sidebar.folderGroupDescription',
@@ -134,16 +159,18 @@ export function CreateFolderGroupDialog({
               ) : null}
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="folder-group-name">{t('sidebar.folderGroupName', 'Name')}</Label>
-            <Input
-              id="folder-group-name"
-              value={name}
-              placeholder={basename(path)}
-              onChange={(event) => setName(event.target.value)}
-              disabled={pending}
-            />
-          </div>
+          {!group ? (
+            <div className="space-y-2">
+              <Label htmlFor="folder-group-name">{t('sidebar.folderGroupName', 'Name')}</Label>
+              <Input
+                id="folder-group-name"
+                value={name}
+                placeholder={basename(path)}
+                onChange={(event) => setName(event.target.value)}
+                disabled={pending}
+              />
+            </div>
+          ) : null}
           {error ? (
             <p role="alert" className="text-sm text-destructive">
               {error}
@@ -154,7 +181,7 @@ export function CreateFolderGroupDialog({
               {t('sidebar.folderGroupCancel', 'Cancel')}
             </Button>
             <Button type="submit" disabled={!path.trim() || pending}>
-              {t('sidebar.folderGroupCreate', 'Create')}
+              {group ? t('common.save', 'Save') : t('sidebar.folderGroupCreate', 'Create')}
             </Button>
           </DialogFooter>
         </form>

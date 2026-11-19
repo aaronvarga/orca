@@ -24,7 +24,10 @@ export type ProjectGroup = {
 }
 
 export type ProjectGroupUpdate = Partial<
-  Pick<ProjectGroup, 'name' | 'isCollapsed' | 'tabOrder' | 'color' | 'hookSettings' | 'repoIcon'>
+  Pick<
+    ProjectGroup,
+    'name' | 'parentPath' | 'isCollapsed' | 'tabOrder' | 'color' | 'hookSettings' | 'repoIcon'
+  >
 > & { rootProjectOrder?: number | null; hiddenAt?: number | null }
 
 export type ProjectGroupMutation = { groupId: string; updates: ProjectGroupUpdate }

@@ -1,4 +1,4 @@
-import { CreateFolderGroupDialog } from '../../CreateFolderGroupDialog'
+import { FolderGroupDirectoryDialog } from '../../FolderGroupDirectoryDialog'
 import React, { useCallback, useRef, useState } from 'react'
 import { FolderOpen, FolderTree, Globe, Plus, type LucideIcon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -282,7 +282,7 @@ export function AddProjectMenu({
         ) : null}
       </DropdownMenu>
       {folderGroupHost ? (
-        <CreateFolderGroupDialog
+        <FolderGroupDirectoryDialog
           hostId={folderGroupHost}
           onClose={() => setFolderGroupHost(null)}
         />

@@ -93,7 +93,10 @@ export function registerProjectHostSetupHandlers(
       if (!result) {
         throw new Error(`Project host setup not found: ${args.setupId}`)
       }
-      if ('worktreeBasePath' in args.updates && result.repo) {
+      for (const renamed of result.renamedWorktrees ?? []) {
+        mainWindow.webContents.send('worktrees:changed', { repoId: result.repo?.id, renamed })
+      }
+      if (('worktreeBasePath' in args.updates || 'path' in args.updates) && result.repo) {
         void prepareLocalWorktreeRootForRepo(store, result.repo)
         invalidateAuthorizedRootsCache()
       }

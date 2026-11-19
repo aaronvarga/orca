@@ -1,3 +1,4 @@
+import { getProjectFolderSearchEntry } from './repository-folder-search'
 import type { Repo } from '../../../../../shared/repository/repo-types'
 import { getRepositoryPresenceSearchEntries } from './repository-project-presence-search'
 import { isFolderRepo } from '../../../../../shared/repository/repo-kind'
@@ -211,6 +212,7 @@ function getRepositorySearchParts(
     browserProfile: getRepositoryBrowserProfileSearchEntry(t),
     jira,
     displayName,
+    folder: getProjectFolderSearchEntry(repo, t),
     icon,
     github,
     fork,
@@ -235,17 +237,12 @@ export function getRepositoryPaneSearchEntries(
     parts.browserProfile,
     parts.jira,
     parts.displayName,
+    parts.folder,
     parts.icon
   ]
-  if (parts.github) {
-    entries.push(parts.github)
-  }
-  if (parts.fork) {
-    entries.push(parts.fork)
-  }
-  if (parts.projectRuntime) {
-    entries.push(parts.projectRuntime)
-  }
+  entries.push(
+    ...[parts.github, parts.fork, parts.projectRuntime].filter((entry) => entry !== undefined)
+  )
   if (!isFolderRepo(repo)) {
     entries.push(...getRepositoryGitWorktreeSearchEntries(repo, t))
     entries.push(getRepositoryWorkspaceCleanupSearchEntry(repo, t))
@@ -275,6 +272,7 @@ export function getRepositoryPaneSearchMetadata(
     parts.browserProfile,
     parts.jira,
     parts.displayName,
+    parts.folder,
     parts.icon
   ]
   if (parts.github) {

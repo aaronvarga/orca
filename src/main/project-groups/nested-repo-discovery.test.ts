@@ -4,16 +4,20 @@ import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { scanNestedRepos } from './nested-repo-discovery'
-import { isGitRepoAsync } from '../git/repositories/discovery/repo-detection'
+import { inspectGitRepoForRegistrationAsync } from '../git/repositories/discovery/repo-detection'
 
-vi.mock('../git/repositories/discovery/repo-detection', () => ({ isGitRepoAsync: vi.fn() }))
+vi.mock('../git/repositories/discovery/repo-detection', () => ({
+  inspectGitRepoForRegistrationAsync: vi.fn()
+}))
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof FsPromisesModule>()
   return { ...actual, lstat: vi.fn(actual.lstat), stat: vi.fn(actual.stat) }
 })
 
 beforeEach(() => {
-  vi.mocked(isGitRepoAsync).mockReset().mockResolvedValue(false)
+  vi.mocked(inspectGitRepoForRegistrationAsync)
+    .mockReset()
+    .mockResolvedValue({ isRepo: false, rootPath: '', mainRepoPath: null })
   for (const key of Object.keys(process.env).filter((key) => key.startsWith('GIT_'))) {
     vi.stubEnv(key, undefined)
   }

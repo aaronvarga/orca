@@ -1,4 +1,8 @@
 {
+  "workspaceTabs": {
+    "arrange": "Arrange open tabs",
+    "arrangeFailed": "Could not arrange open tabs on this host."
+  },
   "agentLaunch": {
     "connectSsh": "Connect to this workspace’s SSH host, then try again.",
     "sshUnavailable": "Terminal launch is unavailable on this SSH host. Open a terminal in the workspace and start the agent there.",
@@ -348,7 +352,9 @@
     "folderGroupAppearance": "Group icon and color",
     "projectIconAndColor": "Project icon and color",
     "removeRailSeparator": "Remove separator above",
-    "addRailSeparator": "Add separator above"
+    "addRailSeparator": "Add separator above",
+    "folderGroupRootSaveFailed": "Couldn't save the root folder. Reconnect the group's host or update Orca on that host.",
+    "folderGroupChangeRoot": "Change root folder"
   },
   "app": {
     "saving": {
@@ -677,6 +683,19 @@
     "refreshingDetails": "Refreshing check details…"
   },
   "settings": {
+    "projectFolder": {
+      "openAs": "Open as",
+      "folder": "Folder",
+      "git": "Git repository",
+      "title": "Project folder",
+      "description": "Change the folder Orca opens for this project. Files are not moved. Existing terminals keep their current working directory.",
+      "browse": "Browse…",
+      "update": "Change folder",
+      "updating": "Updating…",
+      "failed": "Could not change the project folder.",
+      "cancel": "Cancel",
+      "searchKeywords": "folder location path repoint relocate"
+    },
     "chat": {
       "launch": {
         "on": "Chat UI is on",

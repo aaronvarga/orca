@@ -22,7 +22,8 @@ export function RailButton({
   active = false,
   disabled = false,
   buttonRef,
-  status
+  status,
+  tooltipDisabled = false
 }: {
   label: string
   onClick: () => void
@@ -30,6 +31,7 @@ export function RailButton({
   active?: boolean
   disabled?: boolean
   status?: ProjectRailStatus
+  tooltipDisabled?: boolean
   buttonRef?: React.Ref<HTMLButtonElement>
 }) {
   const t = useTranslate()
@@ -47,7 +49,7 @@ export function RailButton({
     .filter(Boolean)
     .join(' · ')
   return (
-    <Tooltip>
+    <Tooltip open={tooltipDisabled ? false : undefined}>
       <TooltipTrigger asChild>
         <Button
           ref={buttonRef}

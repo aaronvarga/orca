@@ -1,3 +1,5 @@
+import { ProjectGroupUpdateArgs } from '../../ipc/repos/repo-ipc-arg-schemas'
+import { ProjectGroupUpdate } from '../../../shared/rpc-contract/projects/repo-params'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { join } from 'node:path'
 import { mkdtempSync, rmSync } from 'node:fs'
@@ -71,6 +73,35 @@ describe('Flat folder-scan project groups adaptation', () => {
         .find((row) => row.id === group.id)?.hiddenAt
     ).toBeUndefined()
   })
+
+  it.each(['ipc', 'rpc'])(
+    'persists a changed root through %s without moving existing projects',
+    async (transport) => {
+      const store = createStore()
+      const group = store.createProjectGroup({
+        name: 'Clients',
+        parentPath: '/original',
+        createdFrom: 'manual'
+      })
+      store.addRepo(makeRepo({ id: 'kept', path: '/original/client', projectGroupId: group.id }))
+      const request = (transport === 'ipc' ? ProjectGroupUpdateArgs : ProjectGroupUpdate).parse({
+        groupId: group.id,
+        updates: { parentPath: '/replacement' }
+      })
+      store.updateProjectGroups([request])
+      store.flush()
+      await closeTestStores()
+      const reloaded = createStore()
+      expect(reloaded.getProjectGroups().find((row) => row.id === group.id)).toMatchObject({
+        name: 'Clients',
+        parentPath: '/replacement'
+      })
+      expect(reloaded.getRepos().find((row) => row.id === 'kept')).toMatchObject({
+        path: '/original/client',
+        projectGroupId: group.id
+      })
+    }
+  )
 
   it('retains old group defaults and locally configured hooks through restart', async () => {
     const store = createStore()

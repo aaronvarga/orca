@@ -12,7 +12,10 @@ import { rmSync, mkdtempSync } from 'node:fs'
 import 'node:child_process'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { getDefaultPersistedState } from '../../../shared/orca-profiles/constants'
+import {
+  getDefaultPersistedState,
+  getDefaultWorkspaceSession
+} from '../../../shared/orca-profiles/constants'
 import '../../workspaces/catalog/folder-repo-git-conversion'
 import '../../../shared/worktree/host-qualified-identity'
 import '../host-qualified-worktree-meta'
@@ -140,6 +143,39 @@ describe('Store', () => {
       expect.objectContaining({ id: 'r1', displayName: 'renamed' }),
       independentSetup
     ])
+  })
+
+  it('persists a new folder path without replacing the project or its saved workspace selection', async () => {
+    const store = await createStore()
+    store.addRepo(
+      makeRepo({ id: 'repoint', path: '/old/folder', kind: 'git', displayName: 'Supply' })
+    )
+    store.setWorkspaceSession({
+      ...getDefaultWorkspaceSession(),
+      activeWorktreeId: 'repoint::/old/folder',
+      activeTabIdByWorktree: { 'repoint::/old/folder': 'chat' }
+    })
+    const result = store.updateProjectHostSetup({
+      setupId: 'repoint',
+      hostId: 'local',
+      updates: { path: '/new/folder', kind: 'folder' }
+    })
+    expect(result?.repo).toMatchObject({
+      id: 'repoint',
+      path: '/new/folder',
+      displayName: 'Supply',
+      kind: 'folder'
+    })
+    expect(result?.renamedWorktrees).toEqual([
+      { oldWorktreeId: 'repoint::/old/folder', newWorktreeId: 'repoint::/new/folder' }
+    ])
+    store.flush()
+    const reloaded = await createStore()
+    expect(reloaded.getRepo('repoint')?.path).toBe('/new/folder')
+    expect(reloaded.getWorkspaceSession().activeWorktreeId).toBe('repoint::/new/folder')
+    expect(reloaded.getWorkspaceSession().activeTabIdByWorktree?.['repoint::/new/folder']).toBe(
+      'chat'
+    )
   })
 
   // Git catalogs cannot enumerate sibling folder workspaces; changing kind would strand their tabs (STA-10638).

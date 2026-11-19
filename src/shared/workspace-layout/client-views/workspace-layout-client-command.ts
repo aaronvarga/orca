@@ -145,6 +145,7 @@ export function clientLayoutCommand(
     }
     case 'setGroupRatios':
       return ratios(model.workspaces[command.workspace], command, visible)
+    case 'arrangeTabs':
     case 'splitGroup':
       // The primitive evaluates visible cardinality without moving hidden siblings.
       return command

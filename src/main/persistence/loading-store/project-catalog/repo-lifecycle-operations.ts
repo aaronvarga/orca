@@ -1,5 +1,10 @@
+import { repointProjectFolder } from '../../tracking-repos/repoint-project-folder'
 import type { WorkspaceSessionState } from '../../../../shared/workspace-session/workspace-session-state-types'
-import { REMOVE_PROJECT_DOMAINS, REPO_CATALOG_DOMAINS } from '../../profile-save-domains'
+import {
+  REMOVE_PROJECT_DOMAINS,
+  REPO_CATALOG_DOMAINS,
+  WORKTREE_IDENTITY_MIGRATION_DOMAINS
+} from '../../profile-save-domains'
 import type {
   ProjectHostSetup,
   ProjectHostSetupUpdateArgs
@@ -259,6 +264,21 @@ export function getProjectHostSetupOperations(
     new ProjectHostSetupPersistenceOperations({
       state: owner[repoLifecycleOperationsContext].runtime.state,
       updateRepo: (target, updates) => owner.updateRepo(target, updates),
+      repointRepo: (repo, path, kind) => {
+        const renamedWorktrees = repointProjectFolder(
+          owner[repoLifecycleOperationsContext].runtime.state,
+          repo,
+          path,
+          kind
+        )
+        bumpLocalWorktreeScanGeneration(repo.id)
+        syncProjectHostSetupCompatibilityState(owner)
+        scheduleSave(owner[repoLifecycleOperationsContext].scheduling, [
+          ...REPO_CATALOG_DOMAINS,
+          ...WORKTREE_IDENTITY_MIGRATION_DOMAINS
+        ])
+        return { repo: hydrateRepo(owner, repo), renamedWorktrees }
+      },
       scheduleSave: () =>
         scheduleSave(owner[repoLifecycleOperationsContext].scheduling, ['projectHostSetups'])
     })

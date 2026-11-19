@@ -1,3 +1,4 @@
+import { RepositoryFolderSection } from './RepositoryFolderSection'
 import { useCallback, useRef, useState } from 'react'
 import type {
   OrcaHooks,
@@ -159,11 +160,8 @@ export function RepositoryPane({
     [clearCopiedTemplateResetTimer]
   )
 
-  const updateSelectedRepoHookSettings = (nextSettings: RepoHookSettings) => {
-    updateSelectedRepo(repo.id, {
-      hookSettings: nextSettings
-    })
-  }
+  const updateSelectedRepoHookSettings = (hookSettings: RepoHookSettings) =>
+    updateSelectedRepo(repo.id, { hookSettings })
 
   const handleCopyTemplate = async () => {
     // Make missing-orca.yaml migration a one-click copy of the expected shared-template shape.
@@ -285,6 +283,8 @@ export function RepositoryPane({
         >
           <RepositoryIconPicker repo={repo} updateRepo={updateSelectedRepo} />
         </SearchableSetting>
+
+        <RepositoryFolderSection key={repo.path} repo={repo} />
 
         <RepositoryJiraProjectSection
           key={`${selectedHostId}:${repo.id}`}

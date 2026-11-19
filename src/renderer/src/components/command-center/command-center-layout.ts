@@ -18,7 +18,7 @@ export const COMMAND_CENTER_PRESETS = [
 ] as const
 
 export function commandCenterColumns(
-  layout: CommandCenterPresentation,
+  layout: Pick<CommandCenterPresentation, 'layout' | 'columns'>,
   count: number,
   width: number
 ): number {

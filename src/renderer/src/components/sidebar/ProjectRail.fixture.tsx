@@ -166,8 +166,11 @@ export const folderBrowser = defineFixture({
       </ConfirmationDialogProvider>
     </div>
   ),
-  interact: (frame) =>
-    frame.querySelector<HTMLButtonElement>('[aria-label="Clients · local"]')?.click()
+  interact: (frame) => {
+    frame
+      .querySelector<HTMLButtonElement>('[aria-label="Clients · local"]')
+      ?.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }))
+  }
 })
 
 const indicatorStates: [string, ProjectRailStatus][] = [

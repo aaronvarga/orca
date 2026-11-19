@@ -1122,6 +1122,7 @@ export const RPC_PARAMS_BY_METHOD = {
   'agentSession.queuedMessageUpdate': QueuedMessageUpdateParams,
   'agentSession.queuedMessagesResume': QueuedMessagesResumeParams,
   'agentSession.readVisual': ReadVisualParams,
+  'agentSession.regenerateMilestones': OptionsParams,
   'agentSession.regenerateName': OptionsParams,
   'agentSession.release': HoldParams,
   'agentSession.rename': RenameParams,

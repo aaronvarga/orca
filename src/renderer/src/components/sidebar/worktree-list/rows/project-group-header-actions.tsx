@@ -1,6 +1,7 @@
+import { FolderGroupDirectoryDialog } from '../../FolderGroupDirectoryDialog'
 import { FolderGroupAppearanceDialog } from '../../FolderGroupAppearanceDialog'
 import React, { useState } from 'react'
-import { Ellipsis, Plus, RefreshCw, Palette, Pencil, Trash2 } from 'lucide-react'
+import { Ellipsis, Plus, RefreshCw, Palette, Pencil, Trash2, Folder } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
@@ -14,7 +15,10 @@ import { useTranslate } from '@/i18n/use-translate'
 import { getFolderWorkspacePathStatusDescription } from '@/lib/workspace/paths/folder-workspace-path-status'
 import type { ProjectGroup } from '../../../../../../shared/project/groups/project-group-types'
 import type { FolderWorkspacePathStatus } from '../../../../../../shared/folder-workspaces/folder-workspace-path-status'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
+import {
+  getRepoExecutionHostId,
+  type ExecutionHostId
+} from '../../../../../../shared/execution-host/execution-host'
 import { getFolderProjectGroupRefreshHandler } from './project-group-folder-refresh'
 import { REPO_HEADER_ACTION_BUTTON_CLASS } from './repo-header-action-button-class'
 import {
@@ -55,6 +59,7 @@ export function ProjectGroupHeaderMenu({
 }): React.JSX.Element {
   const t = useTranslate()
   const [appearanceOpen, setAppearanceOpen] = useState(false)
+  const [directoryOpen, setDirectoryOpen] = useState(false)
   const onRefresh = getFolderProjectGroupRefreshHandler(projectGroup, onRefreshProjectGroup)
   return (
     <>
@@ -100,6 +105,12 @@ export function ProjectGroupHeaderMenu({
           ) : null}
           {children}
           {projectGroup ? (
+            <DropdownMenuItem onSelect={() => setDirectoryOpen(true)}>
+              <Folder className="size-4" />
+              {t('sidebar.folderGroupChangeRoot', 'Change root folder')}
+            </DropdownMenuItem>
+          ) : null}
+          {projectGroup ? (
             <DropdownMenuItem onSelect={() => setAppearanceOpen(true)}>
               <Palette className="size-4" />
               {t('sidebar.folderGroupAppearance', 'Group icon and color')}
@@ -121,6 +132,13 @@ export function ProjectGroupHeaderMenu({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      {directoryOpen && projectGroup ? (
+        <FolderGroupDirectoryDialog
+          group={projectGroup}
+          hostId={getRepoExecutionHostId(projectGroup)}
+          onClose={() => setDirectoryOpen(false)}
+        />
+      ) : null}
       {appearanceOpen && projectGroup ? (
         <FolderGroupAppearanceDialog
           group={projectGroup}

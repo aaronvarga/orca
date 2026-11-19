@@ -17,6 +17,7 @@ function groupOrderMatchesUpdate(
   updates: ProjectGroupMutation['updates']
 ): boolean {
   return (
+    (updates.parentPath === undefined || group.parentPath === updates.parentPath) &&
     (updates.rootProjectOrder === undefined ||
       (group.rootProjectOrder ?? null) === updates.rootProjectOrder) &&
     (updates.tabOrder === undefined || group.tabOrder === updates.tabOrder) &&

@@ -271,6 +271,10 @@ export abstract class OrcaRuntimeWithPreservedBranchCleanup extends RuntimeAgent
     enqueueRepositoryMetadata: (repos) => void this.repositoryForkBackfill.enqueue(repos),
     invalidateResolvedWorktrees: () => this.invalidateResolvedWorktreeCache(),
     invalidateWorktreeScan: (repoId) => this.invalidateWorktreeScanCacheForRepo(repoId),
+    notifyWorktreeFolderRenamed: (repoId, oldWorktreeId, newWorktreeId) => {
+      this.clientSessionTabSelections.migrateWorktree(oldWorktreeId, newWorktreeId)
+      this.notifier?.worktreesChanged(repoId, { oldWorktreeId, newWorktreeId })
+    },
     notifyReposChanged: () => this.notifyReposChanged(),
     countLiveTerminalsForRepo: (repo) =>
       countRepoTerminalsNotKnownExited(repo, this.ptysById.values(), (ptyId) =>

@@ -310,6 +310,12 @@ export const LayoutApplyParams = z.object({
     SetChatPaneCommand,
     MoveTabCommand,
     SplitGroupCommand,
+    z.object({
+      type: z.literal('arrangeTabs'),
+      workspace: z.string().min(1),
+      columns: z.number().int().min(1).max(1000),
+      rows: z.number().int().min(1).max(1000)
+    }),
     SetGroupRatiosCommand,
     CloseTabsCommand,
     RenameTabCommand,

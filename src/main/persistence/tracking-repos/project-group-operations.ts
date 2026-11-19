@@ -105,6 +105,9 @@ export class ProjectGroupPersistenceOperations {
     if (updates.name !== undefined) {
       group.name = normalizeProjectGroupName(updates.name, group.name)
     }
+    if (updates.parentPath !== undefined) {
+      group.parentPath = updates.parentPath?.trim() || null
+    }
     if (updates.hiddenAt === null) {
       delete group.hiddenAt
     } else if (

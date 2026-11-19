@@ -57,6 +57,11 @@ type RuntimeProjectHostSetupDependencies = RepositoryMetadataOwner & {
   cloneRepo: (args: ProjectHostSetupCloneArgs) => Promise<Repo>
   invalidateResolvedWorktrees: () => void
   invalidateWorktreeScan: (repoId: string) => void
+  notifyWorktreeFolderRenamed?: (
+    repoId: string,
+    oldWorktreeId: string,
+    newWorktreeId: string
+  ) => void
   notifyReposChanged: () => void
   countLiveTerminalsForRepo: (repo: Repo) => number
 }
@@ -192,7 +197,14 @@ export class RuntimeProjectHostSetupController {
     if (!result) {
       throw new Error(`Project host setup not found: ${args.setupId}`)
     }
-    if ('worktreeBasePath' in args.updates && result.repo) {
+    for (const renamed of result.renamedWorktrees ?? []) {
+      this.deps.notifyWorktreeFolderRenamed?.(
+        result.repo!.id,
+        renamed.oldWorktreeId,
+        renamed.newWorktreeId
+      )
+    }
+    if (('worktreeBasePath' in args.updates || 'path' in args.updates) && result.repo) {
       void prepareLocalWorktreeRootForRepo(store, result.repo)
       invalidateAuthorizedRootsCache()
     }

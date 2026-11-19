@@ -1,3 +1,4 @@
+import { validateProjectFolderChange } from './project-folder-change-validation'
 import { realpathSync } from 'node:fs'
 import type { Repo } from '../../../shared/repository/repo-types'
 import type {
@@ -109,7 +110,19 @@ export async function updateProjectHostSetupWithProvenKind(
   args: ProjectHostSetupUpdateArgs,
   allowRuntimeHost = false
 ): Promise<ProjectHostSetupUpdateResult | null> {
-  if (args.updates.kind !== 'git') {
+  const recheck = await validateProjectFolderChange(store, args)
+  const selectedSetup = findProjectHostSetup(store.getProjectHostSetups?.() ?? [], args)
+  const selectedRepo = store
+    .getRepos()
+    .find(
+      (row) =>
+        row.id === selectedSetup?.repoId && getRepoExecutionHostId(row) === selectedSetup?.hostId
+    )
+  if (
+    args.updates.kind !== 'git' ||
+    (args.updates.path !== undefined && args.updates.path !== selectedRepo?.path)
+  ) {
+    recheck()
     return updateSetup(args)
   }
   const setup = findProjectHostSetup(store.getProjectHostSetups?.() ?? [], args)
@@ -127,6 +140,7 @@ export async function updateProjectHostSetupWithProvenKind(
     store,
     repo,
     (proven) => {
+      recheck()
       const result = updateSetup(args)
       if (!result?.repo || !proven.folderUpgradeGitRootPath) {
         return result

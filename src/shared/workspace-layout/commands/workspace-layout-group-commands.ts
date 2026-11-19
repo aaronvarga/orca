@@ -1,3 +1,4 @@
+import { arrangeTabGroups } from '../tab-groups/arrange-tab-groups'
 // Share headless group moves with the runtime. Create each split group with its tab atomically; empty groups never persist.
 
 import { canonicalTabGap } from '../client-views/workspace-layout-client-visibility'
@@ -268,4 +269,30 @@ export function openInNewGroup(
   )
   // An open that places no tab must not leave an empty group.
   return filled ? opened : applied(model, opened.result)
+}
+
+export function arrangeTabs(
+  model: WorkspaceLayoutModel,
+  command: CommandOf<'arrangeTabs'>,
+  context: LayoutContext
+): Applied {
+  const workspace = model.workspaces[command.workspace]!
+  const tabs = context.visibility ? workspace.tabs.filter(context.visibility) : workspace.tabs
+  const arranged = arrangeTabGroups(
+    workspace.groups,
+    new Set(tabs.map((tab) => tab.id)),
+    command.columns,
+    command.rows,
+    context.mintId
+  )
+  if (!arranged) {
+    return refuse('invalid_params')
+  }
+  return applied(
+    withWorkspace(model, command.workspace, {
+      ...workspace,
+      groups: arranged.groups,
+      groupLayout: arranged.layout
+    })
+  )
 }
