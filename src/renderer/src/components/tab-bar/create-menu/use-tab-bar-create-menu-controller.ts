@@ -1,3 +1,7 @@
+import {
+  canOpenLocalTranscriberSession,
+  openLocalTranscriberSession
+} from '@/lib/integrations/local-transcriber-session'
 import type { TabBarCreateMenuController } from './tab-bar-create-menu-contract'
 
 import { useAgentLaunchPickerInventorySource } from '../../agent/use-agent-launch-picker-inventory'
@@ -154,35 +158,28 @@ export function useTabBarCreateMenuController({
     windowsTerminalCapabilities.gitBashAvailable,
     windowsTerminalCapabilities.wslAvailable
   ])
-  const createMenuOptions = useMemo(
-    () =>
-      buildTabCreateMenuOptions({
-        terminalOnly,
-        windowsShellEntries,
-        hasNewBrowser: !terminalOnly && managedBrowserCreationEnabled,
-        hasNewMarkdown: !terminalOnly && Boolean(onNewFileTab),
-        hasOpenMarkdown: !terminalOnly && Boolean(onOpenFileTab),
-        hasSimulator:
-          !terminalOnly &&
-          mobileEmulatorEnabled &&
-          mobileEmulatorCreationEnabled &&
-          Boolean(onNewSimulatorTab),
-        simulatorIsGoTo: workspaceHasSimulatorTab
-      }),
-    [
-      mobileEmulatorEnabled,
-      managedBrowserCreationEnabled,
-      mobileEmulatorCreationEnabled,
-      onNewFileTab,
-      onNewSimulatorTab,
-      onOpenFileTab,
-      terminalOnly,
-      windowsShellEntries,
-      workspaceHasSimulatorTab
-    ]
+  const hasLocalTranscriber = useAppStore((state) =>
+    canOpenLocalTranscriberSession(state, worktreeId)
   )
+  const createMenuOptions = buildTabCreateMenuOptions({
+    terminalOnly,
+    hasLocalTranscriber,
+    windowsShellEntries,
+    hasNewBrowser: !terminalOnly && managedBrowserCreationEnabled,
+    hasNewMarkdown: !terminalOnly && Boolean(onNewFileTab),
+    hasOpenMarkdown: !terminalOnly && Boolean(onOpenFileTab),
+    hasSimulator:
+      !terminalOnly &&
+      mobileEmulatorEnabled &&
+      mobileEmulatorCreationEnabled &&
+      Boolean(onNewSimulatorTab),
+    simulatorIsGoTo: workspaceHasSimulatorTab
+  })
   const handleSelectCreateMenuOption = (option: TabCreateMenuOption): void => {
     switch (option.kind) {
+      case 'local-transcriber':
+        void openLocalTranscriberSession(worktreeId, resolvedGroupId)
+        break
       case 'new-terminal':
         queueNewActiveTerminalFocusAfterNewTabMenuClose()
         onNewTerminalTab()

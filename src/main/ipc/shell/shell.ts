@@ -1,3 +1,4 @@
+import { registerLocalTranscriberHandlers } from './local-transcriber-handlers'
 import {
   getProjectSymbolCatalog,
   renderProjectSymbols
@@ -208,6 +209,7 @@ export function registerShellHandlers(
     }
   )
 
+  registerLocalTranscriberHandlers()
   registerShellPathExistenceHandlers()
 
   ipcMain.handle(

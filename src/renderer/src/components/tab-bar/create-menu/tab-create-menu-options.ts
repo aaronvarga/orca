@@ -13,6 +13,7 @@ export type TabCreateMenuOptionKind =
   | 'new-terminal-shell'
   | 'open-markdown'
   | 'new-plugin-file'
+  | 'local-transcriber'
 
 /** A plugin's new-file type, as the + menu offers it. */
 export type TabCreateMenuPluginNewFile = {
@@ -35,6 +36,7 @@ export type TabCreateMenuOption = {
 }
 
 export type TabCreateMenuOptionsContext = {
+  hasLocalTranscriber?: boolean
   hasNewBrowser: boolean
   hasNewMarkdown: boolean
   hasOpenMarkdown: boolean
@@ -114,6 +116,19 @@ export function buildTabCreateMenuOptions(
     })
   }
 
+  if (context.hasLocalTranscriber) {
+    options.push({
+      id: 'local-transcriber',
+      kind: 'local-transcriber',
+      label: t('integrations.localTranscriber.newSession', 'Recording + Claude'),
+      keywords: [
+        t(
+          'integrations.localTranscriber.keywords',
+          'recording transcript transcriber meeting claude'
+        )
+      ]
+    })
+  }
   if (context.hasNewBrowser) {
     const label = t('auto.components.tab.bar.TabBar.4833fb2cbe', 'New Browser Tab')
     options.push({

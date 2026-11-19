@@ -83,11 +83,12 @@ export function getEditorPanelRenderModel({
           activeFile.filePath,
           editorDrafts[activeFile.id] ?? fileContents[activeFile.id]?.content
         )
-  // Read-only artifact tabs require raw source viewers; retain real-language tokenization while suppressing rich/preview modes and their editing affordances.
-  const rawReadOnly = activeFile.mode === 'edit' && activeFile.readOnly === true
-  const viewerLanguage = rawReadOnly
-    ? 'plaintext'
-    : getEditorViewLanguage(activeFile.filePath, resolvedLanguage)
+  // Read-only Markdown keeps its formatted preview; other artifacts retain source viewers.
+  const readOnlyEditSurface = activeFile.mode === 'edit' && activeFile.readOnly === true
+  const viewerLanguage =
+    readOnlyEditSurface && resolvedLanguage !== 'markdown'
+      ? 'plaintext'
+      : getEditorViewLanguage(activeFile.filePath, resolvedLanguage)
   const worktreeEntries = gitStatusEntries ?? []
   const branchEntries = gitBranchEntries ?? []
   const matchingWorktreeEntry =
@@ -145,9 +146,9 @@ export function getEditorPanelRenderModel({
     !inlineFileContent.loadError &&
     inlineFileContent.csvPreview === undefined &&
     activeFile.conflict === undefined
-  // Read-only tabs keep raw source, as for every other rich view.
+  // Text plugin editors may write content, so read-only tabs use the built-in preview.
   const textEditorEligible =
-    customEditorContentReady && !rawReadOnly && inlineFileContent?.isBinary !== true
+    customEditorContentReady && !readOnlyEditSurface && inlineFileContent?.isBinary !== true
   // Bytes editors honor read-only themselves, so they open read-only tabs too; they need a pageable route.
   const bytesEditorEligible =
     customEditorContentReady && inlineFileContent?.byteSource !== undefined
@@ -188,7 +189,7 @@ export function getEditorPanelRenderModel({
     activeFile.conflict?.conflictStatus !== 'unresolved'
   let inlineMarkdownRenderState: MarkdownRenderState | null = null
   if (canRenderInlineMarkdown) {
-    const shouldClassifyRichMode = mdViewMode === 'rich'
+    const shouldClassifyRichMode = mdViewMode === 'rich' && !readOnlyEditSurface
     const richModeEligibility = shouldClassifyRichMode
       ? getCachedMarkdownRichModeEligibility({
           content: inlineMarkdownContent,
@@ -200,7 +201,7 @@ export function getEditorPanelRenderModel({
       renderMode: getMarkdownRenderMode({
         exceedsRichModeSizeLimit: richModeEligibility?.exceedsSizeLimit ?? false,
         hasRichModeUnsupportedContent: richModeUnsupportedMessage !== null,
-        viewMode: mdViewMode
+        viewMode: readOnlyEditSurface && mdViewMode === 'rich' ? 'preview' : mdViewMode
       }),
       richModeUnsupportedMessage
     }

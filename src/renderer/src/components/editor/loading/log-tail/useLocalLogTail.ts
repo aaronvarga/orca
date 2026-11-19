@@ -13,6 +13,7 @@ type TailSession = {
   reading: boolean
   pendingRead: boolean
   limited: boolean
+  snapshot: boolean
   startPromise: Promise<void>
 }
 
@@ -95,6 +96,28 @@ export function useLocalLogTail({
       try {
         do {
           session.pendingRead = false
+          // Transcripts can rewrite earlier segments; appending bytes would retain stale text.
+          if (session.snapshot) {
+            const snapshot = await window.api.fs.readFile({
+              filePath: session.filePath,
+              includeLocalLogMetadata: true,
+              access: { kind: 'user-file' }
+            })
+            if (session.closed) {
+              return
+            }
+            if (snapshot.isBinary) {
+              restartFromSnapshot(session)
+              return
+            }
+            setFileContents((previous) => {
+              const current = previous[session.fileId]
+              return current
+                ? { ...previous, [session.fileId]: { ...current, ...snapshot } }
+                : previous
+            })
+            continue
+          }
           for (;;) {
             const result = await window.api.fs.readLocalLogTail({
               filePath: session.filePath,
@@ -194,11 +217,12 @@ export function useLocalLogTail({
         reading: false,
         pendingRead: false,
         limited: false,
+        snapshot: file.language === 'markdown',
         startPromise: Promise.resolve()
       }
       sessionsRef.current.set(file.id, session)
 
-      if (decoder.initialVisibleContent !== content.content) {
+      if (!session.snapshot && decoder.initialVisibleContent !== content.content) {
         setFileContents((previous) => {
           const current = previous[file.id]
           return current

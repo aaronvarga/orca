@@ -1,5 +1,9 @@
+import {
+  canOpenLocalTranscriberSession,
+  openLocalTranscriberSession
+} from '@/lib/integrations/local-transcriber-session'
 import React from 'react'
-import { FilePlus, FileText, Globe, Smartphone, TerminalSquare } from 'lucide-react'
+import { FilePlus, FileText, Globe, Mic, Smartphone, TerminalSquare } from 'lucide-react'
 import { useTranslate } from '@/i18n/use-translate'
 import { MobileEmulatorTabIntroCallout } from '../../emulator-pane/tab-intro/MobileEmulatorTabIntroCallout'
 import { NewTabMenuTipSlot } from '../menu-fit/NewTabMenuTipSlot'
@@ -56,6 +60,7 @@ export function TabBarStaticCreateMenu({
   const t = useTranslate()
   const {
     newTabMenuSurface = 'tab-bar',
+    worktreeId,
     onNewTerminalTab,
     onNewTerminalWithShell,
     onNewBrowserTab,
@@ -64,6 +69,9 @@ export function TabBarStaticCreateMenu({
     onOpenFileTab
   } = props
   const pluginNewFiles = usePluginNewFiles()
+  const hasLocalTranscriber = useAppStore((state) =>
+    canOpenLocalTranscriberSession(state, worktreeId)
+  )
   const simulatorAvailable = !terminalOnly && mobileEmulatorEnabled && mobileEmulatorCreationEnabled
 
   const terminalItems: TabBarCreateRowItem[] =
@@ -182,11 +190,25 @@ export function TabBarStaticCreateMenu({
             }
           ]
         : []
+  const recordingItems: TabBarCreateRowItem[] =
+    !terminalOnly && hasLocalTranscriber
+      ? [
+          {
+            id: 'local-transcriber',
+            label: t('integrations.localTranscriber.newSession', 'Recording + Claude'),
+            icon: <Mic className={ICON_CLASS} />,
+            run: () => {
+              void openLocalTranscriberSession(worktreeId, groupId)
+            }
+          }
+        ]
+      : []
   const items =
     newTabMenuSurface === 'floating-panel'
       ? [
           ...markdownItems,
           ...openMarkdownItems,
+          ...recordingItems,
           ...terminalItems,
           ...browserItems,
           ...simulatorItems
@@ -196,6 +218,7 @@ export function TabBarStaticCreateMenu({
           ...browserItems,
           ...markdownItems,
           ...openMarkdownItems,
+          ...recordingItems,
           ...simulatorItems
         ]
 

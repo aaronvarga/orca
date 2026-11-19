@@ -1,3 +1,4 @@
+import type { LocalTranscriberRecording } from '../../../shared/integrations/local-transcriber'
 import type { ProjectSymbolCatalog } from '../../../shared/repository/appearance/project-symbol-catalog'
 import type { RepoIconPickResult } from '../../../shared/repository/appearance/repo-icon-pick-failure-copy'
 import type { ExecutionHostId } from '../../../shared/execution-host/execution-host'
@@ -11,6 +12,7 @@ import type {
 import type { RuntimeFileOpenPosition } from '../../../shared/file-access/runtime-editor-file-open'
 
 export type ShellApi = {
+  startTranscriberRecording?: () => Promise<LocalTranscriberRecording>
   getProjectSymbolCatalog?: () => Promise<ProjectSymbolCatalog | null>
   renderProjectSymbols?: (names: string[]) => Promise<Record<string, string>>
   /** Every OS open names the path's owner; main refuses anything not owned by this computer. */

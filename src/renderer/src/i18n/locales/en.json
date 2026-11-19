@@ -8,6 +8,16 @@
       "value": "{{size}} px"
     }
   },
+  "integrations": {
+    "localTranscriber": {
+      "newSession": "Recording + Claude",
+      "opening": "Opening recording session…",
+      "paused": "Attached to the paused recording. Resume it in Local Transcriber when ready.",
+      "ready": "Recording session opened.",
+      "failed": "Could not open the recording session.",
+      "keywords": "recording transcript transcriber meeting claude"
+    }
+  },
   "workspaceTabs": {
     "arrange": "Arrange open tabs",
     "arrangeFailed": "Could not arrange open tabs on this host."

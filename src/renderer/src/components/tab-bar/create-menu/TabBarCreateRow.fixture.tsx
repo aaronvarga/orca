@@ -5,6 +5,7 @@ import {
   Globe,
   Image,
   Kanban,
+  Mic,
   Network,
   PenTool,
   Presentation,
@@ -57,6 +58,12 @@ const BUILT_IN: TabBarCreateRowItem[] = [
     label: 'Open Markdown...',
     icon: <FileText className={ICON} />,
     actionId: 'tab.openMarkdown',
+    run: noop
+  },
+  {
+    id: 'local-transcriber',
+    label: 'Recording + Claude',
+    icon: <Mic className={ICON} />,
     run: noop
   },
   {

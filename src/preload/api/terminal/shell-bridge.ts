@@ -12,6 +12,7 @@ import type { ShellPathExistence } from '../../../shared/file-access/path-existe
 import type { PreloadApi } from '../../api-types'
 
 export const shellApi = {
+  startTranscriberRecording: () => ipcRenderer.invoke('shell:startTranscriberRecording'),
   getProjectSymbolCatalog: () => ipcRenderer.invoke('shell:getProjectSymbolCatalog'),
   renderProjectSymbols: (names: string[]) =>
     ipcRenderer.invoke('shell:renderProjectSymbols', names),
