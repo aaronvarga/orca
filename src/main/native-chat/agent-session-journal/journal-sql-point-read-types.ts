@@ -1,3 +1,4 @@
+import type { NativeChatMilestones } from '../../../shared/native-chat/input/task-lists/native-chat-milestones'
 import type { JournalOutlineCache } from './journal-domain-outline'
 import type { JournalMailAttempt, JournalMailObservation } from './journal-mail-observation'
 import type { JournalRequestFailureRead } from './journal-request-failure'
@@ -56,6 +57,7 @@ export type JournalSqlPointRead = {
         inheritedAnchor?: string
         compareSubmissions: boolean
       }
+    | { kind: 'milestones' }
     | { kind: 'saved-content' }
     | { kind: 'conversation-outline'; budgetBytes: number }
     | { kind: 'rewind-target'; itemId: string }
@@ -100,6 +102,7 @@ export type JournalSqlPointReadResult =
   | { kind: 'mail-observation'; observation: JournalMailObservation }
   | { kind: 'rewind-cut'; cut: JournalRewindCut | null }
   | { kind: 'fork-boundary'; boundary: JournalForkBoundary }
+  | { kind: 'milestones'; milestones: NativeChatMilestones | null }
   | { kind: 'saved-content'; content: JournalSavedContent }
   | {
       kind: 'conversation-outline'

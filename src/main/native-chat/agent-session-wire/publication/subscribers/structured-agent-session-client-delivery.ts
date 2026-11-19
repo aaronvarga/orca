@@ -1,3 +1,4 @@
+import { createNativeChatMilestoneSave } from '../../../conversation-files/native-chat-milestone-save'
 import type { HostUsageLimitCut } from '../../recovery/structured-agent-session-usage-limit-chain'
 import { readForkMarker } from '../history/agent-session-fork-marker'
 import { StructuredAgentSessionJournalObservers } from '../../observations/structured-agent-session-journal-observers'
@@ -40,6 +41,7 @@ import {
 } from '../../observations/structured-agent-session-turn-completion-feed'
 
 export class StructuredAgentSessionClientDelivery {
+  readonly milestones: ReturnType<typeof createNativeChatMilestoneSave>
   readonly subscribers: AgentSessionSubscribers
   readonly waitForSendSettlement: StructuredAgentSessionSendSettlement['wait']
   private stopAtRestCommandUpdates: () => void = () => undefined
@@ -81,6 +83,7 @@ export class StructuredAgentSessionClientDelivery {
     ) => AgentSessionStatusSummary['usageLimitContinue'],
     readLiveText?: (id: string) => readonly AgentJournalRenderItem[]
   ) {
+    this.milestones = createNativeChatMilestoneSave(() => deps().journalDatabase.stateDirectory)
     this.requestFailures = createStructuredAgentSessionHostRequestFailures(sessions, deps)
     this.savedStatus = new StructuredAgentSessionSavedStatus(deps)
     this.statusFeed = createStructuredAgentSessionHostStatusFeed({
@@ -119,6 +122,7 @@ export class StructuredAgentSessionClientDelivery {
           structuredQueueSendGate({ store: this.deps().store, sessions }, sessionId, now, work),
           inLane
         ),
+      readMilestones: (_id, journal) => this.milestones(journal),
       readBackgroundTasks,
       onJournalPublished: (sessionId, journal) => this.publishJournal(sessionId, journal),
       readCurrentWork: (sessionId, journal) => this.currentWork(sessionId, journal),

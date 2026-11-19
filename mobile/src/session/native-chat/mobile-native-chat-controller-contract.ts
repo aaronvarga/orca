@@ -1,3 +1,4 @@
+import type { NativeChatMilestones } from '../../../../src/shared/native-chat/input/task-lists/native-chat-milestones'
 import type { NativeChatSkillDiscoverySnapshot } from '../../../../src/shared/native-chat/input/composer/native-chat-picker-items'
 import type { AgentSessionRewindSurface } from '../../../../src/shared/agent-session/lifecycle/rewind/agent-session-rewind-request'
 import type { NativeChatSendFollowUp } from '../../../../src/shared/native-chat/input/composer/native-chat-follow-up-behavior'
@@ -103,6 +104,7 @@ export type MobileNativeChatController = {
   handleNativeChatRespondPermission: (text: string) => Promise<boolean>
   handleNativeChatStop: () => void
   nativeChatQueued: MobileStructuredQueuedMessageControls
+  nativeChatMilestones?: NativeChatMilestones | null
   nativeChatBackgroundTasks: MobileStructuredBackgroundTasks | null
   nativeChatContextUsage: NativeChatContextUsageSummary | null
   nativeChatInterruptedContinue: MobileStructuredInterruptedContinue | null

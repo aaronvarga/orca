@@ -1,3 +1,4 @@
+import { NativeChatMilestoneVisibilityProvider } from './tools/tasks/NativeChatMilestoneVisibility'
 import { BotChatRoom } from '../bots/use-bot-chat-composer-room'
 import { NativeChatSessionGate } from './host-access/NativeChatSessionGate'
 import { NativeChatStructuredSession } from './NativeChatStructuredSession'
@@ -27,7 +28,7 @@ export default function NativeChatView(props: NativeChatViewProps): React.JSX.El
             visible={props.isVisible}
           >
             <BotChatRoom tabId={props.tabId} sessionId={props.sessionId}>
-              <NativeChatStructuredSession {...props} />
+              <NativeChatMilestoneVisibilityProvider enabled={props.agent === 'claude' || props.agent === 'codex'}><NativeChatStructuredSession {...props} /></NativeChatMilestoneVisibilityProvider>
             </BotChatRoom>
           </NativeChatWorkersProvider>
         </NativeChatTabTranscriptScope>

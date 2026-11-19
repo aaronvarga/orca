@@ -15,8 +15,8 @@ import {
   projectStructuredQuestion
 } from '../input/prompts/mobile-structured-agent-prompts'
 import type {
-  MobileStructuredAgentSessionArgs,
-  StructuredMobileSession
+  MobileStructuredAgentSessionArgs as SessionArgs,
+  StructuredMobileSession as StructuredSession
 } from './mobile-structured-agent-session-contract'
 import { useMobileNativeChatVisualSource } from '../visual/mobile-native-chat-visual-read'
 import { useMobileStructuredAgentState } from './use-mobile-structured-agent-state'
@@ -50,9 +50,7 @@ import { useMobileStructuredMcpPanel } from '../mcp/use-mobile-structured-mcp-pa
 import { useMobileStructuredAgentRewind } from './use-mobile-structured-agent-rewind'
 import { useMobileNativeChatUsageLimit } from '../status/use-mobile-native-chat-usage-limit'
 
-export function useMobileStructuredAgentSession(
-  args: MobileStructuredAgentSessionArgs
-): StructuredMobileSession {
+export function useMobileStructuredAgentSession(args: SessionArgs): StructuredSession {
   const {
     agent,
     client,
@@ -292,6 +290,7 @@ export function useMobileStructuredAgentSession(
     respondQuestion,
     queued,
     commandRefusalCauses,
+    milestones: state.milestones,
     backgroundTasks,
     interruptedContinue: useMobileStructuredInterruptedContinue(
       { client, sessionId, sessionKey, hostSupport, ...state },

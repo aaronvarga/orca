@@ -1,3 +1,4 @@
+import type { NativeChatMilestones } from '../../../../../shared/native-chat/input/task-lists/native-chat-milestones'
 import type { SqlAgentSessionJournal as AgentSessionJournal } from '../../../agent-session-journal/journal-sql-store'
 import type { StructuredAgentSessionObservedWork } from '../../observations/structured-agent-session-observed-work'
 import type { AgentSessionPublishedWork } from '../../observations/agent-session-published-work'
@@ -30,9 +31,14 @@ export type SubscriberFieldState = {
   /** Deduplicate canonical state before reader-specific projection. */
   queuePublication?: QueuePublication
   backgroundTasks?: string
+  milestones?: string
 }
 
 export type SubscriberFieldHooks = {
+  readMilestones?: (
+    sessionId: string,
+    journal: AgentSessionJournal
+  ) => Promise<NativeChatMilestones | null>
   readCommands?: (
     sessionId: string,
     commandsOnRequest?: boolean
@@ -55,6 +61,7 @@ type SubscriberFrame = {
   attachedQueued: boolean
   queued: QueuePublication | undefined
   backgroundTasks: string | undefined
+  milestones: string | undefined
 }
 
 export function backgroundTaskFingerprint(state: AgentSessionBackgroundTaskState | null): string {
@@ -99,6 +106,15 @@ async function buildSubscriberFrame(
         work
       )) ?? event)
     : event
+  let milestones: string | undefined
+  if (journal && event.type !== 'end' && hooks.readMilestones) {
+    const snapshot = await hooks.readMilestones(subscriber.sessionId, journal)
+    const fingerprint = JSON.stringify(snapshot)
+    if (event.type !== 'batch' || fingerprint !== subscriber.milestones) {
+      event = { ...event, milestones: snapshot }
+      milestones = fingerprint
+    }
+  }
   const backgroundTasks = subscriberBackgroundTasks(hooks, subscriber, event)
   const sideQueued = attachedQueued
     ? (subscriber.projectQueuePublication?.(queued) ?? queued)
@@ -129,6 +145,7 @@ async function buildSubscriberFrame(
           }
         ],
     commands,
+    milestones,
     attachedQueued,
     queued,
     backgroundTasks:
@@ -205,6 +222,9 @@ export async function emitSubscriberFrame(
   }
   if (includeMarker) {
     subscriber.requestVersion = marker.version
+  }
+  if (built.milestones !== undefined) {
+    subscriber.milestones = built.milestones
   }
   subscriber.commands = built.commands
   if (built.attachedQueued) {

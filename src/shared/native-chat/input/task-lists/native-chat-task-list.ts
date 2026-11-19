@@ -1,7 +1,13 @@
 export type NativeChatTaskStatus = 'pending' | 'in_progress' | 'completed'
 export type NativeChatTask = {
+  id?: string
   content: string
   status: NativeChatTaskStatus
+  details?: string
+  eta?: string
+  parallelGroup?: string
+  blocker?: { kind: 'blocked' | 'waiting'; reason: string }
+  timing?: { elapsedMs: number; estimate?: string }
   activeForm?: string
 }
 export type NativeChatTaskList = { tasks: NativeChatTask[]; explanation?: string }
@@ -60,12 +66,25 @@ export function normalizeNativeChatTaskList(
           ? 'completed'
           : 'pending'
     const activeForm = tool === 'todowrite' ? nonemptyString(item.activeForm) : undefined
-    tasks.push({ content, status, ...(activeForm ? { activeForm } : {}) })
+    tasks.push({
+      ...(nonemptyString(item.id) ? { id: nonemptyString(item.id) } : {}),
+      content,
+      status,
+      ...(nonemptyString(item.details)
+        ? { details: nonemptyString(item.details)!.slice(0, 600) }
+        : {}),
+      ...(activeForm ? { activeForm } : {})
+    })
   }
   if (entries.length > 0 && tasks.length === 0) {
     return null
   }
-  const explanation = tool === 'update_plan' ? nonemptyString(value?.explanation) : undefined
+  const explanation =
+    tool === 'update_plan'
+      ? nonemptyString(value?.explanation)
+          ?.replace(/orca-session-milestones/g, '')
+          .trim() || undefined
+      : undefined
   return { tasks, ...(explanation ? { explanation } : {}) }
 }
 

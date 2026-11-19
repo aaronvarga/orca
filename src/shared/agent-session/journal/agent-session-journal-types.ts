@@ -1,5 +1,6 @@
 import type { AgentJournalBotMessageFields } from './agent-journal-bot-message-fields'
 import type { AgentJournalTypedBy } from './agent-journal-typed-by'
+import type { AgentMilestonePlan } from './agent-session-journal-milestone-schema'
 import type { AgentSessionForkedFromMark } from '../conversation-naming/agent-session-fork-name'
 import type {
   AgentJournalApprovalMatchedAskRule,
@@ -284,6 +285,7 @@ type AgentJournalStatusItemFields = {
   kind: 'status'
   /** Optional display hints; unknown values retain the ordinary text fallback. */
   presentation?: string
+  milestonePlan?: AgentMilestonePlan
   contextClear?: AgentSessionProviderContextBoundary
   tone?: string
   /** Legacy carrier of a turn record: written by hosts before v3, and published

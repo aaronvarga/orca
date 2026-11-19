@@ -99,10 +99,14 @@ export function NativeChatQueuedMessageList({
     }
   })
   return (
-    <div ref={regionRef} aria-live="polite">
+    <div
+      ref={regionRef}
+      aria-live="polite"
+      className="@container/composer-field [--composer-atomic-width:calc(var(--spacing)*10)]"
+    >
       {cards.length > 0 ? (
-        <div ref={queueRef} className="mx-auto w-full max-w-(--chat-content-max-width) px-4 py-1">
-          <div className="divide-y divide-border rounded-md border border-border bg-card text-card-foreground">
+        <div ref={queueRef} className="native-chat-composer-gutter pt-2">
+          <div className="mx-auto w-full max-w-(--chat-content-max-width) divide-y divide-border overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-xs">
             <NativeChatQueueHeader
               count={cards.length}
               attentionCaption={attentionCaption}

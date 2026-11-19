@@ -9,6 +9,15 @@ import '../../../../../../shared/rpc-contract/structured-agent-session/structure
 
 export const STRUCTURED_AGENT_SESSION_REGENERATE_NAME_METHODS = [
   defineMethod({
+    name: 'agentSession.regenerateMilestones',
+    permission: 'workspace',
+    params: OptionsParams,
+    handler: async (params, ctx) => {
+      const host = await requireInstalledStructuredHost(ctx, params.sessionId)
+      return host.regenerateMilestones(params.sessionId)
+    }
+  }),
+  defineMethod({
     name: 'agentSession.regenerateName',
     permission: 'workspace',
     params: OptionsParams,

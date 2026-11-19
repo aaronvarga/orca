@@ -1,3 +1,4 @@
+import { NativeChatMilestoneComposer } from './tools/tasks/NativeChatMilestoneLayout'
 import { useBotLinkPrompt } from '@/lib/agent-session/open/bot-link-item-target'
 import { NativeChatCrewFrame, NativeChatCrewPanel } from '../orchestration-crew/NativeChatCrewPanel'
 import { NativeChatUsageLimitActionsProvider } from './usage/NativeChatUsageLimitActions'
@@ -146,7 +147,6 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
     controller.status === 'error' && !(hostOutage && !controller.readRefusal)
       ? structuredAgentSessionReadFailureNotice(controller.readRefusal)
       : null
-  // Final read refusal replaces the pane because no existing action can succeed.
   const viewState = selectNativeChatViewState(session, { readRetries: readFailure?.final !== true })
   const imageRuntimeContext = useNativeChatImageRuntimeContext(props.tabId)
   const handOff = useNativeChatHandOff({
@@ -318,7 +318,7 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
           </NativeChatContextClearFade>
         </NativeChatCrewFrame>
         {readFailure?.final ? null : (
-          <>
+          <NativeChatMilestoneComposer milestones={subagentOpen ? undefined : controller.hostWork?.milestones}>
             {/* Keep queued drafts outside the transcript and above the background-task dock. */}
             <NativeChatQueuedMessageList
               controller={submits.queuedMessages}
@@ -383,7 +383,7 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
                 recallSource={{ messages: session.messages, withoutImageMarkers: true }}
               />
             ) : null}
-          </>
+          </NativeChatMilestoneComposer>
         )}
         {handOff.dialog}
       </NativeChatSurface>

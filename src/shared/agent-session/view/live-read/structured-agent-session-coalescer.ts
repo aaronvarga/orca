@@ -13,6 +13,7 @@ function bypassCoalescing(event: AgentSessionSubscribeEvent): boolean {
     // Deliver queue lists immediately or the queued response removes Sending before its replacement card arrives.
     event.queuedMessages !== undefined ||
     event.currentRequests !== undefined ||
+    event.milestones !== undefined ||
     event.batch.removedItemIds.length > 0 ||
     event.batch.items.some((item) => item.body.kind !== 'message' || item.body.role !== 'assistant')
   )

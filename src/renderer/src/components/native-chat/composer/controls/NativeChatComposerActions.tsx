@@ -1,3 +1,7 @@
+import {
+  NativeChatMilestoneToggle,
+  useNativeChatMilestoneVisibility
+} from '../../tools/tasks/NativeChatMilestoneVisibility'
 import { NativeChatComposerQuickCommands } from './NativeChatComposerQuickCommands'
 import { NativeChatComposerDraftNotSavedIcon } from '../../drafts/NativeChatComposerDraftNotSavedIcon'
 import { NativeChatRoomContext } from '../../native-chat-room-context'
@@ -108,6 +112,7 @@ export const NativeChatComposerActions = memo(function NativeChatComposerActions
   agent,
   launchPrompt = false
 }: NativeChatComposerActionsProps): React.JSX.Element {
+  const milestones = useNativeChatMilestoneVisibility()
   const t = useTranslate()
   useUiLanguageRevision()
   const roomReplies = useContext(NativeChatRoomContext)?.replies
@@ -284,6 +289,9 @@ export const NativeChatComposerActions = memo(function NativeChatComposerActions
             content: <NativeChatContextUsageRing usage={contextUsage} />
           }
         ]
+      : []),
+    ...(milestones && !editSession
+      ? [{ id: 'milestones', priority: 3, content: <NativeChatMilestoneToggle /> }]
       : []),
     { id: 'dictation', priority: 2, content: dictation },
     ...(draftNotSaved

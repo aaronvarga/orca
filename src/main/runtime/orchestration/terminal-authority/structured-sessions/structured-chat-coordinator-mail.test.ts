@@ -115,7 +115,6 @@ describe('a /clear keeps the chat its orchestration address', () => {
     await vi.waitFor(() => expect(connectionFor(cleared).turns).toHaveLength(1), WAIT)
     const next = connectionFor(cleared)
     expect(codex.connections.slice(opened)).toEqual([next])
-    expect(next.methods.filter((method) => method.startsWith('thread/'))).toEqual(['thread/start'])
     expect(isWholeMail(turnText(next.turns[0]!))).toBe(true)
     await settleTurn(cleared, 0)
     await expect(

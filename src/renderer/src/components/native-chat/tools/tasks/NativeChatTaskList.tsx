@@ -1,3 +1,6 @@
+import { NativeChatMarkdown } from '../../markdown/NativeChatMarkdown'
+import { formatNativeChatDuration } from '../../../../../../shared/native-chat/transcript/turns/native-chat-turn-status'
+import { cn } from '@/lib/class-names'
 import { TaskRow as BeautifulTaskRow } from '../../beautiful-ui/TaskRows'
 import { Check, LoaderCircle, ChevronRight, ListChecks } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -17,6 +20,12 @@ import {
 function statusLabel(task: NativeChatTask, t: Translate = translate): string {
   if (task.status === 'completed') {
     return t('components.native-chat.taskList.completed', 'Completed')
+  }
+  if (task.blocker?.kind === 'waiting') {
+    return t('components.native-chat.milestones.waiting', 'Waiting on you')
+  }
+  if (task.blocker) {
+    return t('components.native-chat.milestones.blocked', 'Blocked')
   }
   if (task.status === 'in_progress') {
     return t('components.native-chat.taskList.inProgress', 'In progress')
@@ -48,40 +57,77 @@ function TaskRow({
   task,
   label,
   index,
+  compact,
   disclosureKey
 }: {
   task: NativeChatTask
   label?: string
   index: number
+  compact?: boolean
   disclosureKey?: string
 }): React.JSX.Element {
   const t = useTranslate()
   return (
     <li className="min-w-0 border-b border-border last:border-b-0">
       <BeautifulTaskRow
+        compact={compact}
         icon={
           task.status === 'completed' ? (
-            <span className="flex size-6 items-center justify-center rounded-full bg-status-success-background text-status-success">
-              <Check aria-hidden className="size-4" />
+            <span
+              className={cn(
+                'flex items-center justify-center rounded-full bg-status-success-background text-status-success',
+                compact ? 'size-5' : 'size-6'
+              )}
+            >
+              <Check aria-hidden className={compact ? 'size-3.5' : 'size-4'} />
             </span>
           ) : (
-            <span className="relative flex size-6 items-center justify-center text-xs tabular-nums">
-              {task.status === 'in_progress' ? (
+            <span
+              className={cn(
+                'relative flex items-center justify-center text-xs tabular-nums',
+                compact ? 'size-5' : 'size-6'
+              )}
+            >
+              {task.status === 'in_progress' && !task.blocker ? (
                 <LoaderCircle
                   aria-hidden
-                  className="absolute size-6 animate-spin motion-reduce:animate-none"
+                  className={cn(
+                    'absolute animate-spin motion-reduce:animate-none',
+                    compact ? 'size-5' : 'size-6'
+                  )}
                 />
               ) : null}
               <span className="text-3xs">{index + 1}</span>
             </span>
           )
         }
-        active={task.status === 'in_progress'}
-        tone={task.status === 'completed' ? 'success' : 'neutral'}
+        active={task.status === 'in_progress' && !task.blocker}
+        tone={
+          task.status === 'completed'
+            ? 'success'
+            : task.status === 'in_progress' && !task.blocker
+              ? 'progress'
+              : 'neutral'
+        }
         status={statusLabel(task, t)}
+        statusDescription={task.status !== 'completed' ? task.blocker?.reason : undefined}
+        eta={
+          task.eta && task.status !== 'completed' ? (
+            <span
+              title={t(
+                'components.native-chat.milestones.etaTitle',
+                'Estimated agent time remaining'
+              )}
+            >
+              {task.eta}
+            </span>
+          ) : undefined
+        }
         disclosureKey={disclosureKey}
         details={
-          task.activeForm && task.activeForm !== task.content ? (
+          task.details ? (
+            <NativeChatMarkdown content={task.details} />
+          ) : task.activeForm && task.activeForm !== task.content ? (
             <p className="whitespace-pre-wrap break-words">
               {task.status === 'in_progress' ? task.content : task.activeForm}
             </p>
@@ -90,15 +136,27 @@ function TaskRow({
       >
         {label ?? nativeChatTaskLabel(task)}
       </BeautifulTaskRow>
+      {task.status === 'completed' && task.timing ? (
+        <p className="px-2 pb-1 font-mono text-3xs text-muted-foreground">
+          {t('components.native-chat.milestones.actual', 'Observed {{time}}', {
+            time: formatNativeChatDuration(task.timing.elapsedMs / 1000)
+          })}
+          {task.timing.estimate
+            ? ` · ${t('components.native-chat.milestones.initialEstimate', 'estimated {{eta}}', { eta: task.timing.estimate })}`
+            : ''}
+        </p>
+      ) : null}
     </li>
   )
 }
 
-function Checklist({
+export function Checklist({
   list,
+  compact,
   disclosureKey
 }: {
   list: TaskList
+  compact?: boolean
   disclosureKey?: string
 }): React.JSX.Element {
   const t = useTranslate()
@@ -115,9 +173,10 @@ function Checklist({
         occurrences.set(task.content, occurrence + 1)
         return (
           <TaskRow
-            key={`${task.content}:${occurrence}`}
+            key={task.id ?? `${task.content}:${occurrence}`}
             task={task}
             index={index}
+            compact={compact}
             disclosureKey={
               disclosureKey === undefined
                 ? undefined

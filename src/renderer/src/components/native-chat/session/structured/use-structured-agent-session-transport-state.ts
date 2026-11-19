@@ -1,3 +1,4 @@
+import type { NativeChatMilestones } from '../../../../../../shared/native-chat/input/task-lists/native-chat-milestones'
 import { useMemo } from 'react'
 import {
   runningStructuredAgentSessionTurnId,
@@ -19,6 +20,7 @@ const NO_SUBAGENT_ROSTER: StructuredAgentSubagentRoster = new Map()
 
 /** Host prompt/working evidence; older hosts omit it and readers derive state from journal rows. */
 export type StructuredAgentSessionHostWork = {
+  milestones?: NativeChatMilestones | null
   actionablePromptIds?: readonly string[]
   working?: boolean
 }
@@ -71,10 +73,11 @@ export function useStructuredAgentSessionTransportState(
   }, [enabled, journalItems, latestTurn, state.backgroundTasks, turnId])
   const hostWork = useMemo<StructuredAgentSessionHostWork>(
     () => ({
+      ...(enabled ? { milestones: state.milestones } : {}),
       ...(actionablePromptIds ? { actionablePromptIds } : {}),
       ...(hostWorking !== undefined ? { working: hostWorking } : {})
     }),
-    [actionablePromptIds, hostWorking]
+    [actionablePromptIds, hostWorking, enabled, state.milestones]
   )
   return {
     journalItems,

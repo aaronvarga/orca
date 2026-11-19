@@ -1,3 +1,4 @@
+import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
 import { openNativeChatAccountUsageModal } from '@/components/native-chat/usage/native-chat-account-usage-modal'
 import { useNativeChatMcpTray } from '@/components/native-chat/mcp/use-native-chat-mcp-tray'
 import { useStructuredAgentSessionHostCapabilityState } from '@/runtime/native-chat/host-capabilities/structured-agent-session-host-capability'
@@ -158,6 +159,13 @@ export function useNativeChatStructuredComposerTransport(args: {
           : undefined,
       mcpPanel,
       fork: nativeChatForkCommand({ fork, sideChat }, controller.isWorking, props.agent),
+      regenerateMilestones: () =>
+        callRuntimeRpc(
+          props.target,
+          'agentSession.regenerateMilestones',
+          { sessionId: props.sessionId },
+          { timeoutMs: 180000 }
+        ),
       capturePresentation: controller.capturePresentation,
       ...(sideChat ? { sideChat } : {}),
       send: (text, attachments, ...request) => {

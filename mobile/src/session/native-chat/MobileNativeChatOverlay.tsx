@@ -151,7 +151,15 @@ function MobileNativeChatOverlayContent({
       steerHeld: controller.nativeChatTurnIndicator?.stopping === true,
       agentWorking: controller.nativeChatTurnActive
     },
-    taskList,
+    taskList: controller.nativeChatMilestones ?? taskList,
+    milestones: controller.nativeChatMilestones,
+    milestoneClient: controller.nativeChatVisualSource?.client,
+    preparingMilestones:
+      controller.nativeChatMilestones !== undefined &&
+      controller.nativeChatStructured &&
+      (agent === 'claude' || agent === 'codex') &&
+      controller.nativeChatTurnActive &&
+      controller.nativeChatMilestones == null,
     backgroundTasks: controller.nativeChatBackgroundTasks
   })
   const visuals = useMobileNativeChatVisualRenderer(controller.nativeChatVisualSource)

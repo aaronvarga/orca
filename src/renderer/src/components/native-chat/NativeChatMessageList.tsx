@@ -1,3 +1,4 @@
+import { NativeChatMilestoneLayout } from './tools/tasks/NativeChatMilestoneLayout'
 import type { BotChatIdentity } from '../bots/use-bot-chat-identity'
 import { nativeChatTranscriptOuterClass } from './appearance/native-chat-appearance-style'
 import { NativeChatTranscriptViewport } from './NativeChatTranscriptViewport'
@@ -12,31 +13,22 @@ import {
   nativeChatShowsCiResultLines,
   nativeChatShowsTurnDiffSummary
 } from '../../../../shared/native-chat/settings/native-chat-appearance-settings'
-import type { NativeChatLiveSession } from './session/terminal/read/native-chat-live-session-contract'
 import { useNativeChatTranscriptProjection } from './conversation/projection/use-native-chat-transcript-projection'
 import { useNativeChatQuestionReceipts } from './conversation/projection/use-native-chat-question-receipts'
 import { nativeChatTaskListPredecessors } from '../../../../shared/native-chat/input/task-lists/native-chat-task-list-history'
-import { NativeChatDockedTaskList } from './tools/tasks/NativeChatDockedTaskList'
 import { useNativeChatTurnStatus } from './conversation/turns/use-native-chat-turn-status'
 import { NativeChatAwaitingInputRow } from './prompts/NativeChatAwaitingInputRow'
-import type { RuntimeFileOperationArgs } from '@/runtime/files/runtime-file-client-types'
-import type { NativeChatTurnActivity } from '../../../../shared/native-chat/transcript/turns/native-chat-turn-activity'
 import { NativeChatTurnActivityLine } from './messages/reasoning/NativeChatTurnActivityLine'
 import {
   NativeChatTranscriptItems,
   NativeChatWaitingTranscriptItems
 } from './viewport/virtualization/NativeChatTranscriptItems'
 import { useNativeChatTranscriptRowContext } from './conversation/slots/use-native-chat-transcript-row-context'
-import type { StructuredAgentSessionHostWork } from './session/structured/use-structured-agent-session-transport-state'
-import type { NativeChatDeliveryNotice } from './messages/rows/NativeChatMessageRow'
 import { splitNativeChatSlotsWaitingBehindLiveTurn } from './conversation/slots/native-chat-transcript-slot-selection'
 import { useNativeChatTranscriptSlots } from './conversation/slots/use-native-chat-transcript-slots'
-import type { NativeChatTimedRow } from './conversation/slots/native-chat-timed-rows'
 import { useNativeChatTranscriptWindow } from './viewport/virtualization/use-native-chat-transcript-window'
 import { useNativeChatHistoryRetention } from './viewport/history/use-native-chat-history-retention'
 import { useNativeChatSubagentScope } from './subagents/use-native-chat-subagent-scope'
-import type { NativeChatSubagentView } from './subagents/native-chat-open-subagent'
-import type { StructuredAgentSubagentRoster } from '../../../../shared/agent-session/view/structured-agent-session-subagent-roster'
 import type { NativeChatTranscriptSlot } from './conversation/slots/native-chat-transcript-slots'
 import { toggleNativeChatExpandedKey } from './messages/disclosure/native-chat-expanded-keys'
 import {
@@ -49,7 +41,6 @@ import { NativeChatOlderHistoryRow } from './viewport/history/NativeChatOlderHis
 import { useNativeChatMessageRail } from './viewport/rail/use-native-chat-message-rail'
 import { NativeChatMessageRail } from './viewport/rail/NativeChatMessageRail'
 import { useNativeChatRailWake } from './viewport/rail/use-native-chat-rail-wake'
-import type { NativeChatRailOutlineEntry } from './viewport/rail/native-chat-message-rail-items'
 import {
   useNativeChatNavigation,
   useNativeChatNavigationRequest
@@ -57,13 +48,7 @@ import {
 import { useNativeChatReaderScrollInput } from './viewport/scroll/native-chat-reader-scroll-input'
 import { useNativeChatMessageListHandle } from './messages/actions/use-native-chat-reveal-latest'
 
-import type {
-  AgentJournalRenderItem,
-  AgentJournalSubmission
-} from '../../../../shared/agent-session/journal/agent-session-journal-types'
-import type { AgentSessionLatestTurn } from '../../../../shared/agent-session/agent-session-wire'
 import { isStructuredAgentSessionThinking } from '../../../../shared/agent-session/view/structured-agent-session-live-turn'
-import type { NativeChatSettledTurns } from '../../../../shared/native-chat/transcript/turns/native-chat-turn-status'
 import { useNativeChatTurnDiffs } from './tools/diffs/use-native-chat-turn-diffs'
 import { useNativeChatTurnOpenedPullRequests } from './tools/pull-requests/use-native-chat-turn-opened-pull-requests'
 import { NativeChatPullRequestChangeContext } from './tools/pull-requests/NativeChatOpenedPullRequestCard'
@@ -370,8 +355,7 @@ export function NativeChatMessageList({
   return (
     <NativeChatBotHomeScope kickoff={botHome} isVisible={isVisible}>
       <NativeChatPullRequestChangeContext.Provider value={openedPullRequests.latestChangeKey}>
-        <div className="relative flex min-h-0 flex-1 flex-col bg-chat-pane">
-          {scope.bar}
+        <NativeChatMilestoneLayout lead={scope.bar} sessionId={session.sessionId ?? ''} messages={messages} milestones={hostWork?.milestones} waitingForInput={awaitingInput !== null || (turnRows.unresolvedRowIds?.size ?? 0) > 0} enabled={structuredAttachments && subagentId === null && (session.agent === 'claude' || session.agent === 'codex')} working={isWorking}>
           <NativeChatTranscriptViewport
             scrollRef={scrollRef}
             scrollerProps={{ onScroll: onTranscriptScroll, ...readerInput.scrollerProps }}
@@ -399,7 +383,7 @@ export function NativeChatMessageList({
                 loadingEarlier={loadingEarlier}
               />
             ) : null}
-            <div className={nativeChatTranscriptOuterClass(rail.visible)}>
+            <div className={`pr-(--native-chat-milestone-gutter) ${nativeChatTranscriptOuterClass(rail.visible)}`}>
               <NativeChatTranscriptColumn ref={measureContent}>
                 {scope.lead}
                 <NativeChatTranscriptItems
@@ -419,8 +403,7 @@ export function NativeChatMessageList({
               </NativeChatTranscriptColumn>
             </div>
           </NativeChatTranscriptViewport>
-          <NativeChatDockedTaskList key={session.sessionId} messages={messages} />
-        </div>
+        </NativeChatMilestoneLayout>
       </NativeChatPullRequestChangeContext.Provider>
     </NativeChatBotHomeScope>
   )

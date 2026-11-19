@@ -1,3 +1,4 @@
+import type { AgentJournalCursor } from '../journal/agent-session-journal-identity'
 import type { AgentJournalRenderItem } from '../journal/agent-session-journal-types'
 import type { AgentSessionHistoryPage, AgentSessionTurnActivity } from '../agent-session-wire'
 import type { AgentSessionBackgroundTaskState } from '../background-tasks/agent-session-background-task-wire'
@@ -32,6 +33,7 @@ export function replacePage(
   activity?: AgentSessionTurnActivity | null
 ): StructuredAgentSessionState {
   return {
+    milestones: page.milestones,
     epoch: page.epoch,
     cursor: page.liveCursor ?? page.window.nextCursor,
     fence,
@@ -134,4 +136,11 @@ export function liveItemsWithinWindow(
     return incoming
   }
   return incoming.filter((item) => item.sequence >= head.sequence)
+}
+
+export function oldestStructuredAgentSessionCursor(
+  state: StructuredAgentSessionState
+): AgentJournalCursor | null {
+  const oldest = state.items[0]
+  return state.epoch && oldest ? { epoch: state.epoch, sequence: oldest.sequence } : null
 }

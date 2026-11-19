@@ -40,7 +40,8 @@ export function agentHostFailure(label: string): TextGenerationFailureFields {
 const OPERATIONS_WITHOUT_STDOUT_DETAIL: ReadonlySet<TextGenerationOperation> = new Set([
   'branch-name',
   'conversation-name',
-  'dictation-cleanup'
+  'dictation-cleanup',
+  'session-milestones'
 ])
 
 /** The agent's answer without CLI framing; dictated text keeps the lines and markers Git text drops. */
@@ -107,7 +108,8 @@ const UNCODED_EMPTY_RESULT_NAMES = {
   'branch-name': 'branch name',
   'conversation-name': 'chat name',
   'dictation-cleanup': 'cleanup',
-  'bot-suggestions': 'answer'
+  'bot-suggestions': 'answer',
+  'session-milestones': 'session milestones'
 } as const
 
 export function emptyResultFailure(
@@ -119,7 +121,8 @@ export function emptyResultFailure(
     operation === 'branch-name' ||
     operation === 'conversation-name' ||
     operation === 'dictation-cleanup' ||
-    operation === 'bot-suggestions'
+    operation === 'bot-suggestions' ||
+    operation === 'session-milestones'
   ) {
     // Background rename failures are stored as English rename errors, outside the coded result path.
     const name = UNCODED_EMPTY_RESULT_NAMES[operation]

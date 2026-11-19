@@ -1656,6 +1656,20 @@
         "loading": "Loading Codex usage…",
         "account": "Account used by this chat",
         "retry": "Retry"
+      },
+      "milestones": {
+        "title": "Milestones",
+        "preparing": "Preparing milestones…",
+        "saveError": "Milestones could not be saved. Orca will retry on the next update.",
+        "opening": "Opening…",
+        "preview": "Markdown preview",
+        "readError": "Markdown preview could not be opened. Try again.",
+        "remaining": "Agent time remaining",
+        "updatedAgo": "Updated {{minutes}} min ago",
+        "waiting": "Waiting on you",
+        "blocked": "Blocked",
+        "actual": "Observed {{time}}",
+        "initialEstimate": "estimated {{eta}}"
       }
     },
     "hostOfflineBanner": {
@@ -3280,6 +3294,7 @@
       "stopAgent": "Stop the agent"
     },
     "taskList": {
+      "agentEta": "Estimated agent time remaining: {{eta}}",
       "taskStatus": "{{status}}: {{task}}",
       "title": "Tasks",
       "completed": "Completed",

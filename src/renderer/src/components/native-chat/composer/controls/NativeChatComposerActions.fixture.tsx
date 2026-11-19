@@ -1,3 +1,4 @@
+import { NativeChatMilestoneVisibilityProvider } from '../../tools/tasks/NativeChatMilestoneVisibility'
 import { defineFixture } from '../../../../component-fixtures/component-fixture'
 import { useAppStore } from '@/store'
 import { getDefaultSettings } from '../../../../../../shared/orca-profiles/constants'
@@ -83,60 +84,62 @@ function composerFixture(
         }
       })),
     render: () => (
-      <div className="native-chat-appearance bg-background p-3">
-        <div className="rounded-xl border border-border p-3">
-          <div className="min-h-12 text-sm text-chat-foreground-faint">Ask anything</div>
-          <NativeChatComposerActions
-            terminalTabId="composer-chat"
-            onInsertQuickCommand={(text) => {
-              insertedText = text
-            }}
-            agent={agent}
-            attachDisabled={false}
-            dictationDisabled={false}
-            sendDisabled={false}
-            isWorking={false}
-            isDictating={false}
-            isDictationHoldMode={false}
-            onAttach={() => {}}
-            onDictationToggle={() => {}}
-            onDictationHoldStart={() => {}}
-            onDictationHoldEnd={() => {}}
-            onSend={() => {}}
-            sessionOptionsSurface={{
-              getSnapshot: () => [],
-              subscribe: () => () => {},
-              setOption: async () => ({ snapshot: [] }),
-              invokeAction: async () => ({ snapshot: [] })
-            }}
-            sessionOptionsSnapshot={[
-              {
-                id: 'model',
-                label: 'Model',
-                category: 'model',
-                transport: 'agent-session',
-                settable: true,
-                valueSource: 'applied',
-                kind: {
-                  type: 'select',
-                  currentValue: 'model',
-                  choices: [
-                    {
-                      value: 'model',
-                      label:
-                        agent === 'claude'
-                          ? 'Claude Opus 5.5'
-                          : agent === 'codex'
-                            ? 'GPT-5.5'
-                            : 'Claude Sonnet 4.6'
-                    }
-                  ]
+      <NativeChatMilestoneVisibilityProvider enabled={agent === 'claude' || agent === 'codex'}>
+        <div className="native-chat-appearance bg-background p-3">
+          <div className="rounded-xl border border-border p-3">
+            <div className="min-h-12 text-sm text-chat-foreground-faint">Ask anything</div>
+            <NativeChatComposerActions
+              terminalTabId="composer-chat"
+              onInsertQuickCommand={(text) => {
+                insertedText = text
+              }}
+              agent={agent}
+              attachDisabled={false}
+              dictationDisabled={false}
+              sendDisabled={false}
+              isWorking={false}
+              isDictating={false}
+              isDictationHoldMode={false}
+              onAttach={() => {}}
+              onDictationToggle={() => {}}
+              onDictationHoldStart={() => {}}
+              onDictationHoldEnd={() => {}}
+              onSend={() => {}}
+              sessionOptionsSurface={{
+                getSnapshot: () => [],
+                subscribe: () => () => {},
+                setOption: async () => ({ snapshot: [] }),
+                invokeAction: async () => ({ snapshot: [] })
+              }}
+              sessionOptionsSnapshot={[
+                {
+                  id: 'model',
+                  label: 'Model',
+                  category: 'model',
+                  transport: 'agent-session',
+                  settable: true,
+                  valueSource: 'applied',
+                  kind: {
+                    type: 'select',
+                    currentValue: 'model',
+                    choices: [
+                      {
+                        value: 'model',
+                        label:
+                          agent === 'claude'
+                            ? 'Claude Opus 5.5'
+                            : agent === 'codex'
+                              ? 'GPT-5.5'
+                              : 'Claude Sonnet 4.6'
+                      }
+                    ]
+                  }
                 }
-              }
-            ]}
-          />
+              ]}
+            />
+          </div>
         </div>
-      </div>
+      </NativeChatMilestoneVisibilityProvider>
     ),
     interact: menu
       ? async (frame) => {

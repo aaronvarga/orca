@@ -1,4 +1,8 @@
-import { memo, useState } from 'react'
+import { milestoneOverallEta } from '../../../../../../src/shared/native-chat/input/task-lists/native-chat-milestone-eta'
+import { MobileNativeChatMilestonePreview } from './MobileNativeChatMilestonePreview'
+import type { RpcClient } from '../../../../transport/rpc/rpc-client-contract'
+import type { NativeChatMilestones } from '../../../../../../src/shared/native-chat/input/task-lists/native-chat-milestones'
+import { memo, useEffect, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { ChevronUp, ListChecks } from 'lucide-react-native'
 import {
@@ -20,8 +24,11 @@ const MAX_REMEMBERED = 64
 // The strip remounts whenever the chat view does, so each conversation's choice lives here.
 const openByConversation = new Map<string, boolean>()
 
-function useConversationOpen(conversationKey: string): [boolean, (open: boolean) => void] {
-  const [open, setOpen] = useState(() => openByConversation.get(conversationKey) ?? false)
+function useConversationOpen(
+  conversationKey: string,
+  initialOpen: boolean
+): [boolean, (open: boolean) => void] {
+  const [open, setOpen] = useState(() => openByConversation.get(conversationKey) ?? initialOpen)
   const remember = (next: boolean): void => {
     openByConversation.delete(conversationKey)
     openByConversation.set(conversationKey, next)
@@ -36,19 +43,42 @@ function useConversationOpen(conversationKey: string): [boolean, (open: boolean)
 
 function MobileNativeChatDockedTaskListImpl({
   list,
+  milestones,
+  milestoneClient,
+  preparingMilestones,
   conversationKey
 }: {
-  list: NativeChatTaskList
+  milestoneClient?: RpcClient
+  milestones?: NativeChatMilestones | null
+  preparingMilestones?: boolean
+  list: NativeChatTaskList | null
   conversationKey: string
 }): React.JSX.Element {
   useMobileColorScheme()
   const t = useMobileTranslation()
-  const [open, setOpen] = useConversationOpen(conversationKey)
+  const [open, setOpen] = useConversationOpen(
+    conversationKey,
+    milestones != null || preparingMilestones === true
+  )
+  const [now, setNow] = useState(Date.now)
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60000)
+    return () => clearInterval(timer)
+  }, [])
+  list = list ?? { tasks: [] }
+  const total = milestoneOverallEta(list.tasks)
   const completed = nativeChatCompletedTaskCount(list)
   const copy = nativeChatTaskListCopy(t, { completed, total: list.tasks.length })
   const current = list.tasks.find((task) => task.status === 'in_progress')
   // Collapsed, the header names where the agent is; open, the checklist does.
-  const lead = !open && current ? nativeChatTaskLabel(current) : copy.title
+  const lead =
+    !open && current
+      ? nativeChatTaskLabel(current)
+      : milestones
+        ? t('components.native-chat.milestones.title', 'Milestones')
+        : preparingMilestones
+          ? t('components.native-chat.milestones.preparing', 'Preparing milestones…')
+          : copy.title
   return (
     <View style={strip.list} testID="docked-task-list">
       <View style={strip.box}>
@@ -58,7 +88,10 @@ function MobileNativeChatDockedTaskListImpl({
           accessibilityLabel={`${lead}, ${copy.progress}`}
           hitSlop={spacing.xs}
           style={({ pressed }) => [strip.header, pressed && strip.pressed]}
-          onPress={() => setOpen(!open)}
+          onPress={() => {
+            setNow(Date.now())
+            setOpen(!open)
+          }}
         >
           <ListChecks size={14} color={colors.textMuted} strokeWidth={2} />
           <Text style={styles.lead} numberOfLines={1} ellipsizeMode="tail">
@@ -75,7 +108,31 @@ function MobileNativeChatDockedTaskListImpl({
             contentContainerStyle={styles.bodyContent}
             nestedScrollEnabled
           >
+            {milestones?.saveError ? (
+              <Text style={styles.explanation}>
+                {t(
+                  'components.native-chat.milestones.saveError',
+                  'Milestones could not be saved. Orca will retry on the next update.'
+                )}
+              </Text>
+            ) : null}
+            {milestones ? (
+              <Text style={[toolStyles.lineMeta, toolType(1).meta, styles.explanation]}>
+                {total.eta
+                  ? `${t('components.native-chat.milestones.remaining', 'Agent time remaining')}: ${total.eta}${total.incomplete ? '+' : ''}\n`
+                  : ''}
+                {milestones.updatedAt
+                  ? `${t('components.native-chat.milestones.updatedAgo', 'Updated {{minutes}} min ago', { minutes: Math.max(0, Math.floor((now - milestones.updatedAt) / 60000)) })}`
+                  : ''}
+              </Text>
+            ) : null}
             <MobileNativeChatChecklist list={list} fontScale={1} />
+            {milestones?.filePath && !milestones.saveError && milestoneClient ? (
+              <MobileNativeChatMilestonePreview
+                client={milestoneClient}
+                filePath={milestones.filePath}
+              />
+            ) : null}
             {list.explanation ? (
               <Text style={[toolStyles.lineMeta, toolType(1).meta, styles.explanation]}>
                 {list.explanation}

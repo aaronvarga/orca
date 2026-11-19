@@ -1,3 +1,4 @@
+import type { NativeChatMilestones } from '../../../native-chat/input/task-lists/native-chat-milestones'
 import { trimStructuredAgentSessionHistory } from './structured-agent-session-history-retention'
 import type { AgentSessionCurrentRequestsMarker } from '../../requests/agent-session-current-requests-wire'
 import {
@@ -79,6 +80,7 @@ export type StructuredAgentSessionState = AgentSessionCurrentRequestsState & {
   error?: string
   /** The refusal the failed read met, when the host sent one; cleared with `error`. */
   readRefusal?: AgentSessionRefusalReference
+  milestones?: NativeChatMilestones | null
   backgroundTasks?: AgentSessionBackgroundTaskState | null
   /** Host-held drafts. Absent = no claim yet (older host); `[]`/null = empty. */
   queuedMessages?: AgentSessionQueuedMessage[] | null
@@ -167,6 +169,7 @@ export function reduceStructuredAgentSession(
     return {
       ...replacePage(action.page, action.page.fence ?? null, state.backgroundTasks, state.activity),
       ...currentRequestsState(state),
+      milestones: state.milestones !== undefined ? state.milestones : action.page.milestones,
       promptSuggestion: state.promptSuggestion,
       commands: state.commands,
       // Live subscription state stays authoritative over a possibly stale history answer.
@@ -209,6 +212,7 @@ export function reduceStructuredAgentSession(
         admitAgentSessionBackgroundTaskState(event.backgroundTasks),
         event.activity
       ),
+      milestones: event.milestones !== undefined ? event.milestones : event.page.milestones,
       ...requests,
       status: 'ready',
       commands: event.commands,
@@ -255,6 +259,7 @@ export function reduceStructuredAgentSession(
     (event.queuePause === undefined || event.queuePause === state.queuePause) &&
     (event.nextQueuedMessageId === undefined ||
       event.nextQueuedMessageId === state.nextQueuedMessageId) &&
+    (event.milestones === undefined || event.milestones === state.milestones) &&
     backgroundTaskStatesEqual(backgroundTasks, state.backgroundTasks) &&
     restatesStructuredAgentSessionHostWork(event, state) &&
     activity?.turnId === state.activity?.turnId &&
@@ -311,6 +316,7 @@ export function reduceStructuredAgentSession(
     ),
     working: hostWorkingAfterStructuredAgentSessionBatch(state.working, event),
     ...queuePublicationField(event, state),
+    milestones: event.milestones !== undefined ? event.milestones : state.milestones,
     backgroundTasks,
     ...(activity !== undefined ? { activity } : {}),
     ...(promptSuggestion !== undefined ? { promptSuggestion } : {}),
@@ -319,9 +325,4 @@ export function reduceStructuredAgentSession(
   }
 }
 
-export function oldestStructuredAgentSessionCursor(
-  state: StructuredAgentSessionState
-): AgentJournalCursor | null {
-  const oldest = state.items[0]
-  return state.epoch && oldest ? { epoch: state.epoch, sequence: oldest.sequence } : null
-}
+export { oldestStructuredAgentSessionCursor } from '../structured-agent-session-history-state'

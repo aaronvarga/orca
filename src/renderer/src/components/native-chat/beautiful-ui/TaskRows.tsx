@@ -1,3 +1,4 @@
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/class-names'
 import { ChevronDown } from 'lucide-react'
@@ -8,24 +9,50 @@ import { useNativeChatDisclosure } from '../messages/disclosure/native-chat-disc
 export function TaskRow({
   icon,
   status,
+  statusDescription,
+  eta,
   active,
   tone = 'neutral',
   details,
+  compact = false,
   disclosureKey,
   children
 }: {
   icon: ReactNode
   status: ReactNode
+  statusDescription?: string
+  eta?: ReactNode
   active: boolean
-  tone?: 'neutral' | 'success' | 'error'
+  tone?: 'neutral' | 'progress' | 'success' | 'error'
+  compact?: boolean
   details?: ReactNode
   disclosureKey?: string
   children: ReactNode
 }): React.JSX.Element {
   const { open, setOpen } = useNativeChatDisclosure(disclosureKey, false)
+  const statusChip = (
+    <Badge
+      variant={eta ? 'taskStatusEta' : 'taskStatus'}
+      data-tone={tone}
+      className="max-w-full break-words text-left"
+    >
+      <span>{status}</span>
+      {statusDescription ? <span className="sr-only">: {statusDescription}</span> : null}
+      {eta ? (
+        <span className="rounded-full bg-primary/5 px-1.5 py-0.5 font-mono tabular-nums dark:bg-card/70">
+          {eta}
+        </span>
+      ) : null}
+    </Badge>
+  )
   const header = (
     <>
-      <span className="col-start-1 row-start-1 flex size-6 shrink-0 items-center justify-center text-muted-foreground">
+      <span
+        className={cn(
+          'col-start-1 row-start-1 flex shrink-0 items-center justify-center text-muted-foreground',
+          compact ? 'size-5' : 'size-6'
+        )}
+      >
         {icon}
       </span>
       <span
@@ -36,26 +63,35 @@ export function TaskRow({
       >
         {children}
       </span>
-      <Badge
-        variant="taskStatus"
-        data-tone={tone}
-        className="col-start-2 row-start-2 max-w-full justify-self-start break-words text-left @sm/task:max-w-1/2"
-      >
-        {status}
-      </Badge>
-      {details ? (
-        <ChevronDown
-          aria-hidden
-          className={cn(
-            'col-start-3 row-start-1 size-3.5 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none',
-            open && 'rotate-180'
-          )}
-        />
-      ) : null}
+      <span className="col-start-2 row-start-2 flex min-w-0 flex-wrap items-center justify-self-start gap-1 @sm/task:ml-auto">
+        {statusDescription ? (
+          <Tooltip>
+            <TooltipTrigger asChild>{statusChip}</TooltipTrigger>
+            <TooltipContent side="top" sideOffset={4}>
+              {statusDescription}
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          statusChip
+        )}
+      </span>
+      <span className="col-start-3 row-start-1 flex size-3.5 shrink-0 items-center justify-center">
+        {details ? (
+          <ChevronDown
+            aria-hidden
+            className={cn(
+              'size-3.5 text-muted-foreground transition-transform motion-reduce:transition-none',
+              open && 'rotate-180'
+            )}
+          />
+        ) : null}
+      </span>
     </>
   )
-  const rowClass =
-    'grid min-h-11 w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1 px-3 py-2 text-left text-sm text-card-foreground @sm/task:flex'
+  const rowClass = cn(
+    'grid min-h-11 w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1 text-left text-sm text-card-foreground @sm/task:flex',
+    compact ? 'min-h-8 gap-x-2 gap-y-0.5 px-2 py-1 text-xs' : 'px-3 py-2'
+  )
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="@container/task min-w-0">
       {details ? (

@@ -1,3 +1,4 @@
+import { formatNativeChatDuration } from '../../../../../../src/shared/native-chat/transcript/turns/native-chat-turn-status'
 import { Pressable, Text, View } from 'react-native'
 import { ChevronRight, Circle, CircleCheck, CircleDot, ListChecks } from 'lucide-react-native'
 import {
@@ -74,7 +75,25 @@ function TaskRow({
         ]}
       >
         {label ?? nativeChatTaskLabel(task)}
+        {task.blocker && task.status !== 'completed'
+          ? `\n${task.blocker.kind === 'waiting' ? t('components.native-chat.milestones.waiting', 'Waiting on you') : t('components.native-chat.milestones.blocked', 'Blocked')}: ${task.blocker.reason}`
+          : ''}
+        {task.status === 'completed' && task.timing
+          ? `\n${t('components.native-chat.milestones.actual', 'Observed {{time}}', { time: formatNativeChatDuration(task.timing.elapsedMs / 1000) })}${task.timing.estimate ? ` · ${t('components.native-chat.milestones.initialEstimate', 'estimated {{eta}}', { eta: task.timing.estimate })}` : ''}`
+          : ''}
       </Text>
+      {task.eta && task.status !== 'completed' ? (
+        <Text
+          accessibilityLabel={t(
+            'chat.taskList.agentEta',
+            'Estimated agent time remaining: {{eta}}',
+            { eta: task.eta }
+          )}
+          style={[styles.taskEta, toolType(fontScale).meta]}
+        >
+          {task.eta}
+        </Text>
+      ) : null}
     </View>
   )
 }
@@ -95,7 +114,7 @@ export function MobileNativeChatChecklist({
   ) : (
     <View style={styles.taskList}>
       {occurrenceKeyed(list.tasks, (task) => task.content).map(([task, key]) => (
-        <TaskRow key={key} task={task} fontScale={fontScale} />
+        <TaskRow key={task.id ?? key} task={task} fontScale={fontScale} />
       ))}
     </View>
   )

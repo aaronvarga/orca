@@ -21053,6 +21053,7 @@
         "recordFailed": "Orca couldn't save this to the chat's history.",
         "attachmentExpired": "This attachment expired.",
         "reattachFile": "Remove it and attach it again.",
+        "reattachFiles": "Remove them and attach them again.",
         "conversationCleared": "This conversation has been cleared.",
         "openCurrentConversation": "Open the current conversation to continue.",
         "clearUnfinished": "The last /clear didn't finish.",
@@ -21082,6 +21083,7 @@
         "hostReconciling": "Orca is still checking on this chat after restarting.",
         "waitMoment": "Wait a moment.",
         "recordUnreadable": "Orca couldn't read this chat's saved state.",
+        "mailOwnerUnconfirmed": "Orca couldn't confirm this message is still meant for this chat.",
         "chatNotFound": "Orca can't find this chat.",
         "startNewChat": "Start a new chat to continue.",
         "tryAgain": "Try again.",
@@ -21094,9 +21096,7 @@
         "compactAfterRetry": "Retry your earlier message, then run /compact.",
         "clearAfterSending": "Your earlier message is still being sent. Run /clear once it has gone.",
         "compactAfterSending": "Your earlier message is still being sent. Run /compact once it has gone.",
-        "pendingWork": "Wait for pending work and messages to finish before using this command.",
-        "reattachFiles": "Remove them and attach them again.",
-        "mailOwnerUnconfirmed": "Orca couldn't confirm this message is still meant for this chat."
+        "pendingWork": "Wait for pending work and messages to finish before using this command."
       },
       "taskList": {
         "title": "Tasks",
@@ -21760,11 +21760,11 @@
         "deferredNote": "Loaded on demand. Not counted in the used total."
       },
       "contextMenu": {
+        "noSessionContext": "No chat context is available.",
         "copyOrcaSessionId": "Copy Orca Session ID",
         "orcaSessionIdCopied": "Orca session ID copied",
         "orcaSessionIdCopyFailed": "Unable to copy Orca session ID",
-        "orcaSessionIdTooltip": "Orca's ID for this chat, separate from the agent CLI's own session ID. Agents use it to refer to each other through Orca.",
-        "noSessionContext": "No chat context is available."
+        "orcaSessionIdTooltip": "Orca's ID for this chat, separate from the agent CLI's own session ID. Agents use it to refer to each other through Orca."
       },
       "dismissDeliveryNotice": "Dismiss",
       "editDeliveryNotice": "Edit",
@@ -22541,6 +22541,47 @@
         "signsInClaudeAccount": "Signs in this Claude account",
         "runsCommand": "Runs {{command}} in a terminal",
         "thenSlashCommand": "Sign in, then type {{slashCommand}}."
+      },
+      "milestones": {
+        "title": "Milestones",
+        "dockRight": "Move milestones to the right",
+        "dockBottom": "Move milestones to the bottom",
+        "maximizeHeight": "Maximize milestone height",
+        "restoreHeight": "Restore milestone height",
+        "hide": "Hide milestones",
+        "show": "Show milestones",
+        "generate": "Generate milestones",
+        "etaTitle": "Estimated agent time remaining",
+        "generating": "Generating milestones…",
+        "regenerate": "Refresh milestones",
+        "generationError": "Could not generate milestones. Try again or update the session’s host.",
+        "superseded": "The plan changed during generation. The newer milestones were kept.",
+        "saveError": "Milestones could not be saved. Orca will retry on the next update.",
+        "remaining": "Agent time remaining",
+        "etaMissing": "Remaining time not estimated",
+        "partialEta": "Partial estimate; some milestones have no ETA.",
+        "parallelIncluded": "Includes parallel agent work.",
+        "freshnessUnknown": "Update time unavailable",
+        "justUpdated": "Updated just now",
+        "updatedAgo": "Updated {{minutes}} min ago",
+        "stale": "Refresh recommended",
+        "waiting": "Waiting on you",
+        "blocked": "Blocked",
+        "waitExcluded": "Wait time is excluded from the ETA.",
+        "actual": "Observed {{time}}",
+        "initialEstimate": "estimated {{eta}}",
+        "views": "Progress views"
+      },
+      "agents": {
+        "summary": "{{count}} agents · {{active}} active",
+        "backgroundOnly_one": "{{count}} background task · no subagents",
+        "backgroundOnly_other": "{{count}} background tasks · no subagents",
+        "empty": "No subagents recorded in this conversation.",
+        "timeline": "Bars show observed activity on the same time scale.",
+        "background": "Background work",
+        "incomplete": "Some activity is unavailable from this host.",
+        "transcript": "Open transcript",
+        "title": "Agents"
       }
     },
     "tab": {

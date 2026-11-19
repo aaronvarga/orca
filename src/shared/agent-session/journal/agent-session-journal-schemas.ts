@@ -1,3 +1,4 @@
+import { AgentMilestonePlanSchema } from './agent-session-journal-milestone-schema'
 // Validate replayed JSON deeply before unguarded reducers/renderers read it; malformed rows fail load without deletion.
 // Extend with keys, open-union tags or a new row v; never tighten existing types/bounds/closed sets.
 // Unknown keys and string vocabularies survive; unknown bodies/blocks/goals/subjects remain undrawn and writable.
@@ -236,6 +237,7 @@ const KnownItemBody = z.discriminatedUnion('kind', [
     kind: z.literal('status'),
     text: z.string(),
     presentation: z.string().optional(),
+    milestonePlan: AgentMilestonePlanSchema.optional(),
     contextClear: z
       .object({
         operationId: z.string().min(1).max(512),

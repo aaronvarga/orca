@@ -17,14 +17,30 @@ export function createStructuredAgentSessionPublicationWiring(input: {
   logger: () => StructuredAgentSessionLogger
   now: () => number
   observeRows: () => StructuredAgentSessionHostDeps['observeCommittedRows']
+  milestones: NonNullable<StructuredAgentSessionHostDeps['observeCommittedRows']>
+  forgetMilestones: (id: string) => void
 }): StructuredAgentSessionConversations {
   return new StructuredAgentSessionConversations({
     observe: (id, journal, rows) => {
+      void input
+        .client()
+        .milestones(journal)
+        .catch((error) =>
+          input.logger().warn('Reading session milestones failed', {
+            scope: 'milestones',
+            sessionId: id,
+            error
+          })
+        )
+      input.milestones(id, journal, rows)
       input.client().requestFailures.observe(id, journal, rows)
       input.observeRows()?.(id, journal, rows)
       observeNativeChatPromptSubmissions(journal, rows)
     },
-    forget: (id) => input.client().requestFailures.forget(id),
+    forget: (id) => {
+      input.forgetMilestones(id)
+      input.client().requestFailures.forget(id)
+    },
     deliver: (id, journal, inputChanged) => {
       input.client().subscribers.deliverFrames(id, journal, undefined, inputChanged)
       input.client().publishJournal(id, journal, true, inputChanged)

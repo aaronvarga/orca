@@ -178,3 +178,33 @@ export async function flushStructuredAgentSessionHost(
       context.deps.adapter.acknowledgeSessionRelease?.(sessionId)
   })
 }
+
+export function createStructuredAgentSessionHostTeardown(
+  read: () => Omit<Parameters<typeof flushStructuredAgentSessionHost>[0], 'trigger'> & {
+    sessions: { endPublications: () => void }
+    clientDelivery: { closeAll: () => void }
+    conversationDelivery: { dispose: () => void }
+    queueDrain: { dispose: () => void }
+    milestoneReview: { dispose: () => void }
+    usageLimitContinue: { dispose: () => void }
+  }
+) {
+  const stopDelivery = () => {
+    const state = read()
+    state.milestoneReview.dispose()
+    state.sessions.endPublications()
+    ;[state.conversationDelivery, state.queueDrain].forEach((delivery) => delivery.dispose())
+    state.usageLimitContinue.dispose()
+  }
+  return {
+    stopDelivery,
+    flushAllStreamedEvents: async (options?: { trigger?: 'quit' | 'update' }) => {
+      stopDelivery()
+      const state = read()
+      return flushStructuredAgentSessionHost({
+        ...state,
+        trigger: options?.trigger ?? 'quit'
+      }).finally(() => state.clientDelivery.closeAll())
+    }
+  }
+}

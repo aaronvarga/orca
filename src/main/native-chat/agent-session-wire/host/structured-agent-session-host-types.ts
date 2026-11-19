@@ -1,4 +1,5 @@
 import type { AgentJournalMessageItem } from '../../../../shared/agent-session/journal/agent-session-journal-types'
+import type { GenerateSessionMilestones } from '../../conversation-files/native-chat-milestone-generation'
 import type {
   AgentModelCatalogSource,
   AgentModelCatalogService
@@ -166,6 +167,7 @@ export type StructuredAgentSessionHostSession = {
 }
 
 export type StructuredAgentSessionHostDeps = {
+  generateMilestones?: GenerateSessionMilestones
   store: AgentSessionRecordStore
   adapter: StructuredAgentSessionAdapter
   /** Capabilities come from registry declarations, never adapters. */

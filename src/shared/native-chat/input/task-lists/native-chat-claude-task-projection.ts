@@ -6,7 +6,8 @@ import type {
 import type { NativeChatTask } from './native-chat-task-list'
 import { pairToolBlocks } from '../../tools/native-chat-tool-pairs'
 
-type Tasks = ReadonlyMap<string, NativeChatTask>
+type Task = NativeChatTask & { id: string; description?: string }
+type Tasks = ReadonlyMap<string, Task>
 
 function record(value: unknown): Record<string, unknown> | null {
   if (typeof value === 'string') {
@@ -53,14 +54,18 @@ function applyTaskCall(
     if (!Array.isArray(output?.tasks)) {
       return tasks
     }
-    const next = new Map<string, NativeChatTask>()
+    const next = new Map<string, Task>()
     for (const row of output.tasks) {
       const id = text(record(row)?.id)
       const entry = task(row)
       if (!id || !entry) {
         return tasks
       }
-      next.set(id, entry)
+      next.set(id, {
+        ...entry,
+        id,
+        description: text(record(row)?.description) ?? tasks.get(id)?.description
+      })
     }
     return next
   }
@@ -76,7 +81,11 @@ function applyTaskCall(
     if (!id || !entry) {
       return tasks
     }
-    return new Map(tasks).set(id, entry)
+    return new Map(tasks).set(id, {
+      ...entry,
+      id,
+      description: text(row?.description) ?? text(input?.description) ?? tasks.get(id)?.description
+    })
   }
   if (call.name !== 'TaskUpdate') {
     return tasks
@@ -99,11 +108,15 @@ function applyTaskCall(
   if (!entry) {
     return tasks
   }
-  return next.set(id, entry)
+  return next.set(id, {
+    ...entry,
+    id,
+    description: typeof input?.description === 'string' ? input.description : previous.description
+  })
 }
 
 /** Replay from the visible history; cached contexts keep unchanged rows and snapshots stable. */
-export function createNativeChatClaudeTaskProjection() {
+export function createNativeChatClaudeTaskProjection(milestonesOnly = false) {
   const empty: Tasks = new Map()
   const cache = new WeakMap<
     NativeChatMessage,
@@ -130,14 +143,47 @@ export function createNativeChatClaudeTaskProjection() {
           ) {
             continue
           }
+          const previous = tasks
           const next = applyTaskCall(tasks, call, result)
           if (next !== tasks) {
             tasks = next
+            if (
+              milestonesOnly &&
+              JSON.stringify(
+                [...previous.values()].filter((task) =>
+                  task.description?.includes('<!-- orca-session-milestone -->')
+                )
+              ) ===
+                JSON.stringify(
+                  [...tasks.values()].filter((task) =>
+                    task.description?.includes('<!-- orca-session-milestone -->')
+                  )
+                )
+            ) {
+              continue
+            }
             replacements ??= new Map()
             replacements.set(call, {
               ...call,
               name: 'TodoWrite',
-              input: { todos: [...tasks.values()] }
+              input: {
+                todos: [...tasks.values()]
+                  .filter(
+                    (task) =>
+                      !milestonesOnly ||
+                      task.description?.includes('<!-- orca-session-milestone -->')
+                  )
+                  .map(({ id, description, ...task }) => {
+                    const details = milestonesOnly
+                      ? description
+                          ?.replace(/<!-- orca-session-milestone -->/g, '')
+                          .trim()
+                          .slice(0, 600)
+                      : undefined
+                    return milestonesOnly ? { ...task, id, ...(details ? { details } : {}) } : task
+                  }),
+                ...(milestonesOnly ? { explanation: 'orca-session-milestones' } : {})
+              }
             })
           }
         }

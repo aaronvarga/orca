@@ -1,5 +1,7 @@
 import { claudeBotSessionOptions } from './claude-bot-session-options'
 import { withBotLaunchToolsEnv } from '../../../bots/bot-launch-tools'
+import { CLAUDE_STRUCTURED_BASE_OPTIONS } from './claude-structured-base-options'
+export { CLAUDE_STRUCTURED_BASE_OPTIONS } from './claude-structured-base-options'
 import type { ClaudeAccountRecipe } from '../../../../shared/agent-session/lifecycle/accounts/agent-session-acquired-account'
 import { prepareClaudeLaunchAccount, withClaudeLaunchAccountPin } from './claude-launch-account'
 import { assertStructuredAgentResolutionCurrent } from '../../../native-chat/agent-launch/structured-agent-command-resolution'
@@ -45,6 +47,7 @@ import {
   type AgentSessionRewindFork
 } from '../../../../shared/agent-session/lifecycle/rewind/agent-session-rewind'
 
+export { CLAUDE_DEFAULT_SETTING_SOURCES } from './claude-structured-base-options'
 export const CLAUDE_SESSION_STATE_EVENTS_ENV = 'CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS'
 type ClaudePermissionOptions = Pick<ClaudeAgentSdkOptions, 'permissionMode' | 'extraArgs'>
 
@@ -52,6 +55,7 @@ export type ClaudeStructuredSdkOptions = Pick<
   ClaudeAgentSdkOptions,
   | 'includePartialMessages'
   | 'systemPrompt'
+  | 'hooks'
   | 'settingSources'
   | 'supportedDialogKinds'
   | 'additionalDirectories'
@@ -68,16 +72,6 @@ export type ClaudeStructuredSdkOptions = Pick<
   ClaudePermissionOptions & { promptSuggestions?: boolean } & Awaited<
     ReturnType<typeof claudeBotSessionOptions>
   >
-
-/** Replay acknowledgements require an explicit flag; the SDK supplies the other transport flags. */
-export const CLAUDE_STRUCTURED_BASE_OPTIONS: ClaudeStructuredSdkOptions = {
-  includePartialMessages: true,
-  // Keep the SDK on Claude Code's own system-prompt contract.
-  systemPrompt: { type: 'preset', preset: 'claude_code' },
-  settingSources: [...CLAUDE_DEFAULT_SETTING_SOURCES],
-  supportedDialogKinds: [],
-  extraArgs: { 'replay-user-messages': null }
-}
 
 const CLAUDE_PERMISSION_MODES = {
   // Override settings defaultMode so the chat runs with its selected permission mode.

@@ -17,7 +17,7 @@ export async function chatNamingAgentTarget(
   cwd: string,
   resolveEnvironment: (agent: string) => Promise<Record<string, string>>,
   settings: Parameters<typeof resolveTuiAgentLaunchEnv>[1]
-): Promise<CommitMessageGenerationTarget> {
+): Promise<Extract<CommitMessageGenerationTarget, { kind: 'local' }>> {
   let env = await resolveEnvironment(record.provider)
   const spec = acpLaunchSpecFor(record.provider)
   if (spec) {
@@ -30,6 +30,14 @@ export async function chatNamingAgentTarget(
     return { kind: 'local', cwd, env: targetEnv }
   }
   const home = requireLegacyAgentSessionAccountHome(record.accountHome)
+  if (record.location.wslDistro) {
+    return {
+      kind: 'local',
+      cwd,
+      env: { ...env, [home.variable]: home.path },
+      wslDistro: record.location.wslDistro
+    }
+  }
   if (record.provider === 'claude') {
     env = overlayEnvironmentVariables(
       withoutInheritedClaudeConfigDir(env),

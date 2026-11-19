@@ -1,3 +1,7 @@
+import { getCommitMessageAgentSpec } from '../../../../shared/source-control/ai/generation/commit-message-agent-spec'
+import { runGenerationRequest } from '../../../text-generation/agent-generation-request'
+import { spawnSourceControlAgent } from '../../../text-generation/execution/source-control-agent-launch'
+import { chatNamingAgentTarget } from '../naming/structured-chat-naming-agent-launch'
 // Loaded on first host install: the host, router and every provider adapter stay out of startup.
 
 import { writeStructuredAgentSessionOrcaNote } from '../../../native-chat/agent-session-wire/structured-agent-session-orca-note'
@@ -73,6 +77,44 @@ export async function installOnJournal(
   host = new StructuredAgentSessionHost({
     store,
     adapter,
+    generateMilestones: async (record, prompt, shouldExecute) => {
+      if (record.provider !== 'claude' && record.provider !== 'codex') {
+        throw new Error('Unsupported milestone agent')
+      }
+      const cwd = await deps.resolveWorkspacePath(record.location.workspaceId)
+      const target = await chatNamingAgentTarget(
+        record,
+        cwd,
+        catalogOwner.environment.resolveAgentEnvironment,
+        {}
+      )
+      const settings = deps.resolveAgentCommandSettings?.()
+      const result = await runGenerationRequest({
+        params: {
+          agentId: record.provider,
+          model:
+            record.options?.model?.trim() ||
+            getCommitMessageAgentSpec(record.provider)?.defaultModelId ||
+            '',
+          agentCommandOverride: settings?.agentCmdOverrides?.[record.provider]
+        },
+        prompt,
+        target: {
+          kind: 'local',
+          cwd: target.cwd,
+          env: target.env,
+          laneId: record.sessionId,
+          ...(record.location.wslDistro ? { wslDistro: record.location.wslDistro } : {})
+        },
+        operation: 'session-milestones',
+        spawnAgent: spawnSourceControlAgent,
+        shouldExecute
+      })
+      if (!result.success) {
+        throw new Error(result.error)
+      }
+      return result.rawOutput
+    },
     nameProviderConversation: (record) => void providerNaming.push(record, true),
     agents,
     recoveryCapsule: new AgentSessionRecoveryCapsule(deps.stateDirectory),

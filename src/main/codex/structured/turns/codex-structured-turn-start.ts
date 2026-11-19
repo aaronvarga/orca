@@ -1,3 +1,4 @@
+import { injectCodexSessionInstructions } from './codex-structured-session-instructions'
 import type { CodexTurnHost, CodexTurnInput } from './codex-structured-turn-contract'
 import { captureCodexMessageCompilerInputs } from '../catalog/codex-structured-service-tier'
 import {
@@ -228,6 +229,10 @@ export async function dispatchCodexTurn(
     answeredAt = session.dispatchEchoes.tick()
   }
   try {
+    checkDispatchAuthority(session, input.clientMessageId, input.signal, input.isCurrent)
+    if (!input.body.command) {
+      await injectCodexSessionInstructions(session.connection, session.threadId)
+    }
     answer = await startCodexTurn(session, { ...input, timeoutMs, onReply })
   } catch (error) {
     if (error instanceof StructuredAgentSessionInputNotAdmitted) {

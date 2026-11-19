@@ -77,7 +77,7 @@ async function startOrcadManagedIdleExit(
     await import('../../daemon/orcad-daemon-retirement')
   const idleRecord = createIdleStopRecordOwnership(input.userDataPath)
   const hasChatProviders = (): boolean =>
-    getStructuredAgentSessionHost()?.hasLoadedProviders() ?? false
+    (getStructuredAgentSessionHost()?.loadedSessionIds().length ?? 0) > 0
   const ports: OrcadManagedIdleExitPorts = {
     readClientActivity: () => input.rpc.readClientActivity(),
     listTerminals: () => getLocalPtyProvider().listProcesses(),

@@ -12,7 +12,7 @@ import { claimStructuredAgentSessionAgent as claimAgent } from '../startup/struc
 import * as mutationWiring from './structured-agent-session-host-mutation-wiring'
 import * as lifetime from '../termination/structured-agent-session-conversation-lifetime'
 import { createStructuredAgentSessionTabSurface as createTabs } from './structured-agent-session-host-tabs'
-import { flushStructuredAgentSessionHost } from '../termination/structured-agent-session-host-teardown'
+import { createStructuredAgentSessionHostTeardown } from '../termination/structured-agent-session-host-teardown'
 import type * as HostTypes from './structured-agent-session-host-types'
 import { StructuredAgentSessionEventRecovery as EventRecovery } from '../termination/structured-agent-session-event-recovery'
 import { StructuredAgentSessionBackgroundTaskChannel as BackgroundTasks } from '../publication/subscribers/structured-agent-session-background-task-channel'
@@ -35,7 +35,9 @@ export class StructuredAgentSessionHost {
     workChanged: (id) => this.runtimeState.refreshActivity(id),
     logger: () => this.deps.logger,
     now: () => this.now(),
-    observeRows: () => this.deps.observeCommittedRows
+    observeRows: () => this.deps.observeCommittedRows,
+    milestones: (...args) => this.reads.milestoneReview.observe(...args),
+    forgetMilestones: (id) => this.reads.milestoneReview.forget(id)
   })
   private readonly queued = wireQueuedMessages(this.sessions, () => this.mutationContext())
   // Journal publication renews idle activity.
@@ -143,7 +145,6 @@ export class StructuredAgentSessionHost {
 
   hasSession = (sessionId: string): boolean => this.sessions.has(sessionId)
   loadedSessionIds = this.sessions.loadedSessionIds
-  hasLoadedProviders = (): boolean => this.loadedSessionIds().length > 0
   readonly reads = createStructuredAgentSessionConversationReads(() => ({
     ...this.lifetimeContext(),
     serialize: this.serialize,
@@ -226,24 +227,20 @@ export class StructuredAgentSessionHost {
   /** Test-only barrier for streamed event writes. */
   flushStreamedEvents = (id: string) => this.runtimeState.flushEventSink(id)
 
-  /** Quit stops delivery and queued-card handover. */
-  stopDelivery = () => {
-    this.sessions.endPublications()
-    ;[this.conversationDelivery, this.queued.drain].forEach((d) => d.dispose())
-    this.usageLimitContinue.dispose()
-  }
-
-  async flushAllStreamedEvents(options?: { trigger?: 'quit' | 'update' }): Promise<void> {
-    this.stopDelivery()
-    await flushStructuredAgentSessionHost({
-      ...this.lifetimeContext(),
-      idleSweep: this.lifetime,
-      tasks: this.tasks,
-      restartResume: this.restartResume,
-      serialize: this.serialize,
-      trigger: options?.trigger ?? 'quit'
-    }).finally(() => this.clientDelivery.closeAll())
-  }
+  private readonly teardown = createStructuredAgentSessionHostTeardown(() => ({
+    ...this.lifetimeContext(),
+    idleSweep: this.lifetime,
+    tasks: this.tasks,
+    restartResume: this.restartResume,
+    serialize: this.serialize,
+    clientDelivery: this.clientDelivery,
+    conversationDelivery: this.conversationDelivery,
+    queueDrain: this.queued.drain,
+    milestoneReview: this.reads.milestoneReview,
+    usageLimitContinue: this.usageLimitContinue
+  }))
+  stopDelivery = this.teardown.stopDelivery
+  flushAllStreamedEvents = this.teardown.flushAllStreamedEvents
 
   private mutationContext = () =>
     mutationWiring.createStructuredAgentSessionHostMutationContext({
@@ -332,6 +329,7 @@ export class StructuredAgentSessionHost {
 
   subscribeStatus = this.clientDelivery.subscribeStatus
   publishConversationName = this.clientDelivery.publishConversationName
+  regenerateMilestones = this.reads.regenerateMilestones
   regenerateConversationName = this.reads.regenerateConversationName
   setUserConversationName = this.reads.setUserConversationName
   skipAsyncQuestions = this.reads.skipAsyncQuestions

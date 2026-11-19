@@ -1,3 +1,5 @@
+import type { RpcClient } from '../../../../transport/rpc/rpc-client-contract'
+import type { NativeChatMilestones } from '../../../../../../src/shared/native-chat/input/task-lists/native-chat-milestones'
 import { createElement, Fragment, useMemo, useState, type ReactNode, type RefObject } from 'react'
 import type { TextInputInstance } from 'react-native'
 import { MobileNativeChatBackgroundTasks } from '../../input/tasks/MobileNativeChatBackgroundTasks'
@@ -42,12 +44,18 @@ export const NO_COMPOSER_TRAY: MobileNativeChatComposerTray = {}
 export function useMobileNativeChatComposerTray({
   queued,
   taskList,
+  milestones,
+  milestoneClient,
+  preparingMilestones,
   backgroundTasks
 }: {
   queued: MobileNativeChatQueuedMessagesProps & {
     /** One card list per conversation: a pending action in one never disables another's. */
     sessionKey: string
   }
+  milestoneClient?: RpcClient
+  milestones?: NativeChatMilestones | null
+  preparingMilestones?: boolean
   taskList: NativeChatTaskList | null
   backgroundTasks: MobileStructuredBackgroundTasks | null
 }): MobileNativeChatComposerTray {
@@ -74,8 +82,11 @@ export function useMobileNativeChatComposerTray({
       content: createElement(
         Fragment,
         null,
-        taskList
+        taskList || preparingMilestones
           ? createElement(MobileNativeChatDockedTaskList, {
+              milestones,
+              milestoneClient,
+              preparingMilestones,
               key: `${sessionKey}:docked-task-list`,
               list: taskList,
               conversationKey: sessionKey
@@ -127,6 +138,9 @@ export function useMobileNativeChatComposerTray({
     }),
     [
       taskList,
+      milestones,
+      milestoneClient,
+      preparingMilestones,
       backgroundTasks,
       cards,
       composerInputRef,

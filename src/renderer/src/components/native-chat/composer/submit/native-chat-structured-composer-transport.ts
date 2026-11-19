@@ -21,6 +21,7 @@ import type { NativeChatSideChat } from '../../messages/actions/use-native-chat-
 export type NativeChatStructuredComposerTransport = {
   capturePresentation: CaptureStructuredAgentSessionPresentation
   conversationCommands?: readonly AgentSessionConversationCommand[]
+  regenerateMilestones?: () => Promise<{ applied: boolean }>
   compactInstructions?: boolean
   send: (
     text: string,

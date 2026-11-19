@@ -1,4 +1,5 @@
 import type { MobileSessionItemLink } from '../../mobile-session-item-target'
+import type { NativeChatMilestones } from '../../../../../src/shared/native-chat/input/task-lists/native-chat-milestones'
 import type { AgentSessionSlashCommand } from '../../../../../src/shared/agent-session/agent-session-wire'
 import type { NativeChatSendFollowUp } from '../../../../../src/shared/native-chat/input/composer/native-chat-follow-up-behavior'
 import type { RpcClient } from '../../../transport/rpc/rpc-client-contract'
@@ -76,6 +77,7 @@ export type StructuredMobileSession = Omit<
     cancelPrompt: (prompt?: { itemId: string; expectedRevision: number }) => Promise<boolean>
     queued: MobileStructuredQueuedMessageControls
     commandRefusalCauses: MobileNativeChatCommandRefusalCauses
+    milestones?: NativeChatMilestones | null
     backgroundTasks: MobileStructuredBackgroundTasks
     interruptedContinue: MobileStructuredInterruptedContinue
     /** Null unless the host reports goals for this chat. */

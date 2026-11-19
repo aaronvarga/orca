@@ -1,3 +1,5 @@
+import { createMilestoneReview } from '../../conversation-files/native-chat-milestone-review'
+import { generateSessionMilestones } from '../../conversation-files/native-chat-milestone-generation'
 import { agentSessionLeaseOwnerVerdict } from '../../../../shared/agent-session/lifecycle/leases/agent-session-lease-adjudication'
 import { holdStructuredMailSources } from '../observations/structured-agent-session-mail-sources'
 import {
@@ -67,8 +69,26 @@ export function createStructuredAgentSessionConversationReads(context: () => Rea
       )
     }
   }))
+  const milestoneJobs = new Map<string, Promise<{ applied: boolean }>>()
   const journalOf = async (id: string) => (await context().conversation(id)).journal
-  return {
+  const milestoneReview = createMilestoneReview({
+    enabled: (id) => {
+      const { deps } = context()
+      const record = deps.store.getRecord(id)
+      return Boolean(
+        deps.generateMilestones && record && ['claude', 'codex'].includes(record.provider)
+      )
+    },
+    generate: (id) => reads.regenerateMilestones(id),
+    failed: (sessionId, error) =>
+      context().deps.logger.warn('Automatic milestone review failed', {
+        scope: 'milestones',
+        sessionId,
+        error
+      })
+  })
+  const reads = {
+    milestoneReview,
     currentWorkAtRest: async (sessionId: string) => {
       await context().conversation(sessionId)
       const { deps, sessions } = context()
@@ -137,6 +157,35 @@ export function createStructuredAgentSessionConversationReads(context: () => Rea
       sessionLocation: (id: string): AgentSessionExecutionLocation | null =>
         context().deps.store.getConversation(id)?.location ?? null
     },
+    regenerateMilestones: (sessionId: string): Promise<{ applied: boolean }> => {
+      const pending = milestoneJobs.get(sessionId)
+      if (pending) {
+        return pending
+      }
+      const run = async () => {
+        const { deps } = context()
+        const record = deps.store.requireWritableRecord(sessionId)
+        if (!deps.generateMilestones || !['claude', 'codex'].includes(record.provider)) {
+          throw new Error('Background milestone generation is unavailable for this agent')
+        }
+        const journal = await journalOf(sessionId)
+        const answer = await generateSessionMilestones({
+          record,
+          journal,
+          generate: deps.generateMilestones,
+          current: () =>
+            milestoneReview.active() &&
+            context().sessions.get(sessionId)?.journal === journal &&
+            Boolean(deps.store.getRecord(sessionId)),
+          fence: () => deps.store.requireWritableRecord(sessionId).lease.runtimeFence
+        })
+        context().publishStatus(sessionId)
+        return answer
+      }
+      const job = run().finally(() => milestoneJobs.delete(sessionId))
+      milestoneJobs.set(sessionId, job)
+      return job
+    },
     regenerateConversationName: (sessionId: string): boolean =>
       context().deps.conversationNaming?.regenerate(sessionId) ?? false,
     setUserConversationName,
@@ -203,4 +252,5 @@ export function createStructuredAgentSessionConversationReads(context: () => Rea
       )
     }
   }
+  return reads
 }

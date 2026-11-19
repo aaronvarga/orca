@@ -294,6 +294,7 @@ export function useMobileNativeChatController(args: {
     ...prompts,
     handleNativeChatStop: activeChatStructured ? structuredNativeChat.cancel : terminalTurn.stop,
     nativeChatQueued: structuredNativeChat.queued,
+    nativeChatMilestones: activeChatStructured ? structuredNativeChat.milestones : undefined,
     nativeChatBackgroundTasks: activeChatStructured ? structuredNativeChat.backgroundTasks : null,
     nativeChatContextUsage: activeChatStructured ? structuredNativeChat.contextUsage : null,
     nativeChatInterruptedContinue: activeChatStructured

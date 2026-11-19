@@ -1863,6 +1863,10 @@
       "keywordSignIn": "sign in"
     },
     "native-chat": {
+      "agents": {
+        "backgroundOnly_one": "{{count}} background task · no subagents",
+        "backgroundOnly_other": "{{count}} background tasks · no subagents"
+      },
       "approval": {
         "allow": "Allow",
         "deny": "Deny",

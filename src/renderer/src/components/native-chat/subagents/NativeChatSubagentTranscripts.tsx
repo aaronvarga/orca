@@ -1,3 +1,7 @@
+import { NativeChatAgentVisualizerProvider } from './NativeChatAgentVisualizer'
+import type { StructuredSessionBackgroundTasksView } from '../../../../../shared/agent-session/view/structured-session-background-tasks-view'
+import { NativeChatMilestoneGenerationContext } from '../tools/tasks/NativeChatMilestoneGeneration'
+import type { NativeChatStructuredComposerTransport } from '../composer/submit/native-chat-structured-composer-transport'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { cn } from '@/lib/class-names'
 import { NativeChatMessageList } from '../NativeChatMessageList'
@@ -27,10 +31,14 @@ function returnFocusTarget(main: HTMLElement, agentId: string): HTMLElement | nu
 export function NativeChatSubagentTranscripts({
   paneKey,
   find,
+  milestoneTransport,
+  backgroundTasks,
   ...props
 }: React.ComponentProps<typeof NativeChatMessageList> & {
   /** The chat's status pane key, which also names it to the sidebar's subagent rows. */
   paneKey: string
+  backgroundTasks?: StructuredSessionBackgroundTasksView
+  milestoneTransport?: NativeChatStructuredComposerTransport
   find: Pick<NativeChatFind, 'isOpen' | 'query'>
 }): React.JSX.Element {
   const openId = useNativeChatOpenSubagent(paneKey)?.agentId ?? null
@@ -86,11 +94,21 @@ export function NativeChatSubagentTranscripts({
           className={cn('flex min-h-0 flex-1 flex-col', shown && 'invisible')}
           inert={shown !== null}
         >
-          <NativeChatMessageList
-            {...props}
-            isVisible={isVisible && shown === null}
-            subagentView={main}
-          />
+          <NativeChatAgentVisualizerProvider
+            paneKey={paneKey}
+            roster={props.subagentRoster}
+            items={props.journalItems}
+            backgroundTasks={backgroundTasks}
+            open={open}
+          >
+            <NativeChatMilestoneGenerationContext value={milestoneTransport ?? null}>
+              <NativeChatMessageList
+                {...props}
+                isVisible={isVisible && shown === null}
+                subagentView={main}
+              />
+            </NativeChatMilestoneGenerationContext>
+          </NativeChatAgentVisualizerProvider>
         </div>
         {shown ? (
           <div

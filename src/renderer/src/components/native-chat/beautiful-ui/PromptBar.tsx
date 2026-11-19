@@ -16,9 +16,9 @@ export function PromptBar({
     <div
       data-expanded={expanded}
       className={cn(
-        'group/composer relative isolate flex flex-col overflow-hidden border border-chat-composer-border bg-chat-composer-surface shadow-xs [contain:paint]',
+        'group/composer relative isolate flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-xs [contain:paint]',
         glowing && 'native-chat-composer-glow',
-        expanded ? 'gap-2.5 rounded-3xl p-3.5' : 'gap-1.5 rounded-xl p-1.5',
+        expanded ? 'gap-2.5 p-3.5' : 'gap-1.5 p-1.5',
         launch
           ? 'border-foreground/10 bg-background dark:bg-foreground/[0.04]'
           : 'native-chat-composer-card'

@@ -1,4 +1,5 @@
 import type { NativeChatTaskList } from '../../../shared/native-chat/input/task-lists/native-chat-task-list'
+import type { NativeChatMilestones } from '../../../shared/native-chat/input/task-lists/native-chat-milestones'
 import type { JournalRequestMark } from './journal-request-failure'
 import type { JournalMailAttempt, JournalMailObservation } from './journal-mail-observation'
 import type { JournalRewindCut, JournalRewindSelection } from './journal-domain-rewind-cut'
@@ -38,6 +39,7 @@ import type {
 } from './journal-input-reads'
 
 export type JournalSqlReads = AgentSessionJournalReads & {
+  milestones(): Promise<NativeChatMilestones | null>
   mailObservation(attempt: JournalMailAttempt): Promise<JournalMailObservation>
   itemDetail(itemId: string): Promise<AgentJournalRenderItem | null>
   forkBoundary(
@@ -142,6 +144,7 @@ export function journalSqlReads(
   const provenance = async (itemId: string) =>
     (await read({ kind: 'item-provenance', itemId })).provenance
   return {
+    milestones: async () => (await read({ kind: 'milestones' })).milestones,
     mailObservation: async (attempt) =>
       (await read({ kind: 'mail-observation', attempt })).observation,
     forkBoundary: async (itemId, inheritedAnchor, compareSubmissions) =>

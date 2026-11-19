@@ -1,8 +1,10 @@
+import type { NativeChatMilestones } from '../../../native-chat/input/task-lists/native-chat-milestones'
 import type { AgentSessionCurrentRequestsMarker } from '../../requests/agent-session-current-requests-wire'
 import type { AgentSessionQueuePublicationFields } from '../../requests/agent-session-queued-message-wire'
 
 /** Published-frame host wall clock (epoch ms per AgentSessionHistoryPage) and queuedMessages companions. */
 export type AgentSessionFrameFields = {
+  milestones?: NativeChatMilestones | null
   commandsChanged?: true
   hostNow?: number
   /** Version of the independent current-request read; absent from older hosts. */

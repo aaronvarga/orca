@@ -12,7 +12,12 @@ const badgeVariants = cva(
         default: 'bg-primary text-primary-foreground [a&]:hover:bg-primary/90',
         secondary: 'bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90',
         taskStatus:
-          'whitespace-normal bg-secondary text-3xs text-secondary-foreground data-[tone=success]:bg-status-success-background data-[tone=success]:text-status-success data-[tone=error]:bg-destructive/10 data-[tone=error]:text-destructive',
+          'whitespace-normal bg-secondary text-3xs text-secondary-foreground data-[tone=progress]:bg-callout-note/10 data-[tone=progress]:text-callout-note data-[tone=success]:bg-status-success-background data-[tone=success]:text-status-success data-[tone=error]:bg-destructive/10 data-[tone=error]:text-destructive',
+        taskStatusEta:
+          'gap-1.5 bg-secondary py-0.5 pr-0.5 pl-2 text-3xs text-secondary-foreground data-[tone=progress]:bg-callout-note/10 data-[tone=progress]:text-callout-note',
+        agentEta: 'bg-secondary font-mono text-3xs tabular-nums text-secondary-foreground',
+        count:
+          'h-4 min-w-4 bg-secondary px-1 py-0 text-3xs leading-none tabular-nums text-secondary-foreground',
         sidebarCount:
           'h-4 min-w-4 border-sidebar-border bg-secondary px-1 py-0 text-3xs leading-none tabular-nums text-secondary-foreground',
         dot: 'bg-background text-foreground border-border shadow-xs dark:bg-secondary dark:border-white/20',

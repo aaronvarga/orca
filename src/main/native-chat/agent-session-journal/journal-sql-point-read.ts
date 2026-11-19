@@ -1,3 +1,4 @@
+import { readJournalDomainMilestones } from './journal-domain-milestones'
 import { planJournalDomainRewindCut } from './journal-domain-rewind-cut'
 import { readJournalDomainMailObservation } from './journal-domain-mail-observation'
 import { readJournalDomainOutline } from './journal-domain-outline'
@@ -68,6 +69,8 @@ function read(
           operation.compareSubmissions
         )
       }
+    case 'milestones':
+      return { kind: operation.kind, milestones: readJournalDomainMilestones(scope) }
     case 'saved-content':
       return { kind: operation.kind, content: readJournalDomainSavedContent(scope) }
     case 'conversation-outline':

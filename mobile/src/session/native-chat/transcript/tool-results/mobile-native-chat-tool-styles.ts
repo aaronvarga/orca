@@ -148,6 +148,17 @@ export const toolStyles = themedStyleSheet(() => ({
     flexShrink: 1,
     color: colors.textMuted
   },
+  taskEta: {
+    fontFamily: typography.monoFamily,
+    color: colors.textMuted,
+    backgroundColor: colors.bgPanel,
+    borderColor: colors.borderSubtle,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    flexShrink: 0
+  },
   taskActive: {
     color: colors.textPrimary,
     fontWeight: '500'

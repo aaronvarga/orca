@@ -77,7 +77,7 @@ export type AgentSessionSubagentRosterEntry = {
   entry: NativeChatSubagentEntry
 }
 
-export type AgentSessionHistoryPage = {
+export type AgentSessionHistoryPage = Pick<AgentSessionFrameFields, 'milestones'> & {
   sessionId: string
   epoch: string
   /** Optional for mixed-version readers; write-capable clients use the
