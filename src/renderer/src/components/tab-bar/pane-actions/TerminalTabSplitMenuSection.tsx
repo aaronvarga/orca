@@ -1,3 +1,4 @@
+import { splitNativeChatTab } from '../../native-chat/pane/routing/native-chat-tab-split-actions'
 import {
   ContextMenuItem,
   ContextMenuSeparator,
@@ -21,6 +22,7 @@ export function TerminalTabSplitMenuSection({
   splitRightShortcut,
   splitDownShortcut,
   showTerminalSplit = true,
+  chatWorktreeId,
   trailingSeparator = false
 }: {
   unifiedTabId: string
@@ -30,6 +32,7 @@ export function TerminalTabSplitMenuSection({
   onActivate: (tabId: string) => void
   splitRightShortcut: string
   splitDownShortcut: string
+  chatWorktreeId?: string
   showTerminalSplit?: boolean
   trailingSeparator?: boolean
 }): React.JSX.Element {
@@ -44,33 +47,51 @@ export function TerminalTabSplitMenuSection({
   return (
     <>
       <TabWorkspaceLayoutMenuSection unifiedTabId={unifiedTabId} groupId={groupId} />
-      {showTerminalSplit ? (
+      {showTerminalSplit || chatWorktreeId ? (
         <ContextMenuSub>
           <ContextMenuSubTrigger className="[&>svg:last-child]:size-3.5">
             <SquareTerminal className="size-3.5 shrink-0" />
-            {t(
-              'auto.components.tab.bar.TerminalTabSplitMenuSection.splitTerminal',
-              'Split terminal'
-            )}
+            {chatWorktreeId
+              ? t('chatSplits.menu', 'Split chat')
+              : t(
+                  'auto.components.tab.bar.TerminalTabSplitMenuSection.splitTerminal',
+                  'Split terminal'
+                )}
           </ContextMenuSubTrigger>
           <ContextMenuSubContent
             animation="none"
             className={cn('min-w-[12rem]', 'max-w-[calc(100vw-1rem)] whitespace-nowrap')}
           >
-            <ContextMenuItem onSelect={() => splitActiveTerminalPane('vertical')}>
+            <ContextMenuItem
+              onSelect={() =>
+                chatWorktreeId
+                  ? splitNativeChatTab(chatWorktreeId, unifiedTabId, 'right')
+                  : splitActiveTerminalPane('vertical')
+              }
+            >
               <PanelRightClose className="size-3.5 shrink-0" />
-              {t(
-                'auto.components.tab.bar.SortableTabContextMenu.splitTerminalRight',
-                'Split terminal right'
-              )}
+              {chatWorktreeId
+                ? t('chatSplits.right', 'Split chat right')
+                : t(
+                    'auto.components.tab.bar.SortableTabContextMenu.splitTerminalRight',
+                    'Split terminal right'
+                  )}
               <ContextMenuShortcut>{splitRightShortcut}</ContextMenuShortcut>
             </ContextMenuItem>
-            <ContextMenuItem onSelect={() => splitActiveTerminalPane('horizontal')}>
+            <ContextMenuItem
+              onSelect={() =>
+                chatWorktreeId
+                  ? splitNativeChatTab(chatWorktreeId, unifiedTabId, 'down')
+                  : splitActiveTerminalPane('horizontal')
+              }
+            >
               <PanelBottomClose className="size-3.5 shrink-0" />
-              {t(
-                'auto.components.tab.bar.SortableTabContextMenu.splitTerminalDown',
-                'Split terminal down'
-              )}
+              {chatWorktreeId
+                ? t('chatSplits.down', 'Split chat down')
+                : t(
+                    'auto.components.tab.bar.SortableTabContextMenu.splitTerminalDown',
+                    'Split terminal down'
+                  )}
               <ContextMenuShortcut>{splitDownShortcut}</ContextMenuShortcut>
             </ContextMenuItem>
           </ContextMenuSubContent>

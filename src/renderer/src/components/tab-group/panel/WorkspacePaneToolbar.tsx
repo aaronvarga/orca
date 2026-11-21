@@ -42,13 +42,15 @@ export function WorkspacePaneToolbar({
   groupId,
   onClose,
   canClose = true,
-  onEqualize
+  onEqualize,
+  onSplit
 }: {
   worktreeId: string
   groupId: string
   onClose: () => void
   canClose?: boolean
   onEqualize?: () => void
+  onSplit?: (direction: 'left' | 'right' | 'down') => void
 }) {
   const t = useTranslate()
   const groups = useAppStore((state) => state.groupsByWorktree[worktreeId] ?? EMPTY_GROUPS)
@@ -65,7 +67,11 @@ export function WorkspacePaneToolbar({
     (tab) => tab.id === groups.find((group) => group.id === groupId)?.activeTabId
   )
   const split = (direction: 'left' | 'right' | 'down') =>
-    useAppStore.getState().createEmptySplitGroup(worktreeId, groupId, direction, { landing: true })
+    onSplit
+      ? onSplit(direction)
+      : useAppStore
+          .getState()
+          .createEmptySplitGroup(worktreeId, groupId, direction, { landing: true })
   const actions: { label: string; Icon: LucideIcon; run: () => void; disabled?: boolean }[] = [
     {
       label: t('paneToolbar.splitLeft', 'Split Left'),
@@ -100,8 +106,12 @@ export function WorkspacePaneToolbar({
       label: t('paneToolbar.equalize', 'Equalize Splits'),
       Icon: LayoutGrid,
       run: () => {
-        equalizeWorkspacePanes(worktreeId)
-        onEqualize?.()
+        if (onSplit) {
+          onEqualize?.()
+        } else {
+          equalizeWorkspacePanes(worktreeId)
+          onEqualize?.()
+        }
       },
       disabled: groups.length < 2 && !onEqualize
     },

@@ -1,3 +1,4 @@
+import { resolveNativeChatTabSplit } from '../../../../../shared/native-chat/layout/native-chat-tab-splits'
 import type { KeybindingContext } from '../../../../../shared/keybindings/types'
 import {
   toVisibleTabType,
@@ -43,6 +44,7 @@ export type WorkspaceTabCommand =
       context?: KeybindingContext
       skipEmptyCheck?: boolean
       bulk?: boolean
+      chatPaneOnly?: boolean
       floatingPanelGuestOwned?: boolean
     }
   | {
@@ -207,7 +209,19 @@ export function dispatchWorkspaceTabCommand(command: WorkspaceTabCommand): boole
       }
       return true
     }
-    const tab = target.tab
+    const chatSplit = resolveNativeChatTabSplit(
+      state.nativeChatTabSplits,
+      state.unifiedTabsByWorktree[target.worktreeId] ?? [],
+      target.tab.id
+    )
+    const splitRoot = chatSplit
+      ? state.unifiedTabsByWorktree[target.worktreeId].find(
+          (item) => item.id === chatSplit.rootTabId
+        )
+      : undefined
+    const closesSplit =
+      chatSplit && !command.chatPaneOnly && !command.bulk && !command.skipEmptyCheck
+    const tab = closesSplit && splitRoot ? splitRoot : target.tab
     if (command.context === 'terminal' && tab.contentType === 'terminal') {
       return false
     }
@@ -218,7 +232,7 @@ export function dispatchWorkspaceTabCommand(command: WorkspaceTabCommand): boole
       worktreeId: target.worktreeId,
       groupTabs: state.unifiedTabsByWorktree[target.worktreeId] ?? []
     })
-    if ((command.bulk || command.skipEmptyCheck) && tab.isPinned) {
+    if ((command.bulk || command.skipEmptyCheck) && (tab.isPinned || splitRoot?.isPinned)) {
       return true
     }
     const unsentNotes = tab.contentType === 'browser' && hasUnsentBrowserNotes(state, tab.entityId)
@@ -233,8 +247,22 @@ export function dispatchWorkspaceTabCommand(command: WorkspaceTabCommand): boole
         : captureWorkspaceEmptiedReaction(target.worktreeId, {
             floatingPanelGuestOwned: command.floatingPanelGuestOwned
           })
-    const close = () =>
-      commands.closeItem(tab.id, { whenEmptied, skipRunningProcessConfirm: command.bulk })
+    const close = () => {
+      const ids =
+        closesSplit && chatSplit
+          ? [...chatSplit.tabIds.filter((id) => id !== tab.id), tab.id]
+          : [tab.id]
+      const closeNext = (index: number): void => {
+        commands.closeItem(ids[index], {
+          whenEmptied: index + 1 < ids.length ? () => closeNext(index + 1) : whenEmptied,
+          skipRunningProcessConfirm: command.bulk,
+          preferredNextTabId: command.chatPaneOnly
+            ? chatSplit?.tabIds.find((id) => id !== tab.id)
+            : undefined
+        })
+      }
+      closeNext(0)
+    }
     if (tab.contentType === 'terminal' || command.bulk) {
       close()
     } else {

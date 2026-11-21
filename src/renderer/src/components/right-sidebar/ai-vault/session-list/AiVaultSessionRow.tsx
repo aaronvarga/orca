@@ -34,6 +34,8 @@ import { AiVaultSearchEvidence } from '../search/AiVaultSearchEvidence'
 import { useAiVaultSessionDisplayTitle } from './use-ai-vault-session-display-title'
 import { ForkMarkedName } from '@/components/native-chat/fork/ForkMarkedName'
 import type { AiVaultOriginalPaneTarget } from '../session-actions/ai-vault-original-pane'
+import { AgentSessionFavoriteMenuItem } from './AgentSessionFavoriteMenuItem'
+import { agentSessionFavorite } from '../../../../../../shared/ai-vault/contracts/agent-session-favorites'
 
 export function VaultSessionRow({
   session,
@@ -288,6 +290,9 @@ export function VaultSessionRow({
         {body}
       </ContextMenuTrigger>
       <ContextMenuContent>
+        <AgentSessionFavoriteMenuItem
+          session={agentSessionFavorite(session, worktreeInfo?.worktreeId ?? undefined)}
+        />
         <SessionActionMenuItems
           menuKind="context"
           resumeDisabled={resumeDisabled}

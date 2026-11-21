@@ -1,3 +1,4 @@
+import { normalizeNativeChatTabSplits } from '../../../../../shared/native-chat/layout/native-chat-tab-splits'
 import { commandCenterPresentation } from '../../../../../shared/ui-chrome/command-center-presentation'
 import type { PersistedUIState } from '../../../../../shared/orca-profiles/persisted-ui-state-types'
 import type {
@@ -185,10 +186,11 @@ export function hydrateAgentReadState(
   }
 }
 
-export function hydrateCommandCenterUI(
+export function hydrateWorkspacePresentationUI(
   ui: PersistedUIState
-): Pick<UISlice, 'projectRailSeparators' | 'commandCenterPresentation'> {
+): Pick<UISlice, 'projectRailSeparators' | 'commandCenterPresentation' | 'nativeChatTabSplits'> {
   return {
+    nativeChatTabSplits: normalizeNativeChatTabSplits(ui.nativeChatTabSplits),
     projectRailSeparators: sanitizePersistedRepoIds(ui.projectRailSeparators),
     commandCenterPresentation: commandCenterPresentation(ui.commandCenterPresentation)
   }

@@ -1,3 +1,4 @@
+import { equalizedTabGroupSplitRatio } from '../../../../../shared/workspace-layout/tab-groups/tab-group-layout-tree'
 import { useAppStore } from '@/store'
 import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../../../shared/workspace-layout/layout-owner-switch'
 import type { TabGroupLayoutNode } from '../../../../../shared/workspace-layout/tab-groups/tab-types'
@@ -9,17 +10,11 @@ export function equalizeWorkspacePanes(worktreeId: string): void {
   if (!layout) {
     return
   }
-  const weight = (node: TabGroupLayoutNode, direction: 'horizontal' | 'vertical'): number =>
-    node.type === 'split' && node.direction === direction
-      ? weight(node.first, direction) + weight(node.second, direction)
-      : 1
   const visit = (node: TabGroupLayoutNode, path: string) => {
     if (node.type === 'leaf') {
       return
     }
-    const first = weight(node.first, node.direction)
-    const second = weight(node.second, node.direction)
-    const ratio = first / (first + second)
+    const ratio = equalizedTabGroupSplitRatio(node)
     if (ORCA_LAYOUT_OWNER_IS_MAIN) {
       setGroupRatioThroughLayoutOwner(worktreeId, path, ratio)
     } else {

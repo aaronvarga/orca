@@ -1,3 +1,4 @@
+import { resolveNativeChatTabSplit } from '../../../../../shared/native-chat/layout/native-chat-tab-splits'
 import { useCallback } from 'react'
 import { useAppStore } from '../../../store/index'
 import { captureWorkspaceEmptiedReaction } from '../../../lib/workspace/tabs/close/workspace-emptied-reaction'
@@ -38,8 +39,10 @@ export function useTabGroupCloseScopeCommands({
       if (itemId === undefined || !tabs.some((tab) => tab.id === itemId)) {
         return []
       }
+      const split = resolveNativeChatTabSplit(state.nativeChatTabSplits, tabs, itemId)
+      const keep = new Set(split?.tabIds ?? [itemId])
       if (scope === 'others') {
-        return tabs.filter((tab) => tab.id !== itemId && !tab.isPinned).map((tab) => tab.id)
+        return tabs.filter((tab) => !keep.has(tab.id) && !tab.isPinned).map((tab) => tab.id)
       }
       const index = group.tabOrder.indexOf(itemId)
       if (index === -1) {
@@ -48,7 +51,7 @@ export function useTabGroupCloseScopeCommands({
       const order =
         scope === 'right' ? group.tabOrder.slice(index + 1) : group.tabOrder.slice(0, index)
       const closableIds = new Set(tabs.filter((tab) => !tab.isPinned).map((tab) => tab.id))
-      return order.filter((id) => closableIds.has(id))
+      return order.filter((id) => closableIds.has(id) && !keep.has(id))
     },
     [groupId, worktreeId]
   )

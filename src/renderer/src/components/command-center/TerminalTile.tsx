@@ -5,7 +5,8 @@ import { FolderPathButton } from '@/components/file-actions/FolderPathButton'
 import { useAppStore } from '@/store'
 import { parseExecutionHostId } from '../../../../shared/execution-host/execution-host'
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, ChevronRight, Ellipsis } from 'lucide-react'
+import { ChevronDown, ChevronRight, Ellipsis, X } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -110,6 +111,28 @@ export function TerminalTile({
       : (session.terminal.paneTitle ??
         session.terminal.title ??
         t('commandCenter.terminal', 'Terminal'))
+  const closeLabel =
+    session.kind === 'chat'
+      ? t('commandCenter.closeChat', 'Close Chat')
+      : t('commandCenter.end', 'End Session')
+  const closeButton = (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          aria-label={closeLabel}
+          disabled={!session.available}
+          onClick={onEnd}
+        >
+          <X className="size-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={4}>
+        {closeLabel}
+      </TooltipContent>
+    </Tooltip>
+  )
   return (
     <section
       ref={ref}
@@ -211,12 +234,11 @@ export function TerminalTile({
                   onSelect={onEnd}
                   disabled={!session.available}
                 >
-                  {session.kind === 'chat'
-                    ? t('commandCenter.closeChat', 'Close Chat')
-                    : t('commandCenter.end', 'End Session')}
+                  {closeLabel}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            {closeButton}
           </>
         ) : null}
       </header>
@@ -226,6 +248,7 @@ export function TerminalTile({
             <AgentStateDot state={state} progress={activity?.progress} unread={unread} />
           ) : null}
           {folderButton}
+          {closeButton}
         </div>
       ) : null}
       {strip ? (

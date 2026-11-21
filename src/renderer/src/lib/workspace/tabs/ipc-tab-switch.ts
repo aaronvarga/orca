@@ -1,3 +1,4 @@
+import { nativeChatTabContainer, nativeChatTabToActivate } from './chat-tab-navigation'
 import { useAppStore } from '../../../store/index'
 import { getActiveTabNavOrder } from '@/lib/workspace/tabs/order/group-tab-order'
 import {
@@ -37,10 +38,11 @@ function resolveCycleContext(): CycleContext | null {
     ? (store.groupsByWorktree[worktreeId] ?? []).find((candidate) => candidate.id === activeGroupId)
     : undefined
   // Prefer exact unified tab IDs for split copies; fall back to backing IDs only without a valid group selection, keeping ID domains separate.
+  const containerId = group?.activeTabId
+    ? nativeChatTabContainer(store, worktreeId, group.activeTabId)?.id
+    : null
   const groupTabIdInNav =
-    group?.activeTabId && allTabIds.some((entry) => entry.tabId === group.activeTabId)
-      ? group.activeTabId
-      : null
+    containerId && allTabIds.some((entry) => entry.tabId === containerId) ? containerId : null
   return { store, worktreeId, allTabIds, groupTabIdInNav }
 }
 
@@ -67,8 +69,11 @@ export function activateCyclableTab(store: AppStoreState, next: TypeCyclableTab)
     }
     store.setActiveTabType('simulator', worktreeId)
   } else if (next.type === 'agent-session') {
-    if (next.tabId) {
-      store.activateTab?.(next.tabId)
+    const tab =
+      next.tabId && worktreeId ? nativeChatTabToActivate(store, worktreeId, next.tabId) : null
+    if (tab) {
+      next = { ...next, tabId: tab.id, id: tab.entityId }
+      store.activateTab?.(tab.id)
     }
     store.setActiveTabType('agent-session', worktreeId)
   } else {
@@ -291,7 +296,8 @@ export function handleSwitchTerminalTab(direction: number): boolean {
     cycleTabs.push(...worktreeTerminalTabs.filter((tab) => !visibleTerminalIds.has(tab.id)))
   }
   // Prefiltered terminal navigation must use the active entity’s domain, never a stale background terminal ID under structured focus.
-  const activeTab = store.getActiveTab(worktreeId)
+  const selected = store.getActiveTab(worktreeId)
+  const activeTab = selected ? nativeChatTabContainer(store, worktreeId, selected.id) : null
   const currentId = getActiveEntityIdForTabType(
     store.activeTabType,
     store.activeTabId,

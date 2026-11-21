@@ -5,13 +5,16 @@ import { getDraggedSplitRatio, measureSplitRatio, readSplitRatio } from './pane-
 
 type WideHandleStyle = React.CSSProperties & Record<`--${string}`, string>
 // Why: the line reaches the center of a perpendicular parent gap so split T-junctions connect.
-const LINE_EXTENSION = `${DIVIDER_HIT_PX / 2}px`
+const WIDE_DIVIDER_PX = 3
+const LINE_EXTENSION = `${WIDE_DIVIDER_PX / 2}px`
 const WIDE_VERTICAL_STYLE: WideHandleStyle = {
-  width: DIVIDER_HIT_PX,
+  width: WIDE_DIVIDER_PX,
+  '--divider-hit-size': `${DIVIDER_HIT_PX}px`,
   '--divider-extension': LINE_EXTENSION
 }
 const WIDE_HORIZONTAL_STYLE: WideHandleStyle = {
-  height: DIVIDER_HIT_PX,
+  height: WIDE_DIVIDER_PX,
+  '--divider-hit-size': `${DIVIDER_HIT_PX}px`,
   '--divider-extension': LINE_EXTENSION
 }
 
@@ -24,7 +27,7 @@ export function ResizeHandle({
   onRatioChange
 }: {
   direction: 'horizontal' | 'vertical'
-  /** Use the shared in-flow grab size instead of the compact 6px gutter (DevTools docks keep 6px). */
+  /** Use a thin seam with the shared grab area; DevTools docks keep the compact 6px gutter. */
   wide?: boolean
   /** The gap's top edge sits beside attached tab strips, so it continues their band. */
   tabBand?: boolean

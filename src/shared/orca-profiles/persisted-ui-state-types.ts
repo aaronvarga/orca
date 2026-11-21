@@ -1,3 +1,4 @@
+import type { NativeChatTabSplits } from '../native-chat/layout/native-chat-tab-splits'
 import type { CommandCenterPresentation } from '../ui-chrome/command-center-presentation'
 import type { GitHistoryRefs } from '../git/history/git-history-types'
 import type { BotChatFold } from '../bots/bot-chat-tree'
@@ -39,6 +40,7 @@ import type { PendingRuntimeRepoRemoval } from '../remote-runtime/host-catalog/p
 import type { BotSidebarView } from '../bots/bot-sidebar-view'
 
 export type PersistedUIState = {
+  nativeChatTabSplits?: NativeChatTabSplits
   gitGraphFiltersByWorktree?: Record<string, GitHistoryRefs>
   /** Paired-server project removals still owed to their server; optional so older builds ignore it. */
   pendingRuntimeRepoRemovals?: PendingRuntimeRepoRemoval[]

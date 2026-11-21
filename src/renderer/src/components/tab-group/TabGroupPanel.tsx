@@ -1,7 +1,7 @@
-import { WorkspaceTabLayoutMenu } from '../tab-bar/pane-actions/WorkspaceTabLayoutMenu'
+import { NativeChatTabSplitLayout } from '../native-chat/pane/routing/NativeChatTabSplitLayout'
+import { resolveNativeChatTabSplit } from '../../../../shared/native-chat/layout/native-chat-tab-splits'
 import { usePanePresentationStyle } from './panel/use-workspace-pane-presentation'
-import { Suspense, useCallback, useMemo, useRef } from 'react'
-import { lazyWithRetry as lazy } from '@/app-shell/startup/lazy-with-retry'
+import { useCallback, useMemo, useRef } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import { useAppStore } from '../../store/index'
 import TabBar from '../tab-bar/TabBar'
@@ -16,7 +16,6 @@ import type { HoveredTabInsertion } from './drag/tab-insertion'
 import { tabGroupBodyAnchorName } from './retained-pane/tab-group-body-anchor'
 import { registerTabGroupBody } from './retained-pane/tab-group-body-geometry'
 import { observeTabGroupBodyGridSize } from '@/runtime/sync-runtime-graph/graph-sync-scheduler'
-import { useTranslate } from '@/i18n/use-translate'
 import {
   toVisibleTabType,
   type TabGroup
@@ -31,12 +30,15 @@ import { UNFOCUSED_SPLIT_GROUP_OPACITY } from './panel/split-group-dim'
 import { useBotForWorkspace } from '../bots/bot-workspace'
 import { BotPausedBanner } from '../bots/BotPausedBanner'
 import { useWindowBackdropActive } from '@/app-shell/appearance/window-backdrop'
-import { EditorRevealFlash } from './editor-reveal/EditorRevealFlash'
+import { TabGroupEditorContent } from './editor-reveal/TabGroupEditorContent'
 import { SplitPaneLanding } from './landing/SplitPaneLanding'
 
-const EditorPanel = lazy(() => import('../editor/EditorPanel'))
 const EMPTY_GROUPS: readonly TabGroup[] = []
 const EMPTY_CLIENT_HOSTED_ROWS: readonly ClientHostedBrowserRow[] = []
+const RIGHT_TITLEBAR_CONTROLS_STYLE: React.CSSProperties & { WebkitAppRegion: 'no-drag' } = {
+  width: 'calc(72px + var(--window-controls-width, 0px))',
+  WebkitAppRegion: 'no-drag'
+}
 
 /** The panel draws attached strips; external hosts provide their single strip in shell chrome. */
 export type TabGroupPanelTabStrip = 'attached' | 'external'
@@ -79,7 +81,8 @@ export default function TabGroupPanel({
   isTabDragActive?: boolean
   hoveredTabInsertion?: HoveredTabInsertion | null
 }): React.JSX.Element {
-  const t = useTranslate()
+  const chatSplits = useAppStore((state) => state.nativeChatTabSplits)
+  const chatTabs = useAppStore((state) => state.unifiedTabsByWorktree[worktreeId])
   const { setElement, floating, style } = usePanePresentationStyle(worktreeId, groupId, isVisible)
   const rightSidebarOpen = useAppStore((state) => state.rightSidebarOpen)
   const sidebarOpen = useAppStore((state) => state.sidebarOpen)
@@ -255,6 +258,10 @@ export default function TabGroupPanel({
     'flex h-7 min-w-0 self-start items-center gap-0.5 overflow-hidden pl-1.5 pr-0.5 transition-opacity duration-150',
     !isFocused && 'opacity-50 hover:opacity-100 focus-within:opacity-100'
   )
+  const chatSplit =
+    activeTab?.contentType === 'agent-session'
+      ? resolveNativeChatTabSplit(chatSplits, chatTabs ?? [], activeTab.id)
+      : null
   return (
     <div
       ref={setElement}
@@ -329,7 +336,6 @@ export default function TabGroupPanel({
                     isFocused={isFocused}
                   />
                 </div>
-                <WorkspaceTabLayoutMenu worktreeId={worktreeId} />
                 {hasSplitGroups ? (
                   <div className="contents @max-[114px]/tab-strip:hidden">
                     <TabGroupPaneActionsMenu
@@ -345,15 +351,7 @@ export default function TabGroupPanel({
             </div>
             {/* Why: Electron drag hit-test respects no-drag only on DOM descendants, not z-index siblings, so this no-drag spacer keeps the floating right-sidebar toggle + window controls clickable. */}
             {reserveRightTitlebarSpace ? (
-              <div
-                className="shrink-0"
-                style={
-                  {
-                    width: 'calc(40px + var(--window-controls-width, 0px))',
-                    WebkitAppRegion: 'no-drag'
-                  } as React.CSSProperties
-                }
-              />
+              <div className="shrink-0" style={RIGHT_TITLEBAR_CONTROLS_STYLE} />
             ) : null}
           </div>
         </div>
@@ -386,26 +384,22 @@ export default function TabGroupPanel({
         {activeTab && toVisibleTabType(activeTab.contentType) === 'editor' && (
           // Why: a capture-phase owner, so Monaco never sees the drop and the file opens as a tab here.
           <div ref={attachEditorFileDropOwner} className="absolute inset-0 flex min-h-0 min-w-0">
-            {/* Why: split groups render editor content in a plain relative pane body, not the legacy Terminal.tsx flex column. */}
-            <Suspense
-              fallback={
-                <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-                  {t('auto.components.tab.group.TabGroupPanel.814fb04c43', 'Loading editor...')}
-                </div>
-              }
-            >
-              <EditorPanel
-                activeFileId={activeTab.entityId}
-                activeViewStateId={activeTab.id}
-                isVisible={isVisible}
-                isCmdSaveOwner={isFocused}
-                markdownAnnotationsEnabled={markdownAnnotationsEnabled}
-              />
-            </Suspense>
-            <EditorRevealFlash viewStateId={activeTab.id} />
+            <TabGroupEditorContent
+              tab={activeTab}
+              isVisible={isVisible}
+              isFocused={isFocused}
+              markdownAnnotationsEnabled={markdownAnnotationsEnabled}
+            />
           </div>
         )}
 
+        {chatSplit ? (
+          <NativeChatTabSplitLayout
+            worktreeId={worktreeId}
+            layout={chatSplit.layout}
+            splitKey={chatSplit.key}
+          />
+        ) : null}
         {showsSplitLanding ? (
           <SplitPaneLanding
             worktreeId={worktreeId}

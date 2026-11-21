@@ -1,3 +1,4 @@
+import { ActiveWorkspaceTabLayoutMenu } from '@/components/tab-bar/pane-actions/WorkspaceTabLayoutMenu'
 import { Minimize2 } from 'lucide-react'
 import { useTranslate } from '@/i18n/use-translate'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -51,6 +52,7 @@ export function TitlebarMainStrip({ layout }: { layout: AppChromeLayout }): Reac
         </Tooltip>
       )}
       {/* The open sidebar already renders its close button. */}
+      <ActiveWorkspaceTabLayoutMenu />
       {layout.showRightSidebarControls && !layout.rightSidebarOpen ? <RightSidebarToggle /> : null}
       {/* Reserve the custom window-controls overlay’s width. */}
       {hasCustomTitleBar && <div className="window-controls-titlebar-spacer" />}

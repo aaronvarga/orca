@@ -24726,6 +24726,15 @@
       "scannerBusy": "Too many session scans in flight. Wait a moment, then refresh.",
       "scannerMissing": "The session scanner is missing from this Orca install. Reinstalling Orca restores it.",
       "scannerStopped": "The session scanner stopped unexpectedly. Refresh to try again."
+    },
+    "favorites": {
+      "title": "Favorites",
+      "add": "Favorite Session",
+      "remove": "Remove from Favorites",
+      "saveFailed": "Could not save session favorites.",
+      "missing": "Could not find this session on its host. Refresh Agents and try again.",
+      "openFailed": "Could not reopen this session.",
+      "hostUnavailable": "This session’s host is unavailable."
     }
   },
   "common": {
@@ -29845,5 +29854,11 @@
     "opening": "Opening Codex…",
     "rebase": "Rebase fork in Codex",
     "settingsAvailable": "Settings — upstream update {{tag}} available"
+  },
+  "chatSplits": {
+    "menu": "Split chat",
+    "right": "Split chat right",
+    "down": "Split chat down",
+    "failed": "Could not split this chat."
   }
 }

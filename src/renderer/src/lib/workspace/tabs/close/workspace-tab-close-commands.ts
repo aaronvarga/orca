@@ -42,7 +42,11 @@ export function createWorkspaceTabCloseCommands({
   /** `whenEmptied` is captured by the caller when the close is requested, before any prompt. */
   const closeItem = (
     itemId: string,
-    opts?: { whenEmptied?: () => void; skipRunningProcessConfirm?: boolean }
+    opts?: {
+      whenEmptied?: () => void
+      skipRunningProcessConfirm?: boolean
+      preferredNextTabId?: string
+    }
   ) => {
     const item = groupTabs.find((candidate) => candidate.id === itemId)
     if (!item) {
@@ -51,7 +55,13 @@ export function createWorkspaceTabCloseCommands({
     const whenEmptied = opts?.whenEmptied ?? null
     if (item.contentType === 'agent-session') {
       const close = () => {
-        if (useAppStore.getState().closeUnifiedTab(item.id)) {
+        const state = useAppStore.getState()
+        const group = state.groupsByWorktree[worktreeId]?.find((group) => group.id === item.groupId)
+        const focusSibling = state.activeWorktreeId === worktreeId && group?.activeTabId === item.id
+        if (state.closeUnifiedTab(item.id)) {
+          if (focusSibling && opts?.preferredNextTabId) {
+            useAppStore.getState().activateTab(opts.preferredNextTabId, { worktreeId })
+          }
           whenEmptied?.()
         }
       }

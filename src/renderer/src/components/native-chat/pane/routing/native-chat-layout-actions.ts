@@ -1,10 +1,7 @@
-import { toast } from 'sonner'
-import { translate } from '@/i18n/i18n'
+import { splitNativeChatTab } from './native-chat-tab-split-actions'
 import type { AppState } from '@/store/types'
 import { useAppStore } from '@/store'
 import { requestActiveTerminalPaneSplit } from '@/components/tab-bar/pane-actions/request-active-terminal-pane-split'
-import { openNewTerminalTabInWorkspace } from '@/store/terminals/tabs/creation/terminal-active-workspace-creation'
-import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../../../../shared/workspace/identity/floating-workspace-id'
 import type { NativeChatSplitDirection } from './native-chat-pane-shortcut'
 
 export type NativeChatSplitTarget =
@@ -75,27 +72,7 @@ export function runNativeChatSplitTarget(
   if (!source) {
     return false
   }
-  if (source.worktreeId === FLOATING_TERMINAL_WORKTREE_ID) {
-    // The floating panel is a scratch terminal workspace with its own empty state.
-    void openNewTerminalTabInWorkspace(useAppStore.getState, source.worktreeId, target.groupId, {
-      sourceGroupId: target.groupId,
-      splitDirection: direction
-    }).catch(() => {
-      toast.error(
-        translate(
-          'auto.store.slices.worktrees.localBaseRefUnshallowFailed',
-          'Could not open a terminal for this workspace'
-        )
-      )
-    })
-  } else {
-    // The new pane shows the split landing so the user picks what opens there.
-    useAppStore
-      .getState()
-      .createEmptySplitGroup(source.worktreeId, target.groupId, direction, { landing: true })
-  }
-  useAppStore.getState().recordFeatureInteraction('tab-splits')
-  return true
+  return splitNativeChatTab(source.worktreeId, source.tab.id, direction)
 }
 
 export function runActiveNativeChatSplit(

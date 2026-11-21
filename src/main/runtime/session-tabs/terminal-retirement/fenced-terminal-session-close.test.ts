@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest'
 import '../../construction/test-context/orca-runtime-test-lifecycle.spec'
-import { identityFixture } from '../../terminal/query/terminal-identity.test-fixture'
+import { identityFixture, identityGraph } from '../../terminal/query/terminal-identity.test-fixture'
 import {
   TEST_WORKTREE_ID,
   store
@@ -104,4 +104,32 @@ it('refuses a newly pinned session after provider startup unless the pin was exp
     ptyKilled: true
   })
   expect(stopped).toEqual(['original'])
+})
+
+it('ends a live pane-issued session returned by the terminal inventory', async () => {
+  const f = identityFixture()
+  f.add('pty', 'term')
+  f.owner.source.setPtyIncarnationId(f.owner.ptysById.get('pty')!, 'original')
+  f.runtime.attachWindow(1)
+  await f.runtime.syncWindowGraph(1, identityGraph('pty'))
+  const terminal = (await f.runtime.listTerminals()).terminals.find((row) => row.ptyId === 'pty')!
+  const killFenced = vi.fn(async () => ({ outcome: 'ended' as const }))
+  f.runtime.setPtyController({
+    write: () => true,
+    kill: () => true,
+    killFenced,
+    getForegroundProcess: async () => null
+  })
+  await expect(f.runtime.closeTerminal(terminal.handle, 'original')).resolves.toMatchObject({
+    ptyKilled: true
+  })
+  expect(killFenced).toHaveBeenCalledWith(
+    {
+      id: 'pty',
+      expectedIncarnationId: 'original',
+      requireNoAgentOwner: false,
+      requireUnattached: false
+    },
+    expect.any(Function)
+  )
 })

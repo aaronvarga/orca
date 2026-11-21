@@ -121,6 +121,7 @@ export function usePersistedUIWriter(): void {
   const activeView = useAppStore((s) => s.activeView)
   const ui = useAppStore(
     useShallow((s): PersistedUIWriteBaseline => ({
+      nativeChatTabSplits: s.nativeChatTabSplits,
       gitGraphFiltersByWorktree: s.gitGraphFiltersByWorktree,
       projectRailSeparators: s.projectRailSeparators,
       commandCenterPresentation: s.commandCenterPresentation,

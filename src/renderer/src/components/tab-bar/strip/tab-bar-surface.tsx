@@ -116,7 +116,11 @@ export function renderTabBarSurface(
   const renderItems = (segments: readonly TabStripSegment[]): React.ReactNode[] =>
     renderTabBarItems({
       items: orderedItems,
-      props,
+      props: {
+        ...props,
+        activeTabId:
+          props.activeTabType === 'agent-session' ? activeVisibleTabId : props.activeTabId
+      },
       runtime,
       actions: itemActions,
       dropIndicatorByVisibleId,

@@ -1,3 +1,4 @@
+import { equalizeNativeChatTab } from '../routing/native-chat-tab-split-actions'
 import { useCallback, useMemo } from 'react'
 import { isOrcaSessionId } from '../../../../../../shared/agent-session/identity/orca-session-address'
 import { resolveStructuredSessionOrcaSessionId } from '../../../../runtime/native-chat/orchestration/structured-session-orca-session-id'
@@ -43,7 +44,9 @@ export function useStructuredNativeChatPaneCommands({
       if (terminalPaneActions) {
         return runNativeChatTerminalPaneShortcut(shortcut, terminalPaneActions)
       }
-      // Tab groups have no equalize command; only terminal panes do.
+      if (ownerWorktreeId && shortcut === 'equalize') {
+        return equalizeNativeChatTab(ownerWorktreeId, tabId)
+      }
       return groupId && shortcut !== 'equalize'
         ? runNativeChatSplitTarget(
             { kind: 'workspace-tab', unifiedTabId: tabId, groupId },
@@ -51,7 +54,7 @@ export function useStructuredNativeChatPaneCommands({
           )
         : false
     },
-    [groupId, tabId, terminalPaneActions]
+    [groupId, tabId, terminalPaneActions, ownerWorktreeId]
   )
   const menu: NativeChatSurfaceMenu = {
     rewind,

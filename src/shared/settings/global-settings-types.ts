@@ -7,6 +7,7 @@ import type { OrcaWorkspaceLayout } from '../worktree/paths/orca-workspace-layou
 import type { GitHubProjectSettings } from '../github/projects/project-types'
 import type { VoiceSettings } from '../speech/speech-types'
 import type { AiVaultSearchSettings } from '../ai-vault/search/ai-vault-search-settings'
+import type { AgentSessionFavorite } from '../ai-vault/contracts/agent-session-favorites'
 import type { GitLabProjectSettings } from '../gitlab/gitlab-types'
 import type { TaskProvider } from '../work-items/task-providers'
 import type { AppIconId } from '../app-lifecycle/identity/app-icon'
@@ -495,4 +496,5 @@ export type GlobalSettings = GlobalSettingsBase & {
   voiceDictationModeDefaultedToAuto?: boolean
   /** Transcript full-text search consent + retention. Absent means off; nothing indexes until the user opts in. */
   aiVaultSearch?: AiVaultSearchSettings
+  agentSessionFavorites?: AgentSessionFavorite[]
 }

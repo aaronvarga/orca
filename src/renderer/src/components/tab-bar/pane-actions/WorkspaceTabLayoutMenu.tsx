@@ -3,10 +3,11 @@ import { expectMovedTabSelection } from '@/runtime/workspace-layout/intents/layo
 import { tabSelectionKey } from '@/store/slices/tabs/moved-tab-selection'
 import { layoutFramesFlowing } from '@/runtime/workspace-layout/frames/layout-frame-position'
 import { arrangeWorkspaceTabsLocally } from './arrange-workspace-tabs-locally'
-import { useRef, useState, type CSSProperties } from 'react'
-import { ChevronDown, Grid2X2 } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Grid2X2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { selectWorktreeCreationSurfaceShown } from '@/lib/workspace/creation/worktree-creation-surface'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +21,6 @@ import { ORCA_LAYOUT_OWNER_IS_MAIN } from '../../../../../shared/workspace-layou
 import { sendLayoutCommandToOwner } from '@/runtime/workspace-layout/commands/layout-owner-command'
 import { runtimeEnvironmentIdUnlessTwin } from '@/lib/workspace/ownership/resolve-owner'
 
-const TRIGGER_STYLE: CSSProperties & { WebkitAppRegion: 'no-drag' } = { WebkitAppRegion: 'no-drag' }
 const DEFAULT_LAYOUT: TabLayout = { layout: 'auto-grid', columns: 2, rows: 2 }
 const useTabLayouts = create<{ layouts: Record<string, TabLayout> }>(() => ({ layouts: {} }))
 
@@ -47,25 +47,24 @@ export function WorkspaceTabLayoutMenu({ worktreeId }: { worktreeId: string }) {
         : `${value.columns} × ${value.rows}`
   return (
     <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          ref={trigger}
-          variant="outline"
-          size="inline"
-          className="my-auto h-7 shrink-0 @max-[163px]/tab-strip:hidden overflow-hidden"
-          aria-label={label}
-          disabled={count === 0 || pending}
-          style={TRIGGER_STYLE}
-        >
-          <span className="flex items-center gap-1.5 px-1.5">
-            <Grid2X2 className="size-3 shrink-0" />
-            <span className="@max-[480px]/tab-strip:hidden">{layoutLabel}</span>
-          </span>
-          <span className="flex h-full items-center border-l border-border/60 px-1">
-            <ChevronDown className="size-3" />
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              ref={trigger}
+              type="button"
+              className="sidebar-toggle"
+              aria-label={label}
+              disabled={count === 0 || pending}
+            >
+              <Grid2X2 size={16} />
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" sideOffset={6}>
+          {label}: {layoutLabel}
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="end">
         <TabLayoutMenuItems
           value={value}
@@ -73,8 +72,10 @@ export function WorkspaceTabLayoutMenu({ worktreeId }: { worktreeId: string }) {
             const state = useAppStore.getState()
             const tabs = state.unifiedTabsByWorktree[worktreeId] ?? []
             const width =
-              trigger.current?.closest('[data-workspace-tab-layout]')?.getBoundingClientRect()
-                .width ?? window.innerWidth
+              (
+                document.querySelector(`[data-workspace-tab-layout="${CSS.escape(worktreeId)}"]`) ??
+                trigger.current?.closest('[data-workspace-tab-layout]')
+              )?.getBoundingClientRect().width ?? window.innerWidth
             const columns = commandCenterColumns(next, tabs.length, width)
             const rows = next.layout === 'manual' ? next.rows : Math.ceil(tabs.length / columns)
             const applyLocally = () => {
@@ -129,4 +130,13 @@ export function WorkspaceTabLayoutMenu({ worktreeId }: { worktreeId: string }) {
       </DropdownMenuContent>
     </DropdownMenu>
   )
+}
+
+export function ActiveWorkspaceTabLayoutMenu() {
+  const worktreeId = useAppStore((state) => state.activeWorktreeId)
+  const activeView = useAppStore((state) => state.activeView)
+  const creating = useAppStore(selectWorktreeCreationSurfaceShown)
+  return worktreeId && activeView === 'terminal' && !creating ? (
+    <WorkspaceTabLayoutMenu key={worktreeId} worktreeId={worktreeId} />
+  ) : null
 }

@@ -31,6 +31,8 @@ import type { BotSidebarView } from '../../../../../shared/bots/bot-sidebar-view
 import type { BotChatFold } from '../../../../../shared/bots/bot-chat-tree'
 
 export type UISlicePreferences = {
+  nativeChatTabSplits?: PersistedUIState['nativeChatTabSplits']
+  setNativeChatTabSplits: (splits: NonNullable<PersistedUIState['nativeChatTabSplits']>) => void
   gitGraphFiltersByWorktree?: PersistedUIState['gitGraphFiltersByWorktree']
   /** Which list the sidebar body shows. Navigator-only; does not change the active view. */
   sidebarBody: 'workspaces' | 'agents'

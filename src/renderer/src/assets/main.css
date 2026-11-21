@@ -1406,10 +1406,11 @@ html.native-shell .app-layout {
   transform: translateY(-50%);
 }
 
-/* Wide (in-flow) seams paint the editor surface so panes don't read as floating cards, in every window mode. */
+/* Thin seams keep a wider transparent resize hit area above retained panes. */
 .tab-group-split-resize-handle.is-wide,
 :root:is([data-window-material], [data-theme-background]) .tab-group-split-resize-handle.is-wide {
-  background-color: var(--editor-surface);
+  background-color: var(--split-divider-setting, var(--background));
+  z-index: 20;
 }
 
 /* Beside attached tab strips the gap continues the strip (fill, then its 1px bottom border), so no
@@ -1421,27 +1422,39 @@ html.native-shell .app-layout {
     linear-gradient(to bottom, var(--tab-bar, var(--card)) 0 32px, transparent 32px);
 }
 
-/* Fractional pane edges can leave a 1px row unpainted next to the gap; fill it beneath the panes. */
 .tab-group-split-resize-handle.is-wide::before {
   content: '';
   position: absolute;
-  inset: -1px;
-  z-index: -1;
-  pointer-events: none;
-  background: var(--editor-surface);
+  inset: 0;
+  background: transparent;
+}
+
+.tab-group-split-resize-handle.is-wide.is-vertical::before {
+  left: 50%;
+  width: var(--divider-hit-size);
+  transform: translateX(-50%);
+}
+
+.tab-group-split-resize-handle.is-wide.is-horizontal::before {
+  top: 50%;
+  height: var(--divider-hit-size);
+  transform: translateY(-50%);
 }
 
 /* Wide (in-flow) seams extend the line into a perpendicular parent gap; the parent owns that hit area. */
 .tab-group-split-resize-handle.is-wide::after {
+  background: var(--split-divider-setting, var(--background));
   pointer-events: none;
 }
 
 .tab-group-split-resize-handle.is-wide.is-vertical::after {
+  width: 100%;
   top: calc(-1 * var(--divider-extension, 0px));
   bottom: calc(-1 * var(--divider-extension, 0px));
 }
 
 .tab-group-split-resize-handle.is-wide.is-horizontal::after {
+  height: 100%;
   left: calc(-1 * var(--divider-extension, 0px));
   right: calc(-1 * var(--divider-extension, 0px));
 }

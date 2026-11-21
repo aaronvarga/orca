@@ -16,6 +16,7 @@ import type { NativeChatTabSession } from '../session-actions/tab-session-histor
 import { CopyTabIdMenuItem } from '../pane-actions/CopyTabIdMenuItem'
 import { useAllowAutoClose } from './use-allow-auto-close'
 import { CloseSplitPaneMenuItem } from '../pane-actions/CloseSplitPaneMenuItem'
+import { TabSessionFavoriteMenuItem } from '../session-actions/TabSessionFavoriteMenuItem'
 
 const TAB_COLORS = [
   {
@@ -172,6 +173,7 @@ export function SortableTabContextMenu({
         splitRightShortcut={splitRightShortcut}
         splitDownShortcut={splitDownShortcut}
         showTerminalSplit={canSplitTerminal}
+        chatWorktreeId={nativeChat && !canSplitTerminal ? tab.worktreeId : undefined}
       />
       {showTerminalViewSwitch ? (
         <>
@@ -196,6 +198,7 @@ export function SortableTabContextMenu({
         />
       ) : null}
       <ContextMenuSeparator />
+      <TabSessionFavoriteMenuItem tab={tab} nativeChat={nativeChat} />
       {closable ? (
         <ContextMenuItem onSelect={onTogglePin}>
           {isPinned ? (

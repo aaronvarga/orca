@@ -8,6 +8,10 @@ import {
 
 /** UI fields that name a repo, worktree, pane or path. Everything else in the UI state is global. */
 export const UI_STATE_DISPOSITIONS = {
+  nativeChatTabSplits: notApplicableDisposition(
+    38,
+    'Client presentation keyed by stable tab ids, which the move keeps.'
+  ),
   lastActiveRepoId: notApplicableDisposition(38, 'repoId is kept.'),
   pendingRuntimeRepoRemovals: notApplicableDisposition(
     38,

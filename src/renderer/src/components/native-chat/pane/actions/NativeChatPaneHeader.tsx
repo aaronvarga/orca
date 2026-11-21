@@ -1,3 +1,4 @@
+import { splitNativeChatTab } from '../routing/native-chat-tab-split-actions'
 import { WorkspacePaneToolbar } from '@/components/tab-group/panel/WorkspacePaneToolbar'
 import { MessageSquarePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -89,6 +90,8 @@ export function NativeChatPaneHeader({
           groupId={groupId}
           onClose={actions.onClosePane}
           canClose={actions.canClosePane}
+          onEqualize={actions.onEqualize}
+          onSplit={(direction) => splitNativeChatTab(worktreeId, tabId, direction)}
         />
         <NativeChatSettingsButton />
       </div>

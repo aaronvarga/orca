@@ -32,6 +32,28 @@ export function replaceLeaf(
   }
 }
 
+export function equalizeTabGroupLayout(node: TabGroupLayoutNode): TabGroupLayoutNode {
+  return node.type === 'leaf'
+    ? node
+    : {
+        ...node,
+        ratio: equalizedTabGroupSplitRatio(node),
+        first: equalizeTabGroupLayout(node.first),
+        second: equalizeTabGroupLayout(node.second)
+      }
+}
+
+export function equalizedTabGroupSplitRatio(
+  node: Extract<TabGroupLayoutNode, { type: 'split' }>
+): number {
+  const weight = (child: TabGroupLayoutNode): number =>
+    child.type === 'split' && child.direction === node.direction
+      ? weight(child.first) + weight(child.second)
+      : 1
+  const first = weight(node.first)
+  return first / (first + weight(node.second))
+}
+
 export function updateSplitRatio(
   root: TabGroupLayoutNode,
   path: string[],

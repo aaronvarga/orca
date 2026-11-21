@@ -1,3 +1,5 @@
+import { useAppStore } from '@/store'
+import { resolveNativeChatTabSplit } from '../../../../../shared/native-chat/layout/native-chat-tab-splits'
 import { useStructuredChatTabNames } from '@/runtime/native-chat/naming/structured-chat-name-observation'
 import { useMemo, useState } from 'react'
 import type { GitFileStatus } from '../../../../../shared/git/status/git-status-types'
@@ -45,7 +47,7 @@ export function useTabBarItemProjection({
     agentSessionTabs,
     tabBarOrder,
     hoveredTabInsertion,
-    activeTabId,
+    activeTabId: sourceActiveTabId,
     activeFileId,
     activeBrowserTabId,
     activeSimulatorTabId,
@@ -89,6 +91,7 @@ export function useTabBarItemProjection({
     () => agentSessionTabs?.map((tab) => tab.id) ?? [],
     [agentSessionTabs]
   )
+  const chatSplits = useAppStore((state) => state.nativeChatTabSplits)
   const orderedItems = useMemo(
     () =>
       buildOrderedTabItems({
@@ -104,8 +107,15 @@ export function useTabBarItemProjection({
         browserMap,
         agentSessionMap,
         unifiedTabByVisibleId
-      }),
+      }).filter(
+        (item) =>
+          item.type !== 'agent-session' ||
+          (resolveNativeChatTabSplit(chatSplits, unifiedTabs, item.id)?.rootTabId ?? item.id) ===
+            item.id
+      ),
     [
+      chatSplits,
+      unifiedTabs,
       tabBarOrder,
       terminalIds,
       editorFileIds,
@@ -137,6 +147,11 @@ export function useTabBarItemProjection({
     () => buildTabDropIndicators(orderedItems, activeIndicator),
     [activeIndicator, orderedItems]
   )
+  const activeTabId =
+    sourceActiveTabId && activeTabType === 'agent-session'
+      ? (resolveNativeChatTabSplit(chatSplits, unifiedTabs, sourceActiveTabId)?.rootTabId ??
+        sourceActiveTabId)
+      : sourceActiveTabId
   const activeVisibleTabId = useMemo(
     () =>
       findActiveVisibleTabId(orderedItems, {

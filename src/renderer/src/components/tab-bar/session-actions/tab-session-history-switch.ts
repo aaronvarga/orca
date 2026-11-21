@@ -62,6 +62,8 @@ export type TabSessionHistorySubject = {
       kind: 'cli'
       agent: CliConversationRowAgent
       providerSessionId: string
+      filePath?: string
+      cwd?: string
     }
 )
 
@@ -171,6 +173,7 @@ export function resolveTabSessionHistorySubject(
     nativeChat?: NativeChatTabSession
     /** Narrows a terminal tab to one pane's own conversation instead of the tab's best one. */
     paneKey?: string
+    runningAgentsOnly?: boolean
   }
 ): TabSessionHistorySubject | null {
   const workspace = (workspaceId: string) => {
@@ -203,7 +206,7 @@ export function resolveTabSessionHistorySubject(
         adoptsCliConversations
       )
     : (collectAgentPaneConversations(state, adoptsCliConversations, {
-        runningAgentsOnly: true
+        runningAgentsOnly: args.runningAgentsOnly !== false
       }).find((candidate) => candidate.tabId === args.tab.id) ?? null)
   const target = conversation ? workspace(conversation.worktreeId) : null
   return conversation && target
@@ -211,7 +214,9 @@ export function resolveTabSessionHistorySubject(
         ...target,
         kind: 'cli',
         agent: conversation.agent,
-        providerSessionId: conversation.providerSession.id
+        providerSessionId: conversation.providerSession.id,
+        filePath: conversation.providerSession.transcriptPath,
+        cwd: conversation.providerSession.cwd
       }
     : null
 }

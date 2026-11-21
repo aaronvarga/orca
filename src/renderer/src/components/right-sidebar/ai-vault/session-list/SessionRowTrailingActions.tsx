@@ -21,6 +21,8 @@ import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts
 import './ai-vault-session-filters'
 import { agentLabel } from '../../../../../../shared/ai-vault/session-display/ai-vault-session-filters'
 import { useTranslate } from '@/i18n/use-translate'
+import { AgentSessionFavoriteMenuItem } from './AgentSessionFavoriteMenuItem'
+import { agentSessionFavorite } from '../../../../../../shared/ai-vault/contracts/agent-session-favorites'
 import { SessionActionMenuItems } from './AiVaultSessionActionMenuItems'
 import './ai-vault-session-worktree'
 import { aiVaultWorktreeJumpTooltip } from './ai-vault-session-worktree-affordances'
@@ -279,6 +281,10 @@ export function SessionRowTrailingActions({
             </TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end">
+            <AgentSessionFavoriteMenuItem
+              menuKind="dropdown"
+              session={agentSessionFavorite(session, worktreeInfo?.worktreeId ?? undefined)}
+            />
             <SessionActionMenuItems
               resumeDisabled={resumeDisabled}
               resumeHidden={resumeHidden}

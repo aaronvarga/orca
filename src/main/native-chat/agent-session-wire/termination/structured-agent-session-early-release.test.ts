@@ -23,7 +23,7 @@ async function finishedRun(idleMs?: () => number | null): Promise<void> {
   await foundRestTestChat(rig)
 }
 
-const agentRunning = () => rig.host.hasLoadedProviders()
+const agentRunning = () => rig.host.loadedSessionIds().includes(SESSION)
 
 afterEach(async () => {
   await rig.dispose()

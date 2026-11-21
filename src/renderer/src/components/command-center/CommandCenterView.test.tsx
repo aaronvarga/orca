@@ -169,15 +169,20 @@ it('opening a session in its project preserves every running process', async () 
   expect(ended).toEqual([])
 })
 
-it('End Session selects only the terminal whose menu was activated', async () => {
-  const user = userEvent.setup()
-  const running = new Set(['local/pty-one/process-one', 'local/pty-two/process-two'])
-  const ended: string[] = []
-  render(<Harness sessions={[first, second]} running={running} ended={ended} />)
-  await menu(user, 'Second shell', 'End Session')
-  expect(ended).toEqual(['local/pty-two/process-two'])
-  expect([...running]).toEqual(['local/pty-one/process-one'])
-})
+it.each(['menu', 'header'])(
+  'End Session from the %s ends only the selected terminal',
+  async (entry) => {
+    const user = userEvent.setup()
+    const running = new Set(['local/pty-one/process-one', 'local/pty-two/process-two'])
+    const ended: string[] = []
+    render(<Harness sessions={[first, second]} running={running} ended={ended} />)
+    await (entry === 'menu'
+      ? menu(user, 'Second shell', 'End Session')
+      : user.click(within(tile('Second shell')).getByRole('button', { name: 'End Session' })))
+    expect(ended).toEqual(['local/pty-two/process-two'])
+    expect([...running]).toEqual(['local/pty-one/process-one'])
+  }
+)
 
 it('keyboard reordering changes presentation order while hidden choices stay with their process incarnation', async () => {
   const user = userEvent.setup()

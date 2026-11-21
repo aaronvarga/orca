@@ -1,3 +1,4 @@
+import { ActiveWorkspaceTabLayoutMenu } from '@/components/tab-bar/pane-actions/WorkspaceTabLayoutMenu'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { PanelRight } from 'lucide-react'
 import { useAppStore } from '@/store/index'
@@ -191,23 +192,30 @@ function RightSidebarInner(): React.JSX.Element {
   ))
 
   const closeButton = rightSidebarOpen ? (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          className="sidebar-toggle mr-1"
-          onClick={toggleRightSidebar}
-          aria-label={t('auto.components.right.sidebar.index.e8e2e4ce74', 'Toggle right sidebar')}
-        >
-          <PanelRight size={16} />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" sideOffset={6}>
-        {t('auto.components.right.sidebar.index.9fffaf17c1', 'Toggle right sidebar ({{value0}})', {
-          value0: rightSidebarShortcut
-        })}
-      </TooltipContent>
-    </Tooltip>
+    <>
+      <ActiveWorkspaceTabLayoutMenu />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            className="sidebar-toggle mr-1"
+            onClick={toggleRightSidebar}
+            aria-label={t('auto.components.right.sidebar.index.e8e2e4ce74', 'Toggle right sidebar')}
+          >
+            <PanelRight size={16} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" sideOffset={6}>
+          {t(
+            'auto.components.right.sidebar.index.9fffaf17c1',
+            'Toggle right sidebar ({{value0}})',
+            {
+              value0: rightSidebarShortcut
+            }
+          )}
+        </TooltipContent>
+      </Tooltip>
+    </>
   ) : null
 
   return (

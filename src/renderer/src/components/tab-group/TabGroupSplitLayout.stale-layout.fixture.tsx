@@ -5,7 +5,7 @@ import { defineFixture } from '../../component-fixtures/component-fixture'
 import { useAppStore } from '@/store/index'
 import { ConfirmationDialogProvider } from '../dismiss/confirmation/confirmation-dialog'
 import TabGroupSplitLayout from './TabGroupSplitLayout'
-import { RightSidebarToggle } from '@/app-shell/chrome/TitlebarMainStrip'
+import { RightSidebarToggle } from '@/app-shell/chrome/RightSidebarToggle'
 
 const WT = 'preview-repo::/preview/repo/feature'
 const GONE_GROUP = 'group-that-no-longer-exists'

@@ -26,6 +26,7 @@ function shouldUseCssAnchorPositioning(): boolean {
 type RetainedPaneHostProps = {
   worktreeId: string
   groupId: string | undefined
+  anchorId?: string
   isVisible: boolean
   measureWhileHidden?: boolean
   fitTerminal?: boolean
@@ -40,6 +41,7 @@ type RetainedPaneHostProps = {
 export function RetainedPaneHost({
   worktreeId,
   groupId,
+  anchorId = groupId,
   isVisible,
   measureWhileHidden = false,
   fitTerminal = false,
@@ -53,25 +55,25 @@ export function RetainedPaneHost({
   )
   const floating = Boolean(presentation)
   const position = floating ? 'fixed' : 'absolute'
-  const anchorName = groupId !== undefined ? tabGroupBodyAnchorName(groupId) : undefined
+  const anchorName = anchorId !== undefined ? tabGroupBodyAnchorName(anchorId) : undefined
   const overlayRef = useRef<HTMLDivElement | null>(null)
   const [measuredFallbackRect, setMeasuredFallbackRect] = useState<TabGroupBodyRect | null>(null)
   // Why: a hidden host renders display:none, so it has no use for group geometry until shown.
   const measuresFallbackRect =
-    groupId !== undefined && !shouldUseCssAnchorPositioning() && (isVisible || measureWhileHidden)
+    anchorId !== undefined && !shouldUseCssAnchorPositioning() && (isVisible || measureWhileHidden)
   // Measure before mounting child xterms: child layout effects run first and would fit a placeholder rectangle.
   const [awaitsFirstFallbackRect, setAwaitsFirstFallbackRect] = useState(measuresFallbackRect)
   useLayoutEffect(() => {
     const container = floating ? document.documentElement : overlayRef.current?.parentElement
-    if (!measuresFallbackRect || groupId === undefined || !container) {
+    if (!measuresFallbackRect || anchorId === undefined || !container) {
       setAwaitsFirstFallbackRect(false)
       return
     }
-    return subscribeTabGroupBodyRect(groupId, container, (rect) => {
+    return subscribeTabGroupBodyRect(anchorId, container, (rect) => {
       setMeasuredFallbackRect(rect)
       setAwaitsFirstFallbackRect(false)
     })
-  }, [groupId, measuresFallbackRect, floating, presentation])
+  }, [anchorId, measuresFallbackRect, floating, presentation])
 
   useLayoutEffect(() => {
     if (!fitTerminal || !isVisible || !anchorName) {

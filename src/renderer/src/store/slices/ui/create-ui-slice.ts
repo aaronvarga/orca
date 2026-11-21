@@ -19,6 +19,8 @@ import { createUiWslMovedSectionActions } from './ui-slice-wsl-moved-section-act
 export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get) =>
   // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: each creator returns a Partial<UISlice>; together they define every field, which the spread type cannot prove.
   ({
+    nativeChatTabSplits: {},
+    setNativeChatTabSplits: (nativeChatTabSplits) => set({ nativeChatTabSplits }),
     ...createUiAgentActions(set, get),
     ...createUiTaskActions(set, get),
     ...createUiViewActions(set, get),

@@ -1,3 +1,5 @@
+import { resolveNativeChatTabSplit } from '../../../../../../shared/native-chat/layout/native-chat-tab-splits'
+import { equalizeNativeChatTab } from '../routing/native-chat-tab-split-actions'
 import { useMemo } from 'react'
 import { useAppStore } from '@/store'
 import { useTabGroupTabCloseCommands } from '../../../tab-group/workspace-model/useTabGroupTabCloseCommands'
@@ -20,14 +22,17 @@ export function canCloseChatPane(groupCount: number, tab: Tab | undefined): bool
 export function useStructuredChatPaneActions(tabId: string, worktreeId: string, groupId: string) {
   const t = useTranslate()
   const tabs = useAppStore((state) => state.unifiedTabsByWorktree[worktreeId] ?? EMPTY_TABS)
+  const splits = useAppStore((state) => state.nativeChatTabSplits)
+  const split = resolveNativeChatTabSplit(splits, tabs, tabId)
   const groups = useAppStore((state) => state.groupsByWorktree[worktreeId] ?? EMPTY_GROUPS)
   const groupTabs = useMemo(() => tabs.filter((tab) => tab.groupId === groupId), [tabs, groupId])
   const { closeItem } = useTabGroupTabCloseCommands({ worktreeId })
   const closeLabel =
-    groups.length < 2 || groupTabs.length > 1
+    !split && (groups.length < 2 || groupTabs.length > 1)
       ? t('auto.components.tab.bar.SortableTab.95db5f2f7d', 'Close tab')
       : t('auto.components.terminal.pane.TerminalContextMenu.8c17d6786d', 'Close Pane')
   return {
+    onEqualize: split ? () => equalizeNativeChatTab(worktreeId, tabId) : undefined,
     onSplitRight: () =>
       runNativeChatSplitTarget({ kind: 'workspace-tab', unifiedTabId: tabId, groupId }, 'right'),
     onSplitDown: () =>
@@ -37,6 +42,6 @@ export function useStructuredChatPaneActions(tabId: string, worktreeId: string, 
       groupTabs.find((tab) => tab.id === tabId)
     ),
     closeLabel,
-    onClosePane: () => closeItem(tabId)
+    onClosePane: () => closeItem(tabId, { chatPaneOnly: true })
   }
 }

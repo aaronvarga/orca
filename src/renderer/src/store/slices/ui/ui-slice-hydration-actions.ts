@@ -1,4 +1,4 @@
-import { hydrateCommandCenterUI } from './ui-slice-hydration-values'
+import { hydrateWorkspacePresentationUI } from './ui-slice-hydration-values'
 import { normalizeStatusBarUsageFormat } from '../../../../../shared/status-bar/status-bar-usage-format'
 import type { UISlice, UISliceGet, UISliceSet } from './ui-slice-contract'
 import type { AppState } from '../../types'
@@ -103,11 +103,8 @@ export function createUiHydrationActions(set: UISliceSet, _get: UISliceGet): Par
             ? ui.customSidekicks
             : []
         const petId = ui.petId ?? ui.sidekickId
-        // Migration: one-shot old-'recent'→'smart' runs in main (_sortBySmartMigrated), not here, so a deliberate 'recent' choice survives restart.
-        const sortBy = ui.sortBy
-        const statusBarItemsWithGrok = hydrateStatusBarItems(ui)
         const hydrated = {
-          ...hydrateCommandCenterUI(ui),
+          ...hydrateWorkspacePresentationUI(ui),
           // Why: persisted widths may be stale/corrupt/hand-edited; clamp during hydration so invalid values can't break layout.
           sidebarWidth: sanitizePersistedSidebarWidth(
             ui.sidebarWidth,
@@ -134,7 +131,8 @@ export function createUiHydrationActions(set: UISliceSet, _get: UISliceGet): Par
           ...normalizeRightSidebarRoute(ui.rightSidebarTab, ui.rightSidebarExplorerView),
           activityBarPosition: sanitizeActivityBarPosition(ui.activityBarPosition),
           groupBy: (ui.groupBy as UISlice['groupBy'] | 'parent') === 'parent' ? 'repo' : ui.groupBy,
-          sortBy,
+          // Migration: main owns old 'recent' to 'smart'; preserve later deliberate choices here.
+          sortBy: ui.sortBy,
           // Why: main-process getUI() already normalized this (defaulting to 'manual'); read it through without migrating.
           projectOrderBy: ui.projectOrderBy,
           // Why: Active-only was retired; force the old flag off so an old profile can't invisibly narrow the workspace list.
@@ -194,7 +192,7 @@ export function createUiHydrationActions(set: UISliceSet, _get: UISliceGet): Par
           workspaceBoardOpacity: clampWorkspaceBoardOpacity(ui.workspaceBoardOpacity),
           workspaceBoardColumnWidth: clampWorkspaceBoardColumnWidth(ui.workspaceBoardColumnWidth),
           syncTaskStatusFromWorkspaceBoard: ui.syncTaskStatusFromWorkspaceBoard === true,
-          statusBarItems: statusBarItemsWithGrok,
+          statusBarItems: hydrateStatusBarItems(ui),
           statusBarVisible: ui.statusBarVisible ?? true,
           usagePercentageDisplay: normalizeUsagePercentageDisplay(ui.usagePercentageDisplay),
           statusBarUsageMode: normalizeStatusBarUsageMode(ui.statusBarUsageMode),

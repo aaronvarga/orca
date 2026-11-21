@@ -1,3 +1,7 @@
+import {
+  nativeChatPaneAnchorId,
+  resolveNativeChatTabSplit
+} from '../../../../../../shared/native-chat/layout/native-chat-tab-splits'
 import { Activity, memo, useCallback, useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import type { Tab, TabGroup } from '../../../../../../shared/workspace-layout/tab-groups/tab-types'
@@ -32,6 +36,7 @@ const StructuredAgentSessionOverlaySlot = memo(function StructuredAgentSessionOv
   isFocusedGroup,
   preparingHandoff,
   hasSplitGroups,
+  inSplit,
   onFocusOwningGroup
 }: {
   tab: StructuredAgentSessionTab
@@ -40,6 +45,7 @@ const StructuredAgentSessionOverlaySlot = memo(function StructuredAgentSessionOv
   isFocusedGroup: boolean
   preparingHandoff: boolean
   hasSplitGroups: boolean
+  inSplit: boolean
   onFocusOwningGroup: ((groupId: string) => void) | undefined
 }): React.JSX.Element | null {
   // Resolve from the tab’s recorded host because workspace ids can collide across hosts.
@@ -54,11 +60,17 @@ const StructuredAgentSessionOverlaySlot = memo(function StructuredAgentSessionOv
     <RetainedPaneHost
       worktreeId={tab.worktreeId}
       groupId={groupId}
+      anchorId={inSplit ? nativeChatPaneAnchorId(tab.id) : undefined}
       isVisible={isActive}
       // Why not over a backdrop: dimming the translucent chat also dims its text.
       dimmed={hasSplitGroups && !isFocusedGroup && !backdropActive}
       data-structured-agent-session-overlay-tab-id={tab.id}
-      onFocusOwningGroup={onFocusOwningGroup}
+      onFocusOwningGroup={(id) => {
+        onFocusOwningGroup?.(id)
+        if (inSplit) {
+          useAppStore.getState().activateTab(tab.id, { worktreeId: tab.worktreeId })
+        }
+      }}
     >
       <NativeChatPaneLifetime key={`${owner}:${tab.entityId}`} isVisible={effectsConnected}>
         <NativeChatHostOutageOwner target={target}>
@@ -101,6 +113,7 @@ const RoomOverlaySlot = memo(function RoomOverlaySlot({
   const backdropActive = useWindowBackdropActive()
   return (
     <RetainedPaneHost
+      worktreeId={tab.worktreeId}
       groupId={tab.groupId}
       isVisible={isActive}
       dimmed={hasSplitGroups && !isFocusedGroup && !backdropActive}
@@ -125,8 +138,9 @@ const StructuredAgentSessionPaneOverlayLayer = memo(
     worktreeId: string
     isWorktreeActive: boolean
   }): React.JSX.Element {
-    const { unifiedTabs, groups, activeGroupId, preparingHandoff } = useAppStore(
+    const { unifiedTabs, groups, activeGroupId, preparingHandoff, chatSplits } = useAppStore(
       useShallow((state) => ({
+        chatSplits: state.nativeChatTabSplits,
         unifiedTabs: state.unifiedTabsByWorktree[worktreeId] ?? EMPTY_UNIFIED_TABS,
         groups: state.groupsByWorktree[worktreeId] ?? EMPTY_GROUPS,
         activeGroupId: state.activeGroupIdByWorktree[worktreeId],
@@ -148,6 +162,18 @@ const StructuredAgentSessionPaneOverlayLayer = memo(
       () => new Map(groups.map((group) => [group.id, group.activeTabId] as const)),
       [groups]
     )
+    const splitTabIds = useMemo(
+      () =>
+        new Set(
+          groups.flatMap((group) => {
+            const split = group.activeTabId
+              ? resolveNativeChatTabSplit(chatSplits, unifiedTabs, group.activeTabId)
+              : null
+            return split?.tabIds ?? []
+          })
+        ),
+      [chatSplits, groups, unifiedTabs]
+    )
     const structuredTabs = useMemo(
       () => unifiedTabs.filter((tab): tab is StructuredAgentSessionTab => isStructuredTab(tab)),
       [unifiedTabs]
@@ -163,9 +189,12 @@ const StructuredAgentSessionPaneOverlayLayer = memo(
     const mountedTabs = useMemo(
       () =>
         structuredTabs.filter(
-          (tab) => shownTabIds.has(tab.id) || groupActiveTabById.get(tab.groupId) === tab.id
+          (tab) =>
+            shownTabIds.has(tab.id) ||
+            groupActiveTabById.get(tab.groupId) === tab.id ||
+            splitTabIds.has(tab.id)
         ),
-      [structuredTabs, shownTabIds, groupActiveTabById]
+      [structuredTabs, shownTabIds, groupActiveTabById, splitTabIds]
     )
     let newlyShownCount = 0
     for (const tab of mountedTabs) {
@@ -185,14 +214,18 @@ const StructuredAgentSessionPaneOverlayLayer = memo(
             key={tab.id}
             tab={tab}
             groupId={tab.groupId}
-            isActive={Boolean(isWorktreeActive && groupActiveTabById.get(tab.groupId) === tab.id)}
+            isActive={Boolean(
+              isWorktreeActive &&
+              (groupActiveTabById.get(tab.groupId) === tab.id || splitTabIds.has(tab.id))
+            )}
             preparingHandoff={preparingHandoff && groupActiveTabById.get(tab.groupId) === tab.id}
             isFocusedGroup={Boolean(
               isWorktreeActive &&
               groupActiveTabById.get(tab.groupId) === tab.id &&
               tab.groupId === activeGroupId
             )}
-            hasSplitGroups={groups.length > 1}
+            hasSplitGroups={groups.length > 1 || splitTabIds.has(tab.id)}
+            inSplit={splitTabIds.has(tab.id)}
             onFocusOwningGroup={focusOwningGroup}
           />
         ))}

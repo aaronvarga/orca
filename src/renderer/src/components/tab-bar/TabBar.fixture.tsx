@@ -1,3 +1,5 @@
+import { stubBots } from '../../component-fixtures/fixture-bots'
+import type { Tab } from '../../../../shared/workspace-layout/tab-groups/tab-types'
 import { useState } from 'react'
 import { DndContext } from '@dnd-kit/core'
 import { defineFixture } from '../../component-fixtures/component-fixture'
@@ -19,6 +21,8 @@ const TITLES = [
 const noop = (): void => {}
 function TabWidthFixture({
   count,
+  initialActiveTabId = 'tab-0',
+  agentSessionTabs,
   titles = TITLES,
   agentTabs = true,
   browserTabs,
@@ -27,13 +31,14 @@ function TabWidthFixture({
   tabBarOrder
 }: {
   count: number
+  initialActiveTabId?: string
   titles?: string[]
   agentTabs?: boolean
 } & Pick<
   TabBarProps,
-  'browserTabs' | 'clientHostedBrowserRows' | 'editorFiles' | 'tabBarOrder'
+  'browserTabs' | 'clientHostedBrowserRows' | 'editorFiles' | 'tabBarOrder' | 'agentSessionTabs'
 >): React.JSX.Element {
-  const [activeTabId, setActiveTabId] = useState('tab-0')
+  const [activeTabId, setActiveTabId] = useState(initialActiveTabId)
   const tabs: TerminalTab[] = Array.from({ length: count }, (_, index) => ({
     id: `tab-${index}`,
     worktreeId: WORKSPACE_ID,
@@ -52,7 +57,8 @@ function TabWidthFixture({
         <TabBar
           tabs={tabs}
           activeTabId={activeTabId}
-          activeTabType="terminal"
+          activeTabType={agentSessionTabs ? 'agent-session' : 'terminal'}
+          agentSessionTabs={agentSessionTabs}
           worktreeId={WORKSPACE_ID}
           groupId="tab-width-group"
           browserTabs={browserTabs}
@@ -330,4 +336,56 @@ function AgentIdentityFixture(): React.JSX.Element {
 export const agentIdentityChanges = defineFixture({
   width: 900,
   render: () => <AgentIdentityFixture />
+})
+
+const splitChatTabs: (Tab & { contentType: 'agent-session' })[] = ['chat-first', 'chat-second'].map(
+  (id) => ({
+    id,
+    entityId: `session-${id}`,
+    contentType: 'agent-session',
+    agentSessionAgent: 'claude',
+    executionHostId: 'local',
+    groupId: 'tab-width-group',
+    worktreeId: WORKSPACE_ID,
+    label: 'Project conversation',
+    customLabel: null,
+    color: null,
+    createdAt: 0,
+    sortOrder: 0
+  })
+)
+export const selectedSplitChat = defineFixture({
+  width: 1280,
+  setup: () => stubBots([]),
+  store: {
+    unifiedTabsByWorktree: { [WORKSPACE_ID]: splitChatTabs },
+    nativeChatTabSplits: {
+      'chat-first': {
+        executionHostId: 'local',
+        layout: {
+          type: 'split',
+          direction: 'horizontal',
+          first: { type: 'leaf', groupId: 'chat-first' },
+          second: { type: 'leaf', groupId: 'chat-second' }
+        }
+      }
+    }
+  },
+  render: () => (
+    <TabWidthFixture
+      count={1}
+      agentTabs={false}
+      titles={['Terminal 1']}
+      agentSessionTabs={splitChatTabs}
+      initialActiveTabId="chat-second"
+    />
+  ),
+  interact: (frame) => {
+    const selected = [...frame.querySelectorAll<HTMLElement>('[data-active="true"]')]
+    if (selected.length !== 1 || !selected[0].textContent?.includes('Project conversation')) {
+      throw new Error(
+        'The outer conversation tab must stay selected when its second split has focus'
+      )
+    }
+  }
 })

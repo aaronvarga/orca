@@ -27,6 +27,7 @@ import {
 import { aiVaultBrowseSortMenu, aiVaultSearchSortMenu } from '../scope/ai-vault-sort-options'
 import { AiVaultShowMoreSessionsRow } from '../session-list/AiVaultShowMoreSessionsRow'
 import { AiVaultSessionVirtualList } from '../session-list/AiVaultSessionVirtualList'
+import { AgentSessionFavorites } from '../session-list/AgentSessionFavorites'
 import { useAiVaultSessionRefresh } from '../scanning/ai-vault-session-refresh'
 import { useAiVaultPanelHostScope } from '../scope/ai-vault-host-scope'
 import { useAiVaultPanelScope } from '../scope/use-ai-vault-panel-scope'
@@ -296,6 +297,18 @@ export default function AiVaultPanel({
         onRefresh={() => (searching ? search.retry() : void refresh({ force: true }))}
       />
 
+      {!resumeHere && !onSessionOpened ? (
+        <AgentSessionFavorites
+          hosts={hostScopeOptions}
+          onOpen={async (session, favorite) => {
+            if (paneActions.getOriginalPaneTarget(session)) {
+              await paneActions.jumpToOriginalPane(session)
+            } else {
+              launchActions.handleResume(session, favorite.workspaceId)
+            }
+          }}
+        />
+      ) : null}
       {stripProgress ? <AiVaultScanProgressStrip {...stripProgress} /> : null}
 
       {!searching && error ? (

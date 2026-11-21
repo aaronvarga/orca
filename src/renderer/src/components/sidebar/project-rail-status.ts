@@ -1,7 +1,7 @@
 import type { AppState } from '@/store/types'
 import type { AgentDotState } from '@/components/agent/status/AgentStateDot'
 import type { CommandCenterChatTile } from '../command-center/CommandCenterView'
-import { agentRowDisplayDotState } from '@/lib/agent-status/presentation/agent-row-dot-state'
+import { agentRowDisplayDotState } from '../../../../shared/agent-row-dot-state'
 import { resolveRowProgramStatus } from '@/lib/program-status/agent-row-presentation'
 import { AGENT_LIST_STATUS_RANK } from '../../../../shared/agent-status/presentation/agent-list-status'
 import { structuredAgentSessionPaneKey } from '../../../../shared/agent-session/view/structured-agent-session-projection'

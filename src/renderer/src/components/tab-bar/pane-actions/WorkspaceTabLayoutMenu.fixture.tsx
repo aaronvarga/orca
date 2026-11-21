@@ -1,18 +1,8 @@
-import type { HostedTerminalQuickCommand } from '@/lib/terminal/quick-commands/use-terminal-quick-command-hosts'
-import { TabBarQuickCommandsMenu } from '../quick-commands/TabBarQuickCommandsMenu'
-import { LOCAL_EXECUTION_HOST_ID } from '../../../../../shared/execution-host/execution-host'
+import { RightSidebarToggle } from '@/app-shell/chrome/RightSidebarToggle'
 import { useAppStore } from '@/store'
 import { defineFixture } from '../../../component-fixtures/component-fixture'
-import { WorkspaceTabLayoutMenu } from './WorkspaceTabLayoutMenu'
 
 const worktreeId = 'layout-fixture'
-const noop = () => {}
-const recent: HostedTerminalQuickCommand = {
-  key: 'handoff',
-  hostId: LOCAL_EXECUTION_HOST_ID,
-  hostLabel: 'Local',
-  command: { id: 'handoff', label: 'CC (Handoff Resume)', command: '', appendEnter: true }
-}
 
 const tabs = ['One', 'Two', 'Three', 'Four'].map((label, index) => ({
   id: `tab-${index}`,
@@ -29,6 +19,8 @@ const tabs = ['One', 'Two', 'Three', 'Four'].map((label, index) => ({
 export const menu = defineFixture({
   width: 720,
   store: {
+    activeView: 'terminal',
+    activeWorktreeId: worktreeId,
     unifiedTabsByWorktree: { [worktreeId]: tabs },
     groupsByWorktree: {
       [worktreeId]: [
@@ -40,24 +32,10 @@ export const menu = defineFixture({
   },
   render: () => (
     <div
-      data-workspace-tab-layout=""
+      data-workspace-tab-layout={worktreeId}
       className="@container/tab-strip flex h-8 items-center justify-end gap-0.5 bg-card text-card-foreground"
     >
-      <TabBarQuickCommandsMenu
-        isFocused
-        repoCommands={[recent]}
-        globalCommands={[]}
-        mostRecent={recent}
-        addHosts={[]}
-        hostLoadFailed={false}
-        hostOwnershipPending={false}
-        onAddCommand={noop}
-        onDeleteCommand={noop}
-        onEditCommand={noop}
-        onMenuOpen={noop}
-        onRunCommand={noop}
-      />
-      <WorkspaceTabLayoutMenu worktreeId={worktreeId} />
+      <RightSidebarToggle />
     </div>
   ),
   interact: async (frame) => {

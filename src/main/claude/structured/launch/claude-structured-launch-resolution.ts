@@ -30,7 +30,7 @@ import {
   type ClaudeEnvDeps
 } from './claude-structured-child-env'
 import { withClaudeArtifactDefault } from './claude-artifact-env'
-import { CLAUDE_DEFAULT_SETTING_SOURCES, claudeDiscoveryOptions } from './claude-discovery-options'
+import { claudeDiscoveryOptions } from './claude-discovery-options'
 import { claudeInChromeDefaultArgs } from '../../configuration/claude-in-chrome-default'
 import { claudeConfigDirEnvPatch } from './claude-config-dir-pin'
 import type {

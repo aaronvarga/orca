@@ -3,6 +3,7 @@ import {
   type Tab,
   type TabGroup
 } from '../../../../../../shared/workspace-layout/tab-groups/tab-types'
+import { resolveNativeChatTabSplit } from '../../../../../../shared/native-chat/layout/native-chat-tab-splits'
 import { workspaceEditorFiles } from '@/store/slices/editor/tabs/workspace-editor-files'
 import type { AppState } from '../../../../store/types'
 import { reconcileTabOrder } from './reconcile-tab-order'
@@ -148,6 +149,7 @@ export function getGroupVisibleTabOrder(
 export function getActiveTabNavOrder(
   state: Pick<
     AppState,
+    | 'nativeChatTabSplits'
     | 'activeGroupIdByWorktree'
     | 'groupsByWorktree'
     | 'unifiedTabsByWorktree'
@@ -197,6 +199,12 @@ export function getActiveTabNavOrder(
       new Set(editorIds),
       new Set(browserIds),
       new Set(simulatorIds)
+    ).filter(
+      (ref) =>
+        !ref.tabId ||
+        ref.type !== 'agent-session' ||
+        (resolveNativeChatTabSplit(state.nativeChatTabSplits, groupTabs, ref.tabId)?.rootTabId ??
+          ref.tabId) === ref.tabId
     )
   }
 

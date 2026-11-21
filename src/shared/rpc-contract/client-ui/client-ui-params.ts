@@ -1,4 +1,4 @@
-import { CommandCenterPresentationSchema } from '../../ui-chrome/command-center-presentation'
+import { ClientUiPanePresentationFields } from './client-ui-pane-presentation-fields-params'
 import { GitHistoryRefName } from '../source-control/git-params'
 import * as z from 'zod'
 import { isFeatureTipSeenId } from '../../feature-education/feature-tips'
@@ -128,8 +128,7 @@ export const UiUpdateFields = z
     lastActiveWorktreeId: NullableString.optional(),
     // Why: sync hydration ignores this persisted startup view, so paired windows stay put.
     activeView: TopLevelViewSchema.optional(),
-    projectRailSeparators: z.array(z.string().max(1024)).max(10000).optional(),
-    commandCenterPresentation: CommandCenterPresentationSchema.optional(),
+    ...ClientUiPanePresentationFields,
     sidebarWidth: z.number().finite().optional(),
     sidebarOpen: z.boolean().optional(),
     rightSidebarOpen: z.boolean().optional(),
@@ -137,8 +136,6 @@ export const UiUpdateFields = z
     rightSidebarExplorerView: z.enum(['files', 'search']).optional(),
     rightSidebarWidth: z.number().finite().optional(),
     activityBarPosition: z.enum(['top', 'side']).optional(),
-    markdownTocPanelWidth: z.number().finite().optional(),
-    combinedDiffFileTreeWidth: z.number().finite().optional(),
     groupBy: z.enum(['none', 'workspace-status', 'repo', 'pr-status']).optional(),
     showWorkspaceLineage: z.boolean().optional(),
     sortBy: z.enum(['name', 'smart', 'recent', 'repo', 'manual']).optional(),

@@ -1,3 +1,7 @@
+import {
+  resolveNativeChatTabSplit,
+  type NativeChatTabSplits
+} from '../../../shared/native-chat/layout/native-chat-tab-splits'
 import { FLOATING_TERMINAL_WORKTREE_ID } from '../../../shared/workspace/identity/floating-workspace-id'
 import { isOrcaWindowForegroundFocused } from '@/attention/orca-window-foreground-focus'
 import { isStructuredTab } from '../../../shared/agent-session/view/structured-agent-session-tab'
@@ -22,6 +26,7 @@ export type AutoAckTabTarget = {
 }
 
 export type AutoAckTargetState = FloatingWorkspacePanelVisibilityState & {
+  nativeChatTabSplits?: NativeChatTabSplits
   activeView: string
   activeWorktreeId: string | null
   layoutByWorktree?: Readonly<Record<string, TabGroupLayoutNode | undefined>>
@@ -45,7 +50,10 @@ function resolveWorkspaceAutoAckTargets(
     const activeTabId = groups.find((group) => group.id === groupId)?.activeTabId
     const tab = activeTabId ? tabs.find((candidate) => candidate.id === activeTabId) : undefined
     if (tab && isStructuredTab(tab)) {
-      targets.push({ tabId: tab.id, worktreeId, surfaceKind: 'structured' })
+      const split = resolveNativeChatTabSplit(state.nativeChatTabSplits, tabs, tab.id)
+      for (const tabId of split?.tabIds ?? [tab.id]) {
+        targets.push({ tabId, worktreeId, surfaceKind: 'structured' })
+      }
     } else if (tab?.contentType === 'terminal') {
       targets.push({ tabId: tab.entityId, worktreeId, surfaceKind: 'terminal' })
     } else if (tab?.contentType === 'room') {

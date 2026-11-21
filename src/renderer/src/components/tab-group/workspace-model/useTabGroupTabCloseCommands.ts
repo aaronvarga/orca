@@ -4,7 +4,7 @@ import { dispatchWorkspaceTabCommand } from '@/lib/workspace/tabs/workspace-tab-
 export function useTabGroupTabCloseCommands({ worktreeId }: { worktreeId: string }) {
   return useMemo(
     () => ({
-      closeItem: (tabId: string, opts?: { skipEmptyCheck?: boolean }) => {
+      closeItem: (tabId: string, opts?: { skipEmptyCheck?: boolean; chatPaneOnly?: boolean }) => {
         dispatchWorkspaceTabCommand({
           type: 'close',
           target: { kind: 'tab', worktreeId, tabId },

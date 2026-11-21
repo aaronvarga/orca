@@ -1,3 +1,4 @@
+import { nativeChatTabToActivate } from '@/lib/workspace/tabs/chat-tab-navigation'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import { clearClientHostedBrowserRowSelection } from '@/runtime/browser/client-hosting/client-hosted-browser-row-state'
 import { noteUserWorkspaceSwitch } from '@/lib/workspace/activation/workspace-switch-user-act'
@@ -77,7 +78,12 @@ export function useTabBarItemActions(source: TabBarItemActionSource): TabBarItem
       activateBrowserTab: (tabId) =>
         activateRealTab(() => latest.current.props.onActivateBrowserTab?.(tabId)),
       activateAgentSession: (tabId) =>
-        activateRealTab(() => latest.current.props.onActivateAgentSession?.(tabId)),
+        activateRealTab(() => {
+          const state = useAppStore.getState()
+          const worktreeId = latest.current.props.worktreeId
+          const tab = nativeChatTabToActivate(state, worktreeId, tabId)
+          latest.current.props.onActivateAgentSession?.(tab?.id ?? tabId)
+        }),
       close: (tabId) => latest.current.props.onClose(tabId),
       closeFile: (fileId) => latest.current.props.onCloseFile?.(fileId),
       closeBrowserTab: (tabId) => latest.current.props.onCloseBrowserTab?.(tabId),
