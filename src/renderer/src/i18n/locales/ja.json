@@ -20931,7 +20931,6 @@
       "detectionFailed": "このワークスペースホストで Agent を検出できませんでした。",
       "noAgents": "No enabled agents were detected on this workspace host.",
       "onlySourceFamilyDetected": "このワークスペースホストで利用できる Agent は、{{agent}} と利用上限を共有するものだけです。別の Agent を有効にするか、インストールしてください。",
-      "context": "コンテキスト",
       "starting": "開始中…",
       "noContext": "新規セッションで続けるためのコンテキストがありません。",
       "agentDisabled": "Agent 設定で {{agent}} が無効になっています。",
@@ -20942,11 +20941,6 @@
       "deliveryUnconfirmed": "Orca は {{agent}} がセッションコンテキストを受け取ったことを確認できませんでした。新規セッションを確認し、入力が空の場合は自分で貼り付けてください。",
       "copyPrompt": "プロンプトをコピー",
       "dialogTitleSentence": "別の Agent に引き継ぐ",
-      "metaWithAgent": "{{agent}} から · {{session}} · 元のセッションは変更されません",
-      "meta": "{{session}} · 元のセッションは変更されません",
-      "modeLatestStatus": "最新の状況（推奨）",
-      "modeFullTranscript": "完全なトランスクリプト",
-      "modeFullCost": "時間がかかり、プランや API クレジットを多く消費します。",
       "startSessionSentence": "セッションを開始"
     },
     "terminalPane": {

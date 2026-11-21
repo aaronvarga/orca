@@ -20559,7 +20559,6 @@
       "detectionFailed": "Impossible de détecter des Agents sur cet hôte d'espace de travail.",
       "noAgents": "No enabled agents were detected on this workspace host.",
       "onlySourceFamilyDetected": "Seuls des Agents partageant la limite d'utilisation de {{agent}} sont disponibles sur cet hôte d'espace de travail. Activez ou installez un autre Agent.",
-      "context": "Contexte",
       "starting": "Démarrage…",
       "noContext": "Aucun contexte de session disponible pour continuer dans une nouvelle session.",
       "agentDisabled": "{{agent}} est désactivé dans les paramètres des Agents.",
@@ -20570,11 +20569,6 @@
       "deliveryUnconfirmed": "Orca n'a pas pu confirmer que {{agent}} a reçu le contexte de la session. Vérifiez la nouvelle session et collez-le vous-même si sa saisie est vide.",
       "copyPrompt": "Copier le prompt",
       "dialogTitleSentence": "Passer la main à un autre agent",
-      "metaWithAgent": "De {{agent}} · {{session}} · l'original reste inchangé",
-      "meta": "{{session}} · l'original reste inchangé",
-      "modeLatestStatus": "Dernier état (recommandé)",
-      "modeFullTranscript": "Transcription complète",
-      "modeFullCost": "Plus lent, et consomme davantage de votre forfait ou de vos crédits API.",
       "startSessionSentence": "Démarrer la session"
     },
     "status": {

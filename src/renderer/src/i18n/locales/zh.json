@@ -20997,7 +20997,6 @@
       "detectionFailed": "无法检测此工作区主机上的代理",
       "noAgents": "No enabled agents were detected on this workspace host.",
       "onlySourceFamilyDetected": "此工作区主机上可用的智能体均与 {{agent}} 共享使用限额。请启用或安装其他智能体。",
-      "context": "上下文",
       "starting": "正在启动…",
       "noContext": "没有可用于在新会话中继续的上下文",
       "agentDisabled": "{{agent}} 已在代理设置中停用",
@@ -21008,11 +21007,6 @@
       "deliveryUnconfirmed": "Orca 无法确认 {{agent}} 已收到会话上下文，请检查新会话，如果其输入为空，请自行粘贴",
       "copyPrompt": "复制提示",
       "dialogTitleSentence": "交给其他代理",
-      "metaWithAgent": "来自 {{agent}} · {{session}} · 原会话保持不变",
-      "meta": "{{session}} · 原会话保持不变",
-      "modeLatestStatus": "最新状态（推荐）",
-      "modeFullTranscript": "完整记录",
-      "modeFullCost": "速度较慢，并会消耗更多套餐额度或 API 额度。",
       "startSessionSentence": "开始会话"
     },
     "terminalPane": {

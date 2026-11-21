@@ -20191,7 +20191,6 @@
       "detectionFailed": "無法偵測此工作區主機上的代理程式。",
       "noAgents": "No enabled agents were detected on this workspace host.",
       "onlySourceFamilyDetected": "此工作區主機上可用的代理程式均與 {{agent}} 共用使用額度。請啟用或安裝其他代理程式。",
-      "context": "上下文",
       "starting": "正在啟動…",
       "noContext": "沒有可用於在新工作階段中繼續的上下文。",
       "agentDisabled": "{{agent}} 已在代理程式設定中停用。",
@@ -20202,11 +20201,6 @@
       "copyPrompt": "複製提示詞",
       "launchFailed": "無法啟動新的 {{agent}} 工作階段。",
       "dialogTitleSentence": "交給其他代理程式",
-      "metaWithAgent": "來自 {{agent}} · {{session}} · 原始工作階段保持不變",
-      "meta": "{{session}} · 原始工作階段保持不變",
-      "modeLatestStatus": "最新狀態（建議）",
-      "modeFullTranscript": "完整記錄",
-      "modeFullCost": "速度較慢，且會使用較多的方案額度或 API 點數。",
       "startSessionSentence": "開始工作階段"
     },
     "status": {

@@ -1,5 +1,7 @@
+import { useAppStore } from '@/store'
+import { findOriginalAiVaultSessionPane } from './ai-vault-original-pane'
 import {
-  buildAgentSessionContinuationPrompt,
+  canPrepareAgentSessionContinuation,
   type AgentSessionContinuationRequest
 } from '@/lib/agent-session/context/agent-session-continuation'
 import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
@@ -47,7 +49,7 @@ export async function loadDatabaseAiVaultSessionContinuation(
     ...target,
     savedTranscriptPath: saved.transcriptPath
   })
-  return buildAgentSessionContinuationPrompt(request.source, 'focused') ? request : null
+  return canPrepareAgentSessionContinuation(request.source) ? request : null
 }
 
 export function prepareAiVaultSessionContinuation(
@@ -57,7 +59,21 @@ export function prepareAiVaultSessionContinuation(
   }
 ): AgentSessionContinuationRequest {
   const { session, targetWorktreeId, targetWorkspacePath } = args
+  const original = findOriginalAiVaultSessionPane(useAppStore.getState(), session)
   return {
+    handoffSource: session.structuredSession
+      ? {
+          tabId: session.structuredSession.sessionId,
+          sessionId: session.structuredSession.sessionId,
+          worktreeId: session.structuredSession.workspaceId
+        }
+      : original
+        ? {
+            tabId: original.tabId,
+            terminalLeafId: original.leafId,
+            worktreeId: original.worktreeId
+          }
+        : undefined,
     source: {
       capturedText: previewTranscript(session),
       sourceAgent: session.agent,

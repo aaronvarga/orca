@@ -21195,7 +21195,6 @@
       "detectionFailed": "Не удалось найти агентов на компьютере этого рабочего пространства.",
       "noAgents": "No enabled agents were detected on this workspace host.",
       "onlySourceFamilyDetected": "На компьютере этого рабочего пространства доступны только агенты, у которых общий лимит использования с {{agent}}. Включите или установите другого агента.",
-      "context": "Контекст",
       "starting": "Запуск…",
       "noContext": "Нет контекста для продолжения в новой сессии.",
       "agentDisabled": "{{agent}} отключён в настройках агентов.",
@@ -21207,11 +21206,6 @@
       "launchFailed": "Не удалось начать новую сессию {{agent}}.",
       "preparingContext": "Подготовка сохранённого контекста чата…",
       "dialogTitleSentence": "Передать другому агенту",
-      "metaWithAgent": "От {{agent}} · {{session}} · оригинал не меняется",
-      "meta": "{{session}} · оригинал не меняется",
-      "modeLatestStatus": "Последнее состояние (рекомендуется)",
-      "modeFullTranscript": "Полная расшифровка",
-      "modeFullCost": "Медленнее и расходует больше лимита тарифа или кредитов API.",
       "startSessionSentence": "Начать сеанс"
     },
     "status": {

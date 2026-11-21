@@ -22034,7 +22034,6 @@
       "detectionFailed": "Não foi possível detectar Agentes neste host do espaço de trabalho.",
       "noAgents": "No enabled agents were detected on this workspace host.",
       "onlySourceFamilyDetected": "Neste host do espaço de trabalho só há Agentes disponíveis que compartilham o limite de uso com {{agent}}. Ative ou instale um Agente diferente.",
-      "context": "Contexto",
       "starting": "Iniciando…",
       "noContext": "Nenhum contexto de sessão está disponível para continuar em uma nova sessão.",
       "agentDisabled": "{{agent}} está desativado nas configurações de Agente.",
@@ -22047,11 +22046,6 @@
       "copyPrompt": "Copiar prompt",
       "preparingContext": "Preparando o contexto salvo do chat…",
       "dialogTitleSentence": "Passar para outro agente",
-      "metaWithAgent": "De {{agent}} · {{session}} · o original não muda",
-      "meta": "{{session}} · o original não muda",
-      "modeLatestStatus": "Status mais recente (recomendado)",
-      "modeFullTranscript": "Transcrição completa",
-      "modeFullCost": "Mais lento e consome mais do seu plano ou créditos de API.",
       "startSessionSentence": "Iniciar sessão"
     },
     "status": {

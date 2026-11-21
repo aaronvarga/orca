@@ -1,7 +1,7 @@
 import { toast } from 'sonner'
 import type { ManagedPane } from '@/lib/pane-manager/pane-manager-types'
 import {
-  buildAgentSessionContinuationPrompt,
+  canPrepareAgentSessionContinuation,
   resolveAgentSessionContinuationTranscriptPath,
   type AgentSessionContinuationRequest
 } from '@/lib/agent-session/context/agent-session-continuation'
@@ -72,7 +72,7 @@ export function prepareAgentSessionContinuationFromPane({
     lastPrompt: status?.prompt,
     lastAssistantMessage: status?.lastAssistantMessage
   }
-  if (!buildAgentSessionContinuationPrompt(source, 'focused')) {
+  if (!canPrepareAgentSessionContinuation(source)) {
     toast.error(
       translate(
         'components.agentSessionContinuation.noContext',
@@ -85,6 +85,7 @@ export function prepareAgentSessionContinuationFromPane({
 
   return {
     source,
+    handoffSource: { tabId, terminalLeafId: pane.leafId, worktreeId },
     worktreeId,
     groupId,
     workspacePath,

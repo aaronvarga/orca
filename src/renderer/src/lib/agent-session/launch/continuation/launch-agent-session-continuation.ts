@@ -121,7 +121,7 @@ export async function launchAgentSessionContinuation({
     ...(agentArgs !== undefined ? { agentArgs } : {}),
     ...(groupId ? { groupId } : {}),
     prompt,
-    promptDelivery: agent === 'claude' ? ('draft' as const) : ('submit-after-ready' as const),
+    promptDelivery: 'submit-after-ready' as const,
     launchSource,
     ...(initialCwd ? { initialCwd } : {}),
     onPromptDeliveryUnconfirmed: () => {

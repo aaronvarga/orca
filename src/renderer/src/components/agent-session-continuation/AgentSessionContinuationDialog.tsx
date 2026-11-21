@@ -1,7 +1,7 @@
 import { useAgentPickerDraftScope } from '../agent/AgentLaunchSetupButton'
 import { agentsOfferedForLaunch } from '@/lib/agent-session/launch/inventory/host-chat-program'
 import { worktreeLaunchWorkspace } from '@/lib/agent-session/launch/routing/agent-launch-route-input'
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { AgentLaunchPicker } from '@/components/agent/AgentLaunchPicker'
 import {
@@ -22,21 +22,10 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { DialogCancel, DialogError } from '@/components/ui/dialog-parts'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 import { useTranslate } from '@/i18n/use-translate'
 import { getAgentCatalog, getAgentLabel } from '@/lib/agent-catalog/agent-catalog'
-import {
-  buildAgentSessionContinuationPrompt,
-  hasFullAgentSessionContext,
-  type AgentSessionContinuationContextMode,
-  type AgentSessionContinuationRequest
-} from '@/lib/agent-session/context/agent-session-continuation'
+import type { AgentSessionContinuationRequest } from '@/lib/agent-session/context/agent-session-continuation'
+import { prepareAgentSkillHandoff } from '@/lib/agent-session/context/prepare-agent-skill-handoff'
 import { launchAgentSessionContinuation } from '@/lib/agent-session/launch/continuation/launch-agent-session-continuation'
 import { useAppStore } from '@/store'
 import { isTuiAgentEnabled } from '../../../../shared/agent-launch/catalog/tui-agent-selection'
@@ -65,8 +54,8 @@ export function AgentSessionContinuationDialog({
   const t = useTranslate()
   const workspace = request ? worktreeLaunchWorkspace(request.worktreeId) : null
   const abortRef = useRef<AbortController | null>(null)
+  const startRef = useRef<{ request: AgentSessionContinuationRequest } | null>(null)
   const agentFieldRef = useRef<HTMLDivElement>(null)
-  const contextLabelId = useId()
   const settings = useAppStore((state) => state.settings)
   const [pick, setPick] = useState<{
     request: AgentSessionContinuationRequest | null
@@ -76,26 +65,19 @@ export function AgentSessionContinuationDialog({
     entry?: AgentPickerEntry
   } | null>(null)
   const detectionTarget = useAgentDetectionTargetForWorktree(request?.worktreeId ?? null)
-  const [contextPick, setContextPick] = useState<{
-    request: AgentSessionContinuationRequest | null
-    mode: AgentSessionContinuationContextMode
-  } | null>(null)
   // One start's own token: a closed or reopened dialog no longer waits on a start it left behind.
   const [startingFor, setStartingFor] = useState<{
     request: AgentSessionContinuationRequest
+    phase: 'handoff' | 'launch'
   } | null>(null)
   if (!open) {
     if (pick) {
       setPick(null)
     }
-    if (contextPick) {
-      setContextPick(null)
-    }
     if (startingFor) {
       setStartingFor(null)
     }
   }
-  const contextMode = contextPick?.request === request ? contextPick.mode : 'focused'
   const starting = open && startingFor?.request === request
   const [showStarting, setShowStarting] = useState(false)
   const disabledAgents = settings?.disabledTuiAgents ?? EMPTY_DISABLED_AGENTS
@@ -152,7 +134,10 @@ export function AgentSessionContinuationDialog({
     )
   const preparing = request === null
   const controlsDisabled = preparing || detecting || starting
-  const hasFullContext = request ? hasFullAgentSessionContext(request.source) : false
+  const [handoffError, setHandoffError] = useState<{
+    request: AgentSessionContinuationRequest
+    message: string
+  } | null>(null)
 
   useLayoutEffect(() => {
     const field = agentFieldRef.current
@@ -195,45 +180,69 @@ export function AgentSessionContinuationDialog({
       detecting ||
       !selectedAgent ||
       starting ||
+      startRef.current?.request === request ||
       !selection.ready ||
       !selection.choice
     ) {
       return
     }
-    const prompt = buildAgentSessionContinuationPrompt(request.source, contextMode)
-    if (!prompt) {
-      return
-    }
-    const start = { request }
+    const launchChoice = selection.choice
+    const start = { request, phase: 'handoff' as const }
+    startRef.current = start
     // Aborts when the dialog closes or moves to another request; a sent launch still settles.
     const signal = abortRef.current?.signal
     setStartingFor(start)
-    const launched = await launchAgentSessionContinuation({
-      agent: selectedAgent,
-      prompt,
-      worktreeId: request.worktreeId,
-      groupId: request.groupId,
-      initialCwd: request.initialCwd,
-      launchChoice: selection.choice,
-      ...(currentPick?.draft
-        ? agentPickerFreshLaunchInputs(
-            currentPick.draft,
-            {
-              surface: selection.choice.route === 'terminal-tui' ? 'terminal' : 'chat',
-              executionHostId: selection.choice.executionHostId
-            },
-            currentPick.entry
-          )
-        : {}),
-      launchSource: request.launchSource,
-      signal
-    })
-    setStartingFor((current) => (current === start ? null : current))
-    // A late finish is reported by the launch's own owners, never by a dialog it no longer holds.
-    if (launched && !signal?.aborted) {
-      onOpenChange(false)
-      onStarted?.()
-    }
+    setHandoffError(null)
+    await prepareAgentSkillHandoff(request, selectedAgent, signal)
+      .then(async ({ prompt }) => {
+        signal?.throwIfAborted()
+        setStartingFor({ request, phase: 'launch' })
+        const launched = await launchAgentSessionContinuation({
+          agent: selectedAgent,
+          prompt,
+          worktreeId: request.worktreeId,
+          groupId: request.groupId,
+          initialCwd: request.initialCwd,
+          launchChoice,
+          ...(currentPick?.draft
+            ? agentPickerFreshLaunchInputs(
+                currentPick.draft,
+                {
+                  surface: launchChoice.route === 'terminal-tui' ? 'terminal' : 'chat',
+                  executionHostId: launchChoice.executionHostId
+                },
+                currentPick.entry
+              )
+            : {}),
+          launchSource: request.launchSource,
+          signal
+        })
+        // A late finish is reported by the launch's own owners, never by a dialog it no longer holds.
+        if (launched && !signal?.aborted) {
+          onOpenChange(false)
+          onStarted?.()
+        }
+      })
+      .catch((error: unknown) => {
+        if (!signal?.aborted) {
+          setHandoffError({
+            request,
+            message:
+              error instanceof Error
+                ? error.message
+                : t(
+                    'components.agentSessionContinuation.handoffFailed',
+                    'Could not complete the handoff. Check the source and destination sessions before retrying.'
+                  )
+          })
+        }
+      })
+      .finally(() => {
+        if (startRef.current === start) {
+          startRef.current = null
+        }
+        setStartingFor((current) => (current?.request === request ? null : current))
+      })
   }
 
   const sourceName = request?.source.sourceTitle?.trim()
@@ -266,7 +275,7 @@ export function AgentSessionContinuationDialog({
         : null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={startingFor?.phase !== 'handoff'}>
       <DialogContent
         size="form"
         onOpenAutoFocus={(event) => {
@@ -285,14 +294,16 @@ export function AgentSessionContinuationDialog({
           <DialogDescription size="compact">
             {sourceAgentLabel
               ? t(
-                  'components.agentSessionContinuation.metaWithAgent',
-                  'From {{agent}} · {{session}} · original stays unchanged',
+                  'components.agentSessionContinuation.metaWithAgentOpen',
+                  'From {{agent}} · {{session}} · original stays open',
                   { agent: sourceAgentLabel, session: sourceLabel }
                 )
               : t(
-                  'components.agentSessionContinuation.meta',
-                  '{{session}} · original stays unchanged',
-                  { session: sourceLabel }
+                  'components.agentSessionContinuation.metaOpen',
+                  '{{session}} · original stays open',
+                  {
+                    session: sourceLabel
+                  }
                 )}
           </DialogDescription>
         </DialogHeader>
@@ -330,45 +341,15 @@ export function AgentSessionContinuationDialog({
           ) : null}
         </div>
 
-        <div className="grid min-w-0 gap-1.5">
-          <label id={contextLabelId} className="text-[13px] font-medium">
-            {t('components.agentSessionContinuation.context', 'Context')}
-          </label>
-          <Select
-            disabled={controlsDisabled}
-            value={contextMode}
-            onValueChange={(value) => {
-              if (value === 'focused' || value === 'full') {
-                setContextPick({ request, mode: value })
-              }
-            }}
-          >
-            <SelectTrigger aria-labelledby={contextLabelId} className="min-w-0 w-full" size="sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="focused">
-                {t(
-                  'components.agentSessionContinuation.modeLatestStatus',
-                  'Latest status (recommended)'
-                )}
-              </SelectItem>
-              <SelectItem value="full" disabled={!hasFullContext}>
-                {t('components.agentSessionContinuation.modeFullTranscript', 'Full transcript')}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          {contextMode === 'full' ? (
-            // Why only here: the cost warning is the one thing this choice needs to say.
-            <p className="text-xs text-muted-foreground">
-              {t(
-                'components.agentSessionContinuation.modeFullCost',
-                'Slower, and uses more of your plan or API credits.'
-              )}
-            </p>
-          ) : null}
-        </div>
-
+        <p className="text-xs text-muted-foreground">
+          {t(
+            'components.agentSessionContinuation.skillWorkflow',
+            'The source agent runs handoff and saves a briefing. The new agent runs handoff-resume with that exact file. The original session stays open; respond there if it needs an approval.'
+          )}
+        </p>
+        {handoffError?.request === request ? (
+          <DialogError>{handoffError.message}</DialogError>
+        ) : null}
         <DialogFooter>
           <DialogCancel>{t('components.native-chat.question.cancel', 'Cancel')}</DialogCancel>
           <Button
@@ -379,7 +360,9 @@ export function AgentSessionContinuationDialog({
           >
             {showStarting ? <Loader2 className="size-3.5 animate-spin" /> : null}
             {starting
-              ? t('components.agentSessionContinuation.starting', 'Starting…')
+              ? startingFor?.phase === 'handoff'
+                ? t('components.agentSessionContinuation.preparingHandoff', 'Preparing handoff…')
+                : t('components.agentSessionContinuation.starting', 'Starting…')
               : t('components.agentSessionContinuation.startSessionSentence', 'Start session')}
           </Button>
         </DialogFooter>

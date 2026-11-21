@@ -20510,7 +20510,6 @@
       "detectionFailed": "Agenten auf dem Host dieses Arbeitsbereichs konnten nicht erkannt werden.",
       "noAgents": "No enabled agents were detected on this workspace host.",
       "onlySourceFamilyDetected": "Auf dem Host dieses Arbeitsbereichs sind nur Agenten verfügbar, die dasselbe Nutzungslimit wie {{agent}} haben. Einen anderen Agenten aktivieren oder installieren.",
-      "context": "Kontext",
       "starting": "Wird gestartet…",
       "noContext": "Es ist kein Sitzungskontext verfügbar, um in einer neuen Sitzung fortzufahren.",
       "agentDisabled": "{{agent}} ist in den Agenten-Einstellungen deaktiviert.",
@@ -20521,11 +20520,6 @@
       "copyPrompt": "Prompt kopieren",
       "launchFailed": "Eine neue Sitzung mit {{agent}} konnte nicht gestartet werden.",
       "dialogTitleSentence": "An einen anderen Agenten übergeben",
-      "metaWithAgent": "Von {{agent}} · {{session}} · Original bleibt unverändert",
-      "meta": "{{session}} · Original bleibt unverändert",
-      "modeLatestStatus": "Letzter Stand (empfohlen)",
-      "modeFullTranscript": "Vollständiges Protokoll",
-      "modeFullCost": "Langsamer und verbraucht mehr von deinem Plan oder API-Guthaben.",
       "startSessionSentence": "Sitzung starten"
     },
     "status": {

@@ -163,3 +163,7 @@ ci-shards/
 /.build/windows-native-benchmark/
 
 .local/static-analysis-research/
+
+# Local agent handoffs and workspace state
+.orca/
+handoff.md

@@ -20657,7 +20657,6 @@
       "detectionFailed": "Bu çalışma alanı ana makinesinde Ajanlar tespit edilemedi.",
       "noAgents": "No enabled agents were detected on this workspace host.",
       "onlySourceFamilyDetected": "Bu çalışma alanı ana makinesinde yalnızca {{agent}} ile kullanım sınırını paylaşan Ajanlar kullanılabilir. Farklı bir Ajanı etkinleştirin veya yükleyin.",
-      "context": "Bağlam",
       "starting": "Başlatılıyor…",
       "noContext": "Yeni bir oturumda devam etmek için kullanılabilir oturum bağlamı yok.",
       "agentDisabled": "{{agent}}, Ajan ayarlarında devre dışı.",
@@ -20668,11 +20667,6 @@
       "copyPrompt": "İstemi kopyala",
       "launchFailed": "Yeni bir {{agent}} oturumu başlatılamadı.",
       "dialogTitleSentence": "Başka bir ajana devret",
-      "metaWithAgent": "{{agent}} kaynağından · {{session}} · orijinal değişmez",
-      "meta": "{{session}} · orijinal değişmez",
-      "modeLatestStatus": "Son durum (önerilen)",
-      "modeFullTranscript": "Tam döküm",
-      "modeFullCost": "Daha yavaştır ve planınızdan ya da API kredilerinizden daha fazla kullanır.",
       "startSessionSentence": "Oturumu başlat"
     },
     "status": {

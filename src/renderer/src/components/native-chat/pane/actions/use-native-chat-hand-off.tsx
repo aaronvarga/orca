@@ -1,21 +1,14 @@
-import { toast } from 'sonner'
-import { translate } from '@/i18n/i18n'
-import { withTimeout } from '../../../../../../shared/concurrency/promise-timeout-fallback'
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import type { AgentJournalThreadGoal } from '../../../../../../shared/agent-session/journal/agent-session-journal-types'
+import type { NativeChatMilestones } from '../../../../../../shared/native-chat/input/task-lists/native-chat-milestones'
 import { useAppStore } from '@/store/index'
 import { structuredChatTabById } from '@/lib/agent-session/tab-identity/structured-chat-tab-index'
 import { useStructuredChatTabConversationName } from '@/runtime/native-chat/naming/structured-conversation-name'
 import { AgentSessionContinuationDialog } from '@/components/agent-session-continuation/AgentSessionContinuationDialog'
-import { buildAgentSessionContinuationPrompt } from '@/lib/agent-session/context/agent-session-continuation'
 import type { AgentSessionContinuationRequest } from '@/lib/agent-session/context/agent-session-continuation'
 import { isTuiAgent } from '../../../../../../shared/agent-launch/catalog/tui-agent-config'
-import { callStructuredAgentSession } from '@/runtime/native-chat/requests/structured-agent-session-call'
-import { supportsStructuredAgentSessionContinuationContext } from '@/runtime/native-chat/host-capabilities/structured-agent-session-host-support'
 import { executionHostIdForStructuredTarget } from '@/runtime/native-chat/session-ownership/structured-agent-session-owner'
-import { buildAgentSessionHandoffContext } from '../../../../../../shared/native-chat/transcript/agent-session-handoff-context'
-import type { AgentSessionContinuationContext } from '../../../../../../shared/agent-session/agent-session-wire'
-import type { NativeChatMessage } from '../../../../../../shared/native-chat/native-chat-types'
 import type { NativeChatStructuredViewProps } from '../../native-chat-view-types'
 import type { NativeChatFileLinkContext } from '../../links/actions/native-chat-file-link-context'
 
@@ -32,18 +25,18 @@ export type NativeChatHandOff = {
 export function useNativeChatHandOff({
   pane,
   directory,
-  messages,
   epoch,
-  focusComposer
+  goal,
+  milestones
 }: {
   pane: Pick<
     NativeChatStructuredViewProps,
     'tabId' | 'groupId' | 'sessionId' | 'target' | 'agent' | 'isVisible'
   >
   directory: NativeChatFileLinkContext | null
-  messages: readonly NativeChatMessage[]
   epoch: string | null
-  focusComposer: () => void
+  goal?: AgentJournalThreadGoal | null
+  milestones?: NativeChatMilestones | null
 }): NativeChatHandOff {
   const intentKey = JSON.stringify([
     executionHostIdForStructuredTarget(pane.target),
@@ -54,10 +47,7 @@ export function useNativeChatHandOff({
     directory
   ])
   const operationSerial = useRef(0)
-  type Attempt = { key: string; operation: number } & (
-    | { phase: 'preparing' }
-    | { phase: 'prepared'; request: AgentSessionContinuationRequest }
-  )
+  type Attempt = { key: string; operation: number; request: AgentSessionContinuationRequest }
   const active = useRef<Attempt | null>(null)
   const [attempt, setAttempt] = useState<Attempt | null>(null)
   const retire = useCallback(() => {
@@ -77,7 +67,6 @@ export function useNativeChatHandOff({
   )
   const conversationName = useStructuredChatTabConversationName(chatTab)
   const currentAttempt = attempt === active.current && attempt?.key === intentKey ? attempt : null
-  const request = currentAttempt?.phase === 'prepared' ? currentAttempt.request : null
   // The dialog launches in the chat's workspace, so it must be the same host the chat runs on.
   const available = Boolean(
     pane.isVisible &&
@@ -87,112 +76,59 @@ export function useNativeChatHandOff({
     directory.runtimeEnvironmentId ===
       (pane.target.kind === 'environment' ? pane.target.environmentId : null)
   )
-  const prepare = useCallback(async (): Promise<void> => {
-    if (!available || !directory || !epoch || !isTuiAgent(pane.agent)) {
+  const open = useCallback(() => {
+    if (!available || !directory || !isTuiAgent(pane.agent) || active.current) {
       return
     }
-    if (active.current) {
-      return
-    }
-    const current: Attempt = {
+    const prepared: Attempt = {
       key: intentKey,
       operation: ++operationSerial.current,
-      phase: 'preparing'
-    }
-    active.current = current
-    setAttempt(current)
-    const context = await withTimeout(
-      (async () => {
-        if (
-          !(await supportsStructuredAgentSessionContinuationContext(pane.target)) ||
-          active.current !== current ||
-          current.phase !== 'preparing'
-        ) {
-          return null
-        }
-        return callStructuredAgentSession<AgentSessionContinuationContext>(
-          pane.target,
-          'agentSession.continuationContext',
-          {
-            sessionId: pane.sessionId,
-            workspaceId: directory.worktreeId,
-            expectedCursor: { epoch, sequence: 0 }
-          }
-        )
-      })(),
-      30_000,
-      null
-    )
-    if (active.current !== current || current.phase !== 'preparing') {
-      return
-    }
-    if (context?.status === 'superseded') {
-      retire()
-      return
-    }
-    const saved = context?.status === 'current' && typeof context.capturedText === 'string'
-    const transcriptPath = saved ? context.transcriptPath : undefined
-    const source = {
-      sourceKind: 'chat' as const,
-      sourceAgent: pane.agent,
-      sourceTitle: chatTab?.customLabel?.trim() || conversationName || chatTab?.label,
-      sourceWorkingDirectory: directory.worktreePath,
-      transcriptPath,
-      capturedText: saved ? (context.capturedText ?? '') : buildAgentSessionHandoffContext(messages)
-    }
-    if (buildAgentSessionContinuationPrompt(source, 'focused')) {
-      const prepared: Attempt = {
-        ...current,
-        phase: 'prepared',
-        request: {
-          source,
+      request: {
+        source: {
+          sourceKind: 'chat',
+          sourceAgent: pane.agent,
+          capturedText: '',
+          sourceTitle: chatTab?.customLabel?.trim() || conversationName || chatTab?.label,
+          sourceWorkingDirectory: directory.worktreePath
+        },
+        handoffSource: {
+          tabId: pane.tabId,
+          sessionId: pane.sessionId,
           worktreeId: directory.worktreeId,
-          workspacePath: directory.worktreePath,
-          initialCwd: directory.worktreePath,
-          groupId: pane.groupId,
-          launchSource: 'native_chat'
-        }
+          progress: JSON.stringify({ goal, milestones })
+        },
+        worktreeId: directory.worktreeId,
+        workspacePath: directory.worktreePath,
+        initialCwd: directory.worktreePath,
+        groupId: pane.groupId,
+        launchSource: 'native_chat'
       }
-      active.current = prepared
-      setAttempt(prepared)
-    } else {
-      retire()
-      toast.error(
-        translate(
-          'components.agentSessionContinuation.noContext',
-          'No session context is available to continue in a new session.'
-        )
-      )
-      focusComposer()
     }
+    active.current = prepared
+    setAttempt(prepared)
   }, [
     available,
-    intentKey,
-    retire,
-    epoch,
-    focusComposer,
     directory,
     pane.agent,
-    pane.groupId,
+    pane.tabId,
     pane.sessionId,
-    pane.target,
+    pane.groupId,
+    intentKey,
     chatTab,
     conversationName,
-    messages
+    goal,
+    milestones
   ])
-  const open = useCallback(() => {
-    void prepare()
-  }, [prepare])
   return {
     available,
-    preparing: currentAttempt?.phase === 'preparing',
+    preparing: false,
     open,
     reset: retire,
     dialog: currentAttempt ? (
       <AgentSessionContinuationDialog
         key={currentAttempt.operation}
         open
-        request={request}
+        request={currentAttempt.request}
         onOpenChange={(isOpen) => {
           if (!isOpen && active.current === currentAttempt) {
             retire()

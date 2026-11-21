@@ -11,7 +11,8 @@ import {
 export function agentReadsSkill(
   agent: TuiAgent,
   skill: DiscoveredSkill,
-  sources: readonly SkillDiscoverySource[]
+  sources: readonly SkillDiscoverySource[],
+  options?: { includeRepo?: boolean }
 ): boolean {
   const owner = agent === 'claude-agent-teams' ? 'claude' : agent
   const reader = getNativeChatAgentProfile(agent) ?? { skillSourceOwner: owner }
@@ -20,7 +21,7 @@ export function agentReadsSkill(
     sources.some(
       (source) =>
         source.path === rootPath &&
-        source.sourceKind !== 'repo' &&
+        (options?.includeRepo || source.sourceKind !== 'repo') &&
         readsSkillSource(reader, source, skill)
     )
   )
