@@ -151,9 +151,8 @@ export const AGENT_JOURNAL_PROMPT_INTENTS = [
 /** What choosing an approval option means, set by the provider adapter that knows its own options. */
 export type AgentJournalPromptIntent = (typeof AGENT_JOURNAL_PROMPT_INTENTS)[number]
 
-export function isAgentJournalPromptIntent(value: unknown): value is AgentJournalPromptIntent {
-  return AGENT_JOURNAL_PROMPT_INTENTS.some((intent) => intent === value)
-}
+export const isAgentJournalPromptIntent = (value: unknown): value is AgentJournalPromptIntent =>
+  AGENT_JOURNAL_PROMPT_INTENTS.some((intent) => intent === value)
 
 export type AgentJournalPromptOption = {
   id: string

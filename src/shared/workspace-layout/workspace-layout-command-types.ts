@@ -7,11 +7,7 @@ import type { SleepingAgentSessionRecord } from '../agent-session/lifecycle/agen
 import type { AgentType } from '../agent-status/contracts/agent-status-types'
 import type { AiVaultSessionTitle } from '../ai-vault/contracts/ai-vault-session-title'
 import type { TabContentType, TabGroupLayoutNode } from './tab-groups/tab-types'
-import type {
-  TerminalGrid,
-  TerminalPaneLayoutNode,
-  TerminalPaneSplitDirection
-} from './terminal-tab-types'
+import type * as TerminalLayout from './terminal-tab-types'
 import type { PaneSide } from './terminal-topology/terminal-pane-tree'
 import type { SplitRatioIntent } from './tab-groups/split-ratio-intents'
 import type { PaneOutcomeChanges } from './commands/workspace-layout-pane-outcomes'
@@ -55,7 +51,7 @@ export type LayoutCommand =
       type: 'splitPane'
       tabId: string
       leafId: string
-      direction: TerminalPaneSplitDirection
+      direction: TerminalLayout.TerminalPaneSplitDirection
       ratio?: number
       /** The new pane's id, when the runtime minted it before applying. */
       newLeafId?: string
@@ -100,7 +96,7 @@ export type LayoutCommand =
   | (On & {
       type: 'setPaneRatios'
       tabId: string
-      root?: TerminalPaneLayoutNode
+      root?: TerminalLayout.TerminalPaneLayoutNode
       ratios?: SplitRatioIntent[]
     })
   | (On & { type: 'movePane'; tabId: string; leafId: string; targetLeafId: string; side: PaneSide })
@@ -117,7 +113,7 @@ export type LayoutCommand =
   | (On & { type: 'renameTab'; tabId: string } & TabTitle)
   | (On & { type: 'renamePane'; tabId: string; leafId: string; title: string | null })
   /** Main only: the grid the pane's terminal was last sized to, which a restart starts it at. */
-  | (On & { type: 'setPaneGrid'; tabId: string; leafId: string; grid: TerminalGrid })
+  | (On & { type: 'setPaneGrid'; tabId: string; leafId: string; grid: TerminalLayout.TerminalGrid })
   /** Main only: unbinds the pane from `ptyId` if it still names it, stopping nothing. */
   | (On & { type: 'releasePaneTerminal'; tabId: string; leafId: string; ptyId: string })
   | (On & {

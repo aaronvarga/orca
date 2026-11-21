@@ -5,10 +5,7 @@ import {
 } from '@/lib/workspace/ownership/resolve-owner'
 import { callLayoutApply } from '@/runtime/workspace-layout/commands/layout-apply-call'
 import { holdTabPaneTree } from '@/runtime/workspace-layout/intents/layout-owner-pane-tree-holds'
-import {
-  holdDrawnTabs,
-  type DrawnTabHold
-} from '@/runtime/workspace-layout/intents/layout-owner-drawn-tab-holds'
+import * as drawnTabs from '@/runtime/workspace-layout/intents/layout-owner-drawn-tab-holds'
 import {
   holdsPaneTree,
   releaseLayoutApplyHolds
@@ -192,7 +189,7 @@ export type LayoutApplyHandlers = {
 }
 
 /** The tabs, by workspace, that a command the window already drew changes. */
-function drawnTabHolds(worktreeId: string, command: WindowLayoutCommand): DrawnTabHold[] {
+function drawnTabHolds(worktreeId: string, command: WindowLayoutCommand): drawnTabs.DrawnTabHold[] {
   switch (command.type) {
     case 'closeTabs':
       return [{ workspace: worktreeId, ids: command.tabIds }]
@@ -254,7 +251,7 @@ export function sendLayoutApply(
   const hold =
     holdsPaneTree(command.type) && 'tabId' in command ? holdTabPaneTree(command.tabId) : null
   const tabHolds = handlers.drawn ? drawnTabHolds(worktreeId, command) : []
-  const tabHold = tabHolds.length > 0 ? holdDrawnTabs(tabHolds) : null
+  const tabHold = tabHolds.length > 0 ? drawnTabs.holdDrawnTabs(tabHolds) : null
   const release = releaseLayoutApplyHolds(command.type, [hold, tabHold])
   const target: RuntimeClientTarget = server
     ? { kind: 'environment', environmentId: server.route.environmentId }

@@ -299,13 +299,10 @@ export abstract class OrcaRuntimeWithPreservedBranchCleanup extends RuntimeAgent
         },
         ...target
       ),
-    cleanupRemovedFolderWorkspaceState: (worktreeId): void | Promise<void> => {
-      // Retire runs after the awaited store cleanup, so the delete cannot
-      // report before the Codex pretrust purge lands; failures degrade here.
-      const cleanup = this.store && this.removeWorktreeMetadataAndHistory(this.store, worktreeId)
-      return Promise.resolve(cleanup).then(() => {
-        this.dropAgentStatusForRemovedWorktreeFn?.(worktreeId, ALL_EXECUTION_HOSTS_SCOPE)
-      })
+    cleanupRemovedFolderWorkspaceState: async (worktreeId): Promise<void> => {
+      // Await cleanup before reporting removal, including the Codex pretrust purge.
+      await (this.store && this.removeWorktreeMetadataAndHistory(this.store, worktreeId))
+      this.dropAgentStatusForRemovedWorktreeFn?.(worktreeId, ALL_EXECUTION_HOSTS_SCOPE)
     },
     emitWorktreeLifecycle: (event) => this.worktreeLifecycleEvents.emit(event)
   })

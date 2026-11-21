@@ -100,10 +100,8 @@ export function TabBarQuickCommandsMenu({
     }
     return activeValue
   }, [commandValueOverride, filteredVisibleCommands, mostRecent, query])
-  const selectedCommand = useMemo(
-    () => filteredVisibleCommands.find((entry) => entry.key === commandValue) ?? null,
-    [commandValue, filteredVisibleCommands]
-  )
+  const selectedCommand =
+    filteredVisibleCommands.find((entry) => entry.key === commandValue) ?? null
   const cancelFocusFrame = useCallback((): void => {
     if (focusFrameRef.current !== null) {
       cancelAnimationFrame(focusFrameRef.current)

@@ -19,7 +19,7 @@ import {
 } from '@/components/native-chat/composer/focus/native-chat-composer-mount'
 import '@/components/native-chat/composer/focus/use-native-chat-composer-reveal-focus'
 import { captureNativeChatComposerFocusIntent } from '@/components/native-chat/composer/focus/native-chat-composer-focus-intent'
-import { openBackgroundDeclinedTerminal } from '@/lib/workspace/creation/worktree-creation-background-mount'
+import * as worktreeMount from '@/lib/workspace/creation/worktree-creation-background-mount'
 import { settleAgentTabLaunch } from '@/lib/agent-session/launch/new-tab/launch-agent-in-new-tab-host-agents'
 import {
   captureNativeChatStagedInput,
@@ -203,21 +203,13 @@ export async function launchStructuredWorktreeSession(
       plan,
       hooks: { signal: abandoned.signal },
       declinedTerminal: { agentArgs: args.request.launchInputs?.agentArgs },
-      target: {
-        worktreeId: args.worktreeId,
-        executionHostId:
-          request.workspaceRunContext?.hostId ??
-          request.executionHostId ??
-          (request.launchLocation?.kind === 'current-checkout'
-            ? request.launchLocation.hostId
-            : undefined)
-      },
+      target: worktreeMount.structuredWorktreeTarget(request, args.worktreeId),
       activate: args.shouldActivateOnCompletion,
       ...(args.shouldActivateOnCompletion
         ? {}
         : {
             onHostDeclined: (host) =>
-              openBackgroundDeclinedTerminal(
+              worktreeMount.openBackgroundDeclinedTerminal(
                 { ...args, request },
                 host,
                 pending?.heldChatMessage,

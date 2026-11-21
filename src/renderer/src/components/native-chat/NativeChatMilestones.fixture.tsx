@@ -1,5 +1,5 @@
-import { questionMessages, questionReceipts } from './native-chat-session-questions-fixture-data'
-import { resourceMessages } from './native-chat-session-resources-fixture-data'
+import { questionMessages, questionReceipts } from './native-chat-session-questions.test-fixture'
+import { resourceMessages } from './native-chat-session-resources.test-fixture'
 import {
   Layout,
   list,

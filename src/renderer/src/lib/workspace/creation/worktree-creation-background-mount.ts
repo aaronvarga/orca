@@ -73,3 +73,15 @@ export function openBackgroundDeclinedTerminal(
   mountCreatedWorktreeStartupTabsInBackground(args.worktreeId)
   return { opened: tabId !== null }
 }
+
+export function structuredWorktreeTarget(request: WorktreeCreationRequest, worktreeId: string) {
+  return {
+    worktreeId,
+    executionHostId:
+      request.workspaceRunContext?.hostId ??
+      request.executionHostId ??
+      (request.launchLocation?.kind === 'current-checkout'
+        ? request.launchLocation.hostId
+        : undefined)
+  }
+}

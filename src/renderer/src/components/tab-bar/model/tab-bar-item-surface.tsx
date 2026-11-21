@@ -40,6 +40,7 @@ export type TabBarItemSurfaceRuntime = Pick<
 export function renderTabBarItems({
   items,
   props,
+  activeVisibleTabId = props.activeTabId,
   runtime,
   actions,
   dropIndicatorByVisibleId,
@@ -51,6 +52,7 @@ export function renderTabBarItems({
   /** Mounted runs of `items`; gaps render as fixed-width spacers. */
   segments: readonly TabStripSegment[]
   props: TabBarItemSurfaceProps
+  activeVisibleTabId?: string | null
   runtime: TabBarItemSurfaceRuntime
   actions: TabBarItemActions
   dropIndicatorByVisibleId: Map<string, DropIndicator>
@@ -96,7 +98,7 @@ export function renderTabBarItems({
       return activeTabType === 'simulator' && item.id === activeSimulatorTabId
     }
     if (item.type === 'agent-session' || item.type === 'room') {
-      return activeTabType === 'agent-session' && item.id === activeTabId
+      return activeTabType === 'agent-session' && item.id === activeVisibleTabId
     }
     return (activeTabType === 'editor' || activeTabType === 'simulator') && activeFileId === item.id
   }

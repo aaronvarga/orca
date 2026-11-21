@@ -21,6 +21,45 @@ import {
 } from '../session-actions/agent-session-favorites'
 import { resolveFavoriteAgentSession } from '../session-actions/resolve-favorite-agent-session'
 
+async function openFavorite(
+  favorite: AgentSessionFavorite,
+  onOpen: (session: AiVaultSession, favorite: AgentSessionFavorite) => void | Promise<void>,
+  setOpening: (key: string | null) => void,
+  t: ReturnType<typeof useTranslate>
+): Promise<void> {
+  setOpening(agentSessionFavoriteKey(favorite))
+  try {
+    if (favorite.structuredSession) {
+      const target = structuredAgentSessionTargetForHost(favorite.executionHostId)
+      if (!target) {
+        throw new Error(
+          t('aiVault.favorites.hostUnavailable', 'This session’s host is unavailable.')
+        )
+      }
+      await activateAiVaultStructuredSession(favorite, undefined, target)
+      return
+    }
+    const session = await resolveFavoriteAgentSession(favorite, window.api.aiVault.listSessions)
+    if (!session) {
+      throw new Error(
+        t(
+          'aiVault.favorites.missing',
+          'Could not find this session on its host. Refresh Agents and try again.'
+        )
+      )
+    }
+    await onOpen(session, favorite)
+  } catch (error) {
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : t('aiVault.favorites.openFailed', 'Could not reopen this session.')
+    )
+  } finally {
+    setOpening(null)
+  }
+}
+
 export function AgentSessionFavorites({
   onOpen,
   hosts
@@ -31,40 +70,9 @@ export function AgentSessionFavorites({
   const t = useTranslate()
   const favorites = useAgentSessionFavorites()
   const [opening, setOpening] = useState<string | null>(null)
-  const open = async (favorite: AgentSessionFavorite) => {
-    if (opening) {
-      return
-    }
-    setOpening(agentSessionFavoriteKey(favorite))
-    try {
-      if (favorite.structuredSession) {
-        const target = structuredAgentSessionTargetForHost(favorite.executionHostId)
-        if (!target) {
-          throw new Error(
-            t('aiVault.favorites.hostUnavailable', 'This session’s host is unavailable.')
-          )
-        }
-        await activateAiVaultStructuredSession(favorite, undefined, target)
-        return
-      }
-      const session = await resolveFavoriteAgentSession(favorite, window.api.aiVault.listSessions)
-      if (!session) {
-        throw new Error(
-          t(
-            'aiVault.favorites.missing',
-            'Could not find this session on its host. Refresh Agents and try again.'
-          )
-        )
-      }
-      await onOpen(session, favorite)
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t('aiVault.favorites.openFailed', 'Could not reopen this session.')
-      )
-    } finally {
-      setOpening(null)
+  const open = (favorite: AgentSessionFavorite): void => {
+    if (!opening) {
+      void openFavorite(favorite, onOpen, setOpening, t)
     }
   }
   if (favorites.length === 0) {
