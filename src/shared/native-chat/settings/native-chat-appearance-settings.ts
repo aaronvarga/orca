@@ -1,3 +1,4 @@
+import type { NativeChatMilestonePanelPreferences } from './native-chat-milestone-panel'
 import type { NativeChatProviderChoices } from './native-chat-providers'
 
 export type NativeChatAppearanceSettings = {
@@ -18,6 +19,7 @@ export type NativeChatAppearanceSettings = {
 export type AgentDefaultSurface = 'chat' | 'terminal'
 
 export type NativeChatGlobalSettings = {
+  nativeChatMilestonePanels?: Record<string, NativeChatMilestonePanelPreferences>
   /** Unlisted agents follow this default; absent means terminal. */
   agentDefaultSurface?: AgentDefaultSurface
   nativeChatAppearance?: NativeChatAppearanceSettings

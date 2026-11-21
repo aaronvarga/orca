@@ -28,7 +28,12 @@ export default function NativeChatView(props: NativeChatViewProps): React.JSX.El
             visible={props.isVisible}
           >
             <BotChatRoom tabId={props.tabId} sessionId={props.sessionId}>
-              <NativeChatMilestoneVisibilityProvider enabled={props.agent === 'claude' || props.agent === 'codex'}><NativeChatStructuredSession {...props} /></NativeChatMilestoneVisibilityProvider>
+              <NativeChatMilestoneVisibilityProvider
+                sessionId={props.sessionId}
+                enabled={props.agent === 'claude' || props.agent === 'codex'}
+              >
+                <NativeChatStructuredSession {...props} />
+              </NativeChatMilestoneVisibilityProvider>
             </BotChatRoom>
           </NativeChatWorkersProvider>
         </NativeChatTabTranscriptScope>

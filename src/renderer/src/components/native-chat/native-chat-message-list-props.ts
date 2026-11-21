@@ -1,3 +1,5 @@
+import type { BotChatIdentity } from '../bots/use-bot-chat-identity'
+import type { NativeChatBotKickoffView } from './native-chat-bot-kickoff-view'
 import type { RuntimeFileOperationArgs } from '@/runtime/files/runtime-file-client-types'
 import type {
   AgentJournalRenderItem,
@@ -17,6 +19,8 @@ import type { NativeChatRailOutlineEntry } from './viewport/rail/native-chat-mes
 import type { useNativeChatMessageListHandle } from './messages/actions/use-native-chat-reveal-latest'
 
 export type NativeChatMessageListProps = {
+  turnBot?: BotChatIdentity | null
+  botHome?: NativeChatBotKickoffView
   ref?: Parameters<typeof useNativeChatMessageListHandle>[0]
   session: NativeChatLiveSession
   structuredAttachments?: boolean

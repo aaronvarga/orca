@@ -1,3 +1,4 @@
+import { ApprovalCard } from '../beautiful-ui/ApprovalCard'
 import { ImeTextarea } from '@/lib/text-input/ime/ime-text-field'
 import { useRef, useState, type RefObject } from 'react'
 import { Check, Pencil } from 'lucide-react'
@@ -275,7 +276,7 @@ export function NativeChatQuestionCard({
       tabIndex={-1}
       // Capped against the chat pane (not the window) so the words that led to the question stay in view.
       className={cn(
-        'flex max-h-[max(14rem,min(32rem,50%))] min-h-0 shrink-0 flex-col bg-chat-pane focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+        'flex max-h-[75cqh] min-h-0 shrink-0 flex-col bg-chat-pane focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
         look?.frameClassName
       )}
       aria-busy={isSubmitting}
@@ -288,10 +289,10 @@ export function NativeChatQuestionCard({
 
         {/* One 14px gutter (px-3.5) for the question, option tiles and footer, so their edges line up.
             The box scrolls as a last resort, when a tall typed answer outgrows the pane's cap. */}
-        <div
+        <ApprovalCard
           data-native-chat-question-surface
           className={cn(
-            'flex min-h-0 flex-col overflow-y-auto rounded-[14px] border border-question-card-border bg-chat-composer-surface shadow-sm scrollbar-sleek',
+            'flex min-h-0 flex-col max-w-full overflow-y-auto scrollbar-sleek',
             look?.surfaceClassName
           )}
         >
@@ -316,7 +317,7 @@ export function NativeChatQuestionCard({
             />
 
             {/* Option rings are inset, so the scroll clip cannot cut them. */}
-            <div className="flex flex-col gap-1.5 px-3.5 pb-3">
+            <div className="flex flex-col gap-2 px-4 pb-3">
               {q.options.map((opt, i) => (
                 <NativeChatQuestionOption
                   key={`${i}:${opt.label}`}
@@ -335,7 +336,7 @@ export function NativeChatQuestionCard({
           </div>
           <div
             className={cn(
-              'flex shrink-0 gap-2.5 px-3.5 pb-3.5',
+              'flex shrink-0 justify-end gap-2.5 border-t border-border bg-muted/30 px-4 py-3',
               freeTextInput?.multiline ? 'items-end' : 'items-center'
             )}
           >
@@ -432,7 +433,7 @@ export function NativeChatQuestionCard({
               onConfirm={() => confirm()}
             />
           </div>
-        </div>
+        </ApprovalCard>
 
         {total > 1 && !stepsInSurface ? (
           <p className="mt-2 shrink-0 text-right text-xs text-muted-foreground">

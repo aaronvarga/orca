@@ -12,7 +12,7 @@ import { useAppStore } from '@/store/index'
 import { structuredChatTabById } from '@/lib/agent-session/tab-identity/structured-chat-tab-index'
 import { useStructuredChatTabConversationName } from '@/runtime/native-chat/naming/structured-conversation-name'
 import { AgentSessionContinuationDialog } from '@/components/agent-session-continuation/AgentSessionContinuationDialog'
-import { buildAgentSessionContinuationPrompt } from '@/lib/agent-session/context/agent-session-continuation'
+import { canPrepareAgentSessionContinuation } from '@/lib/agent-session/context/agent-session-continuation'
 import type { AgentSessionContinuationRequest } from '@/lib/agent-session/context/agent-session-continuation'
 import { ClaudeSwitcherMenu } from '@/components/status-bar/accounts/ClaudeSwitcherMenu'
 import { ProviderAccountChatButton } from '@/components/status-bar/accounts/ProviderAccountChatButton'
@@ -165,12 +165,17 @@ export function NativeChatUsageLimitActionsProvider({
       sourceWorkingDirectory: directory.worktreePath,
       ...context
     }
-    if (buildAgentSessionContinuationPrompt(source, 'focused')) {
+    if (canPrepareAgentSessionContinuation(source)) {
       setPrepared({
         key: current.key,
         onStarted,
         request: {
           source,
+          handoffSource: {
+            tabId: pane.tabId,
+            sessionId: pane.sessionId,
+            worktreeId: directory.worktreeId
+          },
           worktreeId: directory.worktreeId,
           workspacePath: directory.worktreePath,
           initialCwd: directory.worktreePath,
@@ -188,6 +193,7 @@ export function NativeChatUsageLimitActionsProvider({
     pane.agent,
     pane.groupId,
     pane.sessionId,
+    pane.tabId,
     pane.target,
     recovery.epoch,
     chatTab,

@@ -37,7 +37,7 @@ export function NativeChatTranscriptViewport({
   return (
     <NativeChatDisclosureContext.Provider value={disclosures}>
       <NativeChatForwardedGestureContext.Provider value={forwardedGesture}>
-        <div className="relative min-h-0 flex-1">
+        <div className="relative min-h-0 min-w-0 flex-1">
           <div
             ref={scrollRef}
             {...scrollerProps}

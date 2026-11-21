@@ -1,9 +1,9 @@
 import { hasBinaryFileExtension } from '../../file-preview/binary-file-extensions'
 import { AGENT_SESSION_ATTACHMENTS_DIR_NAME } from '../../agent-session/agent-session-attachments'
 
-export function isCommittedChatAttachmentCandidate(path: string): boolean {
+export function isCommittedChatAttachmentCandidate(path: string, includeBinary = false): boolean {
   return (
-    !hasBinaryFileExtension(path) &&
+    (includeBinary || !hasBinaryFileExtension(path)) &&
     /^(?:\/|[a-z]:[\\/]|\\\\)/i.test(path) &&
     new RegExp(
       `(?:^|[\\\\/])${AGENT_SESSION_ATTACHMENTS_DIR_NAME}[\\\\/][0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}[\\\\/][^\\\\/]+$`,
@@ -57,10 +57,12 @@ export function chatTextAttachmentName(path: string, pastedText = 'Pasted text')
   return /^orca-paste-.*\.txt$/.test(name) ? pastedText : name
 }
 
-export function nativeChatTextAttachmentPaths(text: string): string[] {
+export function nativeChatTextAttachmentPaths(text: string, includeBinary = false): string[] {
   return [
     ...new Set(
-      nativeChatTextAttachmentParts(text, true).flatMap((part) => (part.path ? [part.path] : []))
+      nativeChatTextAttachmentParts(text, true, (path) =>
+        isCommittedChatAttachmentCandidate(path, includeBinary)
+      ).flatMap((part) => (part.path ? [part.path] : []))
     )
   ]
 }

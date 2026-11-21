@@ -30,7 +30,7 @@ export function NativeChatSurface({
       {...surface.rootProps}
       className={cn(
         NATIVE_CHAT_APPEARANCE_ROOT_CLASS,
-        'flex h-full min-h-0 w-full flex-col focus:outline-none'
+        '@container/milestones flex h-full min-h-0 w-full flex-col [container-type:size] focus:outline-none'
       )}
       style={surface.appearance}
       data-native-chat-scheme={surface.appearance.colorScheme}

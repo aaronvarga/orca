@@ -1,3 +1,4 @@
+import { ApprovalCard } from '../beautiful-ui/ApprovalCard'
 import { SecuritySurface } from '@/components/ui/security-surface'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { ChevronDown, Loader2, ShieldQuestion, X } from 'lucide-react'
@@ -139,7 +140,7 @@ export function NativeChatApprovalCard({
               !stacked && 'h-full min-h-0 max-h-full'
             )}
           >
-            <div
+            <ApprovalCard
               ref={cardRef}
               data-native-chat-prompt-card-focus={shouldFocus || undefined}
               data-native-chat-approval-card="true"
@@ -154,10 +155,8 @@ export function NativeChatApprovalCard({
                 }
               }}
               className={cn(
-                'flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-lg border bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                quiet
-                  ? 'gap-1.5 border-border px-2.5 pt-1.5 pb-2'
-                  : 'gap-2 border-input px-4 py-3 shadow-xs'
+                'flex min-h-0 w-full flex-1 flex-col max-w-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                quiet ? 'gap-1.5 border-border px-2.5 pt-1.5 pb-2' : 'gap-2 px-4 py-3'
               )}
             >
               <div className={cn('flex shrink-0 items-start', quiet ? 'min-h-6 gap-1.5' : 'gap-2')}>
@@ -390,7 +389,7 @@ export function NativeChatApprovalCard({
                   </button>
                 ) : null}
               </div>
-            </div>
+            </ApprovalCard>
           </div>
         </div>
       </div>

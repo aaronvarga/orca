@@ -1,3 +1,7 @@
+import { NativeChatSessionQuestions } from '../../resources/NativeChatSessionQuestions'
+import type { SessionQuestion } from '../../../../../../shared/native-chat/session-questions'
+import { NativeChatSessionResources } from '../../resources/NativeChatSessionResources'
+import type { SessionResources } from '../../../../../../shared/native-chat/session-resources'
 import { useContext } from 'react'
 import { flattenAgentChildRowModels } from '../../../../../../shared/agent-status/presentation/agent-child-row-model'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -5,47 +9,48 @@ import {
   NativeChatAgentVisualizer,
   NativeChatAgentVisualizerContext
 } from '../../subagents/NativeChatAgentVisualizer'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/class-names'
 import { Badge } from '@/components/ui/badge'
 import { milestoneOverallEta } from '../../../../../../shared/native-chat/input/task-lists/native-chat-milestone-eta'
 import { NativeChatMilestoneSummary } from './NativeChatMilestoneSummary'
-import { cn } from '@/lib/class-names'
 import { useNativeChatMilestoneVisibility } from './NativeChatMilestoneVisibility'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { NativeChatMilestoneGeneration } from './NativeChatMilestoneGeneration'
 import {
-  ChevronRight,
+  ChevronDown,
+  Files,
   ListChecks,
+  MessageSquareText,
   PanelBottom,
-  PanelRight,
-  Maximize2,
-  Minimize2
+  PanelRight
 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Button } from '@/components/ui/button'
 import { useTranslate } from '@/i18n/use-translate'
-import {
-  MAX_NATIVE_CHAT_DISCLOSURES,
-  useNativeChatDisclosure
-} from '../../messages/disclosure/native-chat-disclosure-store'
+import { useNativeChatMilestonePreferences } from './use-native-chat-milestone-preferences'
 import type { NativeChatMilestones } from '../../../../../../shared/native-chat/input/task-lists/native-chat-milestones'
 import { Checklist } from './NativeChatTaskList'
-
-const rememberedOpen = new Map<string, boolean>()
 
 export function NativeChatMilestonePanel({
   list,
   sessionId,
   working,
   waitingForInput,
-  view,
-  onViewChange
+  resources,
+  questions,
+  historyIncomplete,
+  loadingEarlier,
+  onLoadEarlier
 }: {
   list: NativeChatMilestones | null
   sessionId: string
   working: boolean
   waitingForInput?: boolean
-  view?: string
-  onViewChange?: (value: string) => void
+  resources: SessionResources
+  questions: SessionQuestion[]
+  historyIncomplete?: boolean
+  loadingEarlier?: boolean
+  onLoadEarlier?: () => void
 }) {
   const t = useTranslate()
   const agents = useContext(NativeChatAgentVisualizerContext)
@@ -53,42 +58,65 @@ export function NativeChatMilestonePanel({
     (row) => row.kind === 'agent'
   ).length
   const visibility = useNativeChatMilestoneVisibility()
-  const fullHeight = visibility?.fullHeight === true && !visibility.bottom
-  const disclosure = useNativeChatDisclosure(
-    `milestones:${sessionId}`,
-    rememberedOpen.get(sessionId) ?? true
-  )
-  const setOpen = (open: boolean) => {
-    rememberedOpen.delete(sessionId)
-    rememberedOpen.set(sessionId, open)
-    const oldest = rememberedOpen.keys().next().value
-    if (rememberedOpen.size > MAX_NATIVE_CHAT_DISCLOSURES && oldest !== undefined) {
-      rememberedOpen.delete(oldest)
-    }
-    disclosure.setOpen(open)
+  const fallback = useNativeChatMilestonePreferences(sessionId)
+  const panel = visibility?.panel ?? fallback
+  const filesView = panel.preferences.view === 'resources'
+  const questionsView = panel.preferences.view === 'questions'
+  const progressView = !filesView && !questionsView
+  const resourceCount =
+    resources.links.length +
+    resources.outputs.length +
+    resources.uploads.length +
+    resources.sources.length +
+    resources.changedFiles.length
+  const right = panel.preferences.dock === 'right'
+  const dockLabel = right
+    ? t('components.native-chat.milestones.dockBottom', 'Move milestones to the bottom')
+    : t('components.native-chat.milestones.dockRight', 'Move milestones to the right')
+  const disclosure = {
+    open: panel.preferences.expanded,
+    setOpen: (expanded: boolean) => panel.change({ expanded })
   }
+  const current =
+    list?.tasks.find((task) => task.status === 'in_progress') ??
+    list?.tasks.find((task) => task.status !== 'completed')
   const overall = milestoneOverallEta(list?.tasks ?? [])
   const completed = list?.tasks.filter((task) => task.status === 'completed').length ?? 0
   return (
-    <Collapsible asChild open={disclosure.open} onOpenChange={setOpen}>
+    <Collapsible asChild open={disclosure.open} onOpenChange={disclosure.setOpen}>
       <div
+        data-native-chat-milestone-panel=""
         className={cn(
-          'flex max-h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card text-foreground shadow-xs',
-          fullHeight && disclosure.open && '@min-[1000px]/milestones:h-full'
+          '@container/progress flex max-h-full min-h-0 flex-col overflow-hidden text-foreground',
+          right &&
+            '@min-[1000px]/milestones:rounded-xl @min-[1000px]/milestones:border @min-[1000px]/milestones:border-border @min-[1000px]/milestones:bg-card @min-[1000px]/milestones:shadow-xs'
         )}
       >
         <div className="flex shrink-0 items-center">
           <CollapsibleTrigger asChild>
             <button
               type="button"
-              className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1 text-left text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              className="flex min-h-8 min-w-0 flex-1 items-center gap-2 px-3 py-1 text-left text-xs text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
             >
-              <ListChecks aria-hidden className="size-4 shrink-0" />
-              <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1">
-                <span className="font-medium">
-                  {t('components.native-chat.milestones.title', 'Milestones')}
+              {questionsView ? (
+                <MessageSquareText aria-hidden className="size-3.5 shrink-0" />
+              ) : filesView ? (
+                <Files aria-hidden className="size-3.5 shrink-0" />
+              ) : (
+                <ListChecks aria-hidden className="size-3.5 shrink-0" />
+              )}
+              <span className="flex min-w-0 flex-1 items-center gap-2">
+                <span className="shrink-0 font-semibold text-foreground">
+                  {questionsView
+                    ? t('components.native-chat.questions.tab', 'Q&A')
+                    : filesView
+                      ? t('components.native-chat.resources.title', 'Output')
+                      : t('components.native-chat.milestones.title', 'Milestones')}
                 </span>
-                {overall.eta ? (
+                {progressView && !disclosure.open && current ? (
+                  <span className="min-w-0 flex-1 truncate">{current.content}</span>
+                ) : null}
+                {progressView && overall.eta ? (
                   <Badge
                     variant="agentEta"
                     title={t('components.native-chat.milestones.remaining', 'Agent time remaining')}
@@ -98,81 +126,59 @@ export function NativeChatMilestonePanel({
                   </Badge>
                 ) : null}
               </span>
-              {list ? (
+              {progressView && list ? (
                 <span className="text-xs tabular-nums text-muted-foreground">
                   {completed}/{list.tasks.length}
                 </span>
               ) : null}
-              <ChevronRight
+              <ChevronDown
                 aria-hidden
-                className={`size-3.5 shrink-0 ${disclosure.open ? 'rotate-90' : ''}`}
+                className={`size-3.5 shrink-0 ${disclosure.open ? 'rotate-180' : ''}`}
               />
             </button>
           </CollapsibleTrigger>
-          {list ? <NativeChatMilestoneGeneration regenerate compact /> : null}
-          {visibility ? (
-            <div className="hidden shrink-0 items-center gap-0.5 pr-1 @min-[1000px]/milestones:flex">
-              <MilestonePanelButton
-                label={
-                  visibility.bottom
-                    ? t(
-                        'components.native-chat.milestones.dockRight',
-                        'Move milestones to the right'
-                      )
-                    : t(
-                        'components.native-chat.milestones.dockBottom',
-                        'Move milestones to the bottom'
-                      )
-                }
-                onClick={visibility.toggleDock}
+          {progressView && list ? <NativeChatMilestoneGeneration regenerate compact /> : null}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="mr-1"
+                aria-label={dockLabel}
+                onClick={() => panel.change({ dock: right ? 'bottom' : 'right' })}
+                onMouseDown={(event) => event.preventDefault()}
               >
-                {visibility.bottom ? (
-                  <PanelRight className="size-3.5" />
-                ) : (
-                  <PanelBottom className="size-3.5" />
-                )}
-              </MilestonePanelButton>
-              {!visibility.bottom ? (
-                <MilestonePanelButton
-                  label={
-                    fullHeight
-                      ? t(
-                          'components.native-chat.milestones.restoreHeight',
-                          'Restore milestone height'
-                        )
-                      : t(
-                          'components.native-chat.milestones.maximizeHeight',
-                          'Maximize milestone height'
-                        )
-                  }
-                  pressed={fullHeight}
-                  onClick={() => {
-                    if (!fullHeight) {
-                      setOpen(true)
-                    }
-                    visibility.toggleFullHeight()
-                  }}
-                >
-                  {fullHeight ? (
-                    <Minimize2 className="size-3.5" />
-                  ) : (
-                    <Maximize2 className="size-3.5" />
-                  )}
-                </MilestonePanelButton>
-              ) : null}
-            </div>
-          ) : null}
+                {right ? <PanelBottom className="size-3.5" /> : <PanelRight className="size-3.5" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={4}>
+              {dockLabel}
+            </TooltipContent>
+          </Tooltip>
         </div>
         <CollapsibleContent asChild>
           <div
             className={cn(
               'max-h-64 min-h-0 space-y-2 overflow-y-auto border-t border-border p-1 scrollbar-sleek',
-              fullHeight
-                ? '@min-[1000px]/milestones:max-h-none @min-[1000px]/milestones:flex-1'
-                : '@min-[1000px]/milestones:max-h-96'
+              right && '@min-[1000px]/milestones:max-h-none @min-[1000px]/milestones:flex-1'
             )}
           >
-            <Tabs defaultValue="milestones" value={view} onValueChange={onViewChange}>
+            <Tabs
+              value={panel.preferences.view}
+              onValueChange={(view) =>
+                panel.change({
+                  view:
+                    view === 'questions'
+                      ? 'questions'
+                      : view === 'resources'
+                        ? 'resources'
+                        : view === 'agents'
+                          ? 'agents'
+                          : 'milestones'
+                })
+              }
+            >
               <TabsList
                 size="sm"
                 variant="line"
@@ -181,11 +187,27 @@ export function NativeChatMilestonePanel({
               >
                 <TabsTrigger value="milestones">
                   {t('components.native-chat.milestones.title', 'Milestones')}
-                  <Badge variant="count">{list?.tasks.length ?? 0}</Badge>
+                  <Badge variant="count" className="hidden @min-[360px]/progress:inline-flex">
+                    {list?.tasks.length ?? 0}
+                  </Badge>
                 </TabsTrigger>
                 <TabsTrigger value="agents">
                   {t('components.native-chat.agents.title', 'Agents')}
-                  <Badge variant="count">{agentCount}</Badge>
+                  <Badge variant="count" className="hidden @min-[360px]/progress:inline-flex">
+                    {agentCount}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="resources">
+                  {t('components.native-chat.resources.tab', 'Output')}
+                  <Badge variant="count" className="hidden @min-[360px]/progress:inline-flex">
+                    {resourceCount}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="questions">
+                  {t('components.native-chat.questions.tab', 'Q&A')}
+                  <Badge variant="count" className="hidden @min-[360px]/progress:inline-flex">
+                    {questions.length}
+                  </Badge>
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="milestones">
@@ -210,6 +232,20 @@ export function NativeChatMilestonePanel({
                   ) : null}
                 </div>
               </TabsContent>
+              <TabsContent value="questions">
+                <NativeChatSessionQuestions
+                  questions={questions}
+                  loadingEarlier={loadingEarlier}
+                  onLoadEarlier={onLoadEarlier}
+                  historyIncomplete={historyIncomplete}
+                />
+              </TabsContent>
+              <TabsContent value="resources">
+                <NativeChatSessionResources
+                  resources={resources}
+                  historyIncomplete={historyIncomplete}
+                />
+              </TabsContent>
               <TabsContent value="agents">
                 <NativeChatAgentVisualizer />
               </TabsContent>
@@ -218,38 +254,5 @@ export function NativeChatMilestonePanel({
         </CollapsibleContent>
       </div>
     </Collapsible>
-  )
-}
-
-function MilestonePanelButton({
-  label,
-  pressed,
-  onClick,
-  children
-}: {
-  label: string
-  pressed?: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          aria-label={label}
-          aria-pressed={pressed}
-          onClick={onClick}
-          onMouseDown={(event) => event.preventDefault()}
-        >
-          {children}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" sideOffset={4}>
-        {label}
-      </TooltipContent>
-    </Tooltip>
   )
 }

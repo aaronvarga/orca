@@ -211,12 +211,13 @@ export function NativeChatBackgroundTasksStatus(props: {
   return (
     <div
       data-native-chat-background-tasks="true"
+      data-native-chat-composer-attachment=""
       className="group/tasks shrink-0 bg-chat-pane px-3 pt-2 sm:px-4"
     >
-      <div className="mx-auto w-full max-w-(--chat-content-max-width) [[data-native-chat-background-tasks]:has(+[data-native-chat-thread-goal])_&]:px-2">
+      <div className="mx-auto w-full max-w-(--chat-content-max-width) [[data-native-chat-background-tasks]:has(+[data-native-chat-composer-attachment])_&]:px-2">
         <div
           ref={stripRef}
-          className="overflow-hidden rounded-xl border border-border bg-card text-xs text-muted-foreground shadow-xs [[data-native-chat-background-tasks]:has(+[data-native-chat-thread-goal])_&]:rounded-b-none [[data-native-chat-background-tasks]:has(+[data-native-chat-thread-goal])_&]:shadow-none"
+          className="overflow-hidden rounded-xl border border-border bg-card text-xs text-muted-foreground shadow-xs [[data-native-chat-background-tasks]:has(+[data-native-chat-composer-attachment])_&]:rounded-b-none [[data-native-chat-background-tasks]:has(+[data-native-chat-composer-attachment])_&]:shadow-none"
         >
           <div className="flex h-8 items-center px-1.5">
             <button

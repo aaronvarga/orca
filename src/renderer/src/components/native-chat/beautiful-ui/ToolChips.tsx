@@ -19,7 +19,7 @@ export function ToolChips({
   children: ReactNode
 }): React.JSX.Element {
   return (
-    <div className="min-w-0 py-1">
+    <div className="-my-1 min-w-0">
       <div className="flex min-w-0 items-center gap-1">
         <button
           type="button"
@@ -27,7 +27,7 @@ export function ToolChips({
           aria-live="polite"
           data-native-chat-tool-run-state={live ? 'live' : 'settled'}
           onClick={() => onOpenChange(!open)}
-          className="group/tool-run flex min-h-7 min-w-0 max-w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-xs text-chat-foreground-faint transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none"
+          className="group/tool-run flex min-h-6 min-w-0 max-w-full items-center gap-1.5 rounded-md px-1.5 py-0.5 text-left font-mono text-xs text-chat-foreground-faint transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none"
         >
           <ChevronRight
             aria-hidden

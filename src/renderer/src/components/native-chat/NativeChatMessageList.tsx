@@ -1,5 +1,5 @@
+import type { NativeChatMessageListProps } from './native-chat-message-list-props'
 import { NativeChatMilestoneLayout } from './tools/tasks/NativeChatMilestoneLayout'
-import type { BotChatIdentity } from '../bots/use-bot-chat-identity'
 import { nativeChatTranscriptOuterClass } from './appearance/native-chat-appearance-style'
 import { NativeChatTranscriptViewport } from './NativeChatTranscriptViewport'
 import { NativeChatTranscriptColumn } from './NativeChatTranscriptColumn'
@@ -54,9 +54,7 @@ import { useNativeChatTurnOpenedPullRequests } from './tools/pull-requests/use-n
 import { NativeChatPullRequestChangeContext } from './tools/pull-requests/NativeChatOpenedPullRequestCard'
 import { transcriptTailRow } from './conversation/slots/native-chat-transcript-tail-row'
 import { useRereadWorkersOnNewRows } from './native-chat-workers-context'
-import type { NativeChatAwaitingInput } from '../../../../shared/native-chat/transcript/turns/native-chat-terminal-turn'
 import { NativeChatBotHomeScope } from './NativeChatBotHomeScope'
-import type { NativeChatBotKickoffView } from './native-chat-bot-kickoff-view'
 
 const NO_SLOTS: readonly NativeChatTranscriptSlot[] = []
 export function NativeChatMessageList({
@@ -83,43 +81,7 @@ export function NativeChatMessageList({
   botHome,
   turnBot,
   structuredAttachments = false
-}: {
-  turnBot?: BotChatIdentity | null
-  ref?: Parameters<typeof useNativeChatMessageListHandle>[0]
-  session: NativeChatLiveSession
-  structuredAttachments?: boolean
-  journalItems?: readonly AgentJournalRenderItem[]
-  /** With the items, what places each row in its turn (structured lane). */
-  journalSubmissions?: readonly AgentJournalSubmission[]
-  /** The host's newest turn record, which places a live turn whose record is not loaded. */
-  journalLatestTurn?: AgentSessionLatestTurn | null
-  /** The host's prompts still waiting on the person and its working answer (an older host: none). */
-  journalHostWork?: StructuredAgentSessionHostWork
-  /** Every subagent the session's rosters named, whether or not its roster row is loaded. */
-  subagentRoster?: StructuredAgentSubagentRoster
-  /** The subagent shown in place of the conversation (its own rows, no turns), and how to open one. */
-  subagentView?: NativeChatSubagentView
-  /** User messages older than the loaded window, from the host's outline. */
-  railOutline?: readonly NativeChatRailOutlineEntry[] | null
-  isVisible?: boolean
-  isWorking: boolean
-  /** Toolbar-driven desired open state for every tool run; each flip re-syncs. */
-  expandSignal: boolean
-  workingStartedAt?: number | null
-  /** Host durations by prompt id; otherwise fall back to a duration observed locally. */
-  settledTurns?: NativeChatSettledTurns
-  deliveryNotices?: ReadonlyMap<string, NativeChatDeliveryNotice>
-  /** Rows that are not part of the conversation but happened during it, such as workers' approvals. */
-  timedRows?: readonly NativeChatTimedRow[]
-  /** Set while the turn waits on the reader; the live activity line yields to it. */
-  awaitingInput?: NativeChatAwaitingInput | null
-  turnActivity?: NativeChatTurnActivity | null
-  /** A person's Stop is ending the live turn: its tail line reads "Stopping…". */
-  stopping?: boolean
-  runtimeContext?: RuntimeFileOperationArgs | null
-  /** A bot Chat's kickoff view, and a new bot's first screen over the transcript. */
-  botHome?: NativeChatBotKickoffView
-}): React.JSX.Element {
+}: NativeChatMessageListProps): React.JSX.Element {
   const receipts = useNativeChatQuestionReceipts(journalItems)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
@@ -355,7 +317,23 @@ export function NativeChatMessageList({
   return (
     <NativeChatBotHomeScope kickoff={botHome} isVisible={isVisible}>
       <NativeChatPullRequestChangeContext.Provider value={openedPullRequests.latestChangeKey}>
-        <NativeChatMilestoneLayout lead={scope.bar} sessionId={session.sessionId ?? ''} messages={messages} milestones={hostWork?.milestones} waitingForInput={awaitingInput !== null || (turnRows.unresolvedRowIds?.size ?? 0) > 0} enabled={structuredAttachments && subagentId === null && (session.agent === 'claude' || session.agent === 'codex')} working={isWorking}>
+        <NativeChatMilestoneLayout
+          lead={scope.bar}
+          sessionId={session.sessionId ?? ''}
+          messages={messages}
+          receipts={receipts}
+          loadingEarlier={loadingEarlier}
+          onLoadEarlier={() => void loadEarlier()}
+          milestones={hostWork?.milestones}
+          historyIncomplete={session.hasMore}
+          waitingForInput={awaitingInput !== null || (turnRows.unresolvedRowIds?.size ?? 0) > 0}
+          enabled={
+            structuredAttachments &&
+            subagentId === null &&
+            (session.agent === 'claude' || session.agent === 'codex')
+          }
+          working={isWorking}
+        >
           <NativeChatTranscriptViewport
             scrollRef={scrollRef}
             scrollerProps={{ onScroll: onTranscriptScroll, ...readerInput.scrollerProps }}
@@ -383,7 +361,9 @@ export function NativeChatMessageList({
                 loadingEarlier={loadingEarlier}
               />
             ) : null}
-            <div className={`pr-(--native-chat-milestone-gutter) ${nativeChatTranscriptOuterClass(rail.visible)}`}>
+            <div
+              className={`pr-(--native-chat-milestone-gutter) ${nativeChatTranscriptOuterClass(rail.visible)}`}
+            >
               <NativeChatTranscriptColumn ref={measureContent}>
                 {scope.lead}
                 <NativeChatTranscriptItems

@@ -1,4 +1,7 @@
-import { NativeChatMilestoneComposer } from './tools/tasks/NativeChatMilestoneLayout'
+import {
+  NativeChatMilestoneComposer,
+  NativeChatMilestoneComposerSlot
+} from './tools/tasks/NativeChatMilestoneLayout'
 import { useBotLinkPrompt } from '@/lib/agent-session/open/bot-link-item-target'
 import { NativeChatCrewFrame, NativeChatCrewPanel } from '../orchestration-crew/NativeChatCrewPanel'
 import { NativeChatUsageLimitActionsProvider } from './usage/NativeChatUsageLimitActions'
@@ -152,9 +155,9 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
   const handOff = useNativeChatHandOff({
     pane: props,
     directory: fileLinkContext,
-    messages: controller.messages,
     epoch: controller.epoch,
-    focusComposer
+    goal: controller.threadGoal?.goal,
+    milestones: controller.hostWork?.milestones
   })
   const paneCommands = useStructuredNativeChatPaneCommands({
     pane: props,
@@ -283,6 +286,8 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
                     >
                       {(timedRows) => (
                         <NativeChatSubagentTranscripts
+                          milestoneTransport={transport}
+                          backgroundTasks={controller.backgroundTasks}
                           find={surface.find}
                           // A rewind or a /clear replaces the conversation; nothing the old one held carries over.
                           key={`${controller.epoch}:${controller.contextClear.clears}`}
@@ -318,7 +323,10 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
           </NativeChatContextClearFade>
         </NativeChatCrewFrame>
         {readFailure?.final ? null : (
-          <NativeChatMilestoneComposer milestones={subagentOpen ? undefined : controller.hostWork?.milestones}>
+          <NativeChatMilestoneComposer
+            enabled={!subagentOpen}
+            milestonesAvailable={controller.hostWork?.milestones !== undefined}
+          >
             {/* Keep queued drafts outside the transcript and above the background-task dock. */}
             <NativeChatQueuedMessageList
               controller={submits.queuedMessages}
@@ -335,6 +343,10 @@ export function NativeChatStructuredSession(props: Omit<NativeChatStructuredView
               party={workerApprovalParty}
               target={props.target}
               isVisible={props.isVisible}
+            />
+            <NativeChatMilestoneComposerSlot
+              enabled={!subagentOpen}
+              milestonesAvailable={controller.hostWork?.milestones !== undefined}
             />
             {prompt || subagentOpen ? null : (
               <NativeChatStructuredComposerTabStrips

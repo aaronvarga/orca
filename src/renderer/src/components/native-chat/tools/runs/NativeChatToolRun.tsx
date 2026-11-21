@@ -86,7 +86,7 @@ export function NativeChatToolRun({
   const t = useTranslate()
   // This row owns the language subscription for its tool, diff, and task labels.
   useTranslation()
-  const spacing = followsProse ? 'mt-2' : undefined
+  const spacing = followsProse ? 'mt-1' : undefined
   // Rows drawn among the calls count as work too: a reader at the end follows them arriving.
   const asideCount = useMemo(
     () =>
@@ -206,7 +206,7 @@ export function NativeChatToolRun({
               {/* Keep the collapsed header bounded; the tool detail carries the full command. */}
               <span
                 className={cn(
-                  'min-w-0 line-clamp-2 whitespace-normal break-words text-sm leading-relaxed transition-colors',
+                  'min-w-0 line-clamp-2 whitespace-normal break-words font-mono text-xs leading-normal transition-colors',
                   live
                     ? 'max-w-[72%] shrink-0 animate-pulse text-chat-foreground motion-reduce:animate-none'
                     : 'min-w-0 text-chat-foreground-faint group-hover/tool-run:text-chat-foreground'
@@ -226,7 +226,7 @@ export function NativeChatToolRun({
               ) : null}
               {latestCallLabel ? (
                 <span className="flex min-w-0 items-center">
-                  <span className="min-w-0 truncate font-sans text-xs text-chat-foreground-faint">
+                  <span className="min-w-0 truncate font-mono text-xs text-chat-foreground-faint">
                     {latestCallLabel}
                   </span>
                 </span>

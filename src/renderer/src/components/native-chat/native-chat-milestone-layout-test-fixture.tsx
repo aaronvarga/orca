@@ -1,3 +1,6 @@
+import type { NativeChatResolvedPrompt } from '../../../../shared/native-chat/input/questions/native-chat-resolution-receipt'
+import type { NativeChatMessage } from '../../../../shared/native-chat/native-chat-types'
+import { useAppStore } from '@/store'
 import { NativeChatAgentVisualizerContext } from './subagents/NativeChatAgentVisualizer'
 import type { AgentChildRowModel } from '../../../../shared/agent-status/presentation/agent-child-row-model'
 import { NativeChatComposerTabStrip } from './composer/controls/NativeChatComposerTabStrip'
@@ -16,6 +19,7 @@ import {
 import { defineFixture, type ComponentFixture } from '../../component-fixtures/component-fixture'
 import {
   NativeChatMilestoneComposer,
+  NativeChatMilestoneComposerSlot,
   NativeChatMilestoneLayout
 } from './tools/tasks/NativeChatMilestoneLayout'
 import type { NativeChatMilestones } from '../../../../shared/native-chat/input/task-lists/native-chat-milestones'
@@ -54,15 +58,20 @@ export const list: NativeChatMilestones = {
     }
   ]
 }
+const NO_MESSAGES: readonly NativeChatMessage[] = []
 const NO_AGENT_ROWS: AgentChildRowModel[] = []
 
 export function Layout({
   width,
   plan = list,
+  messages = NO_MESSAGES,
+  receipts,
   agentRows = NO_AGENT_ROWS
 }: {
   width: number
   plan?: NativeChatMilestones | null
+  messages?: readonly NativeChatMessage[]
+  receipts?: ReadonlyMap<string, NativeChatResolvedPrompt>
   agentRows?: AgentChildRowModel[]
 }) {
   const style: CSSProperties & { '--chat-content-max-width': string } = {
@@ -74,7 +83,7 @@ export function Layout({
       value={{ rows: agentRows, incomplete: false, open: () => {} }}
     >
       <NativeChatMilestoneGenerationContext value={generationTransport}>
-        <NativeChatMilestoneVisibilityProvider>
+        <NativeChatMilestoneVisibilityProvider sessionId="fixture">
           <div
             className="native-chat-appearance @container/milestones [container-type:size] relative flex h-[640px] flex-col bg-chat-canvas"
             style={style}
@@ -87,7 +96,8 @@ export function Layout({
             </div>
             <NativeChatMilestoneLayout
               sessionId="fixture"
-              messages={[]}
+              messages={messages}
+              receipts={receipts}
               milestones={plan}
               enabled
               working
@@ -118,7 +128,7 @@ export function Layout({
                 </div>
               </div>
             </NativeChatMilestoneLayout>
-            <NativeChatMilestoneComposer milestones={plan}>
+            <NativeChatMilestoneComposer enabled>
               <NativeChatBackgroundTasksStatus
                 tasks={[
                   {
@@ -139,6 +149,7 @@ export function Layout({
                 onExpandedChange={() => {}}
                 onStop={() => {}}
               />
+              <NativeChatMilestoneComposerSlot enabled={plan !== undefined} />
               <NativeChatComposerTabStrip attached data-native-chat-thread-goal="active">
                 <span>Pursuing goal · Complete and verify the implementation</span>
               </NativeChatComposerTabStrip>
@@ -159,11 +170,24 @@ export function Layout({
     </NativeChatAgentVisualizerContext>
   )
 }
-export function visibleFixture(fixture: ComponentFixture) {
+export function milestoneFixture(fixture: ComponentFixture) {
   return defineFixture({
     ...fixture,
+    store: {
+      ...fixture.store,
+      updateSettingsOrThrow: async (updates) => {
+        const state = useAppStore.getState()
+        if (state.settings) {
+          useAppStore.setState({ settings: { ...state.settings, ...updates } })
+        }
+      }
+    }
+  })
+}
+export function visibleFixture(fixture: ComponentFixture) {
+  return milestoneFixture({
+    ...fixture,
     interact: async (frame) => {
-      frame.querySelector<HTMLButtonElement>('button[aria-pressed="false"]')?.click()
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
       const header = [...frame.querySelectorAll<HTMLButtonElement>('button')].find(
         (button) =>

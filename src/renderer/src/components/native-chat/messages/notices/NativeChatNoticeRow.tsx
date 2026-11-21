@@ -354,6 +354,8 @@ export function NativeChatNoticeRow({
     <div
       className={cn(
         'space-y-2 text-sm text-chat-foreground',
+        block.presentation === 'session-milestones' &&
+          '-my-1 font-mono text-2xs text-chat-foreground-faint',
         Icon && !resolved && 'rounded-md border border-border bg-muted/20 p-3',
         tone && toneClass(resolved ? 'notice' : tone)
       )}
